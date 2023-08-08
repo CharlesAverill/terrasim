@@ -38,7 +38,7 @@ debug: build
 
 DOCS_PATH=docs/
 DOCS_NAME=_PROJECT_NAME_
-DOCS_DESCR=An Ocaml Window Manager
+DOCS_DESCR=_PROJECT_DESCR_
 DOCS_INDEX_TITLE=$(DOCS_NAME) - $(DOCS_DESCR)
 define DOCS_EMBED
 <meta content="$(DOCS_NAME)" property="og:title" />\
