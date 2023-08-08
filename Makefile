@@ -61,10 +61,10 @@ docs: cleandocs build
 	
 	@echo "Preparing Index\n--------------"
 	# Header
-	sed -i "s/<title>.*<\/title>/<title>$(DOCS_INDEX_TITLE)<\/title>/g" $(DOCS_PATH)index.html
-	sed -i "s@</head>@<link rel="icon" href="media/favicon.ico" type="image/x-icon">\n</head>@g" $(DOCS_PATH)index.html
-	sed -i "s@</head>@$(DOCS_EMBED)\n</head>@g" $(DOCS_PATH)index.html
-	sed -i "s/..\/odoc.support/odoc.support/g" $(DOCS_PATH)index.html
+	sed -i 's/<title>.*<\/title>/<title>$(DOCS_INDEX_TITLE)<\/title>/g' $(DOCS_PATH)index.html
+	sed -i 's@</head>@<link rel="icon" href="media/favicon.ico" type="image/x-icon">\n</head>@g' $(DOCS_PATH)index.html
+	sed -i 's@</head>@$(DOCS_EMBED)\n</head>@g' $(DOCS_PATH)index.html
+	sed -i 's/..\/odoc.support/odoc.support/g' $(DOCS_PATH)index.html
 	# Body
 	sed -i "s@<nav class="odoc-nav">.*gbcamel</nav>@@g" $(DOCS_PATH)index.html
 
