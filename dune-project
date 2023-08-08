@@ -17,7 +17,7 @@
 
 (package
  (name _PROJECT_NAME_)
- (synopsis "An OCaml Window Mangaer")
- (description "A window manager built on top of the Graphics library")
+ (synopsis "_PROJECT_SYNOPSIS_")
+ (description "_PROJECT_DESCRIPTION_")
  (depends ocaml dune graphics))
 
