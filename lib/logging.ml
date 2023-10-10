@@ -25,12 +25,6 @@ type return_code = int * string
 
 let rc_Ok = (0, "OK")
 and rc_Error = (1, "ERROR")
-and rc_MemError = (2, "MEMORY ERROR")
-and rc_FileError = (3, "FILE ERROR")
-and rc_ArgError = (4, "ARGUMENT ERROR")
-and rc_DecodeError = (5, "DECODE ERROR")
-and rc_ImplementationError = (6, "IMPLEMENTATION ERROR")
-and rc_PPUError = (7, "PPU ERROR")
 
 (** ANSI encoding for bold text *)
 let ansi_bold = "\x1b[1m"
