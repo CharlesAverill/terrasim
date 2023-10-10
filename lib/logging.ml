@@ -74,8 +74,9 @@ let fatal rc message =
   exit (fst rc)
 
 (** Prints log statements to stdout/stderr *)
-let _log log_level log_level message =
-  if log_level = Log_None || int_of_log _GLOBAL_LOG_LEVEL > int_of_log log_level then ()
+let _log log_level message =
+  if log_level = Log_None || int_of_log _GLOBAL_LOG_LEVEL > int_of_log log_level
+  then ()
   else
     let stream =
       if log_level = Log_Debug || log_level = Log_Info then stdout else stderr
