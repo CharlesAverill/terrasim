@@ -9,6 +9,8 @@ type log_type =
   | Log_Error
   | Log_Critical
 
+let _GLOBAL_LOG_LEVEL = Log_Info
+
 (** Follows the order in the type definition, \[0:5\]*)
 let int_of_log = function
   | Log_Debug -> 1
@@ -73,7 +75,7 @@ let fatal rc message =
 
 (** Prints log statements to stdout/stderr *)
 let _log log_level log_level message =
-  if log_level = Log_None || log_level > int_of_log log_level then ()
+  if log_level = Log_None || int_of_log _GLOBAL_LOG_LEVEL > int_of_log log_level then ()
   else
     let stream =
       if log_level = Log_Debug || log_level = Log_Info then stdout else stderr
