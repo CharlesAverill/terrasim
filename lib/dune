@@ -1,2 +1,3 @@
 (library
- (name _PROJECT_NAME_))
+ (name _PROJECT_NAME_)
+ (modules logging)
