@@ -1,2 +1,3 @@
 (test
- (name _PROJECT_NAME_))
+ (name test)
+ (libraries alcotest))
