@@ -10,4 +10,3 @@ echo "dir: ./docs" > "$PROJECT_NAME.odocl"
 echo -e "{0 Index}\n\nHello World!" > "docs/$PROJECT_NAME.mld"
 
 rm setup.sh
-rm -rf .git
