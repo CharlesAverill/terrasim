@@ -5,24 +5,26 @@ on:
     branches: [ main ]
 
 jobs:
-  build_test:
+  build-and-test:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
+      - name: Checkout Tree
+        uses: actions/checkout@v4
 
-      - name: Use OCaml 4.13.x
-        uses: ocaml/setup-ocaml@v2
+      - name: Setup OCaml
+        uses: ocaml/setup-ocaml@v3
         with:
           ocaml-compiler: 4.13.x
+
+      - run: opam install . --deps-only --with-test
 
       - name: Install Dependencies
         run: |
           opam install . --deps-only --with-test
           eval $(opam env)
 
-      - name: Build Emulator
+      - name: Build Project
         run: make build
 
       - name: Run Unit Tests
@@ -32,11 +34,11 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
+      - name: Checkout Tree
+        uses: actions/checkout@v4
 
-      - name: Use OCaml 4.13.x
-        uses: ocaml/setup-ocaml@v2
+      - name: Setup OCaml
+        uses: ocaml/setup-ocaml@v3
         with:
           ocaml-compiler: 4.13.x
 
