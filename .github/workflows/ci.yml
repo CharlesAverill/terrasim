@@ -17,8 +17,6 @@ jobs:
         with:
           ocaml-compiler: 4.13.x
 
-      - run: opam install . --deps-only --with-test
-
       - name: Install Dependencies
         run: |
           opam install . --deps-only --with-test
