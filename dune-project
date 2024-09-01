@@ -19,5 +19,5 @@
  (name PROJECT_NAME_)
  (synopsis "_PROJECT_SYNOPSIS_")
  (description "_PROJECT_DESCRIPTION_")
- (depends ocaml dune))
+ (depends ocaml dune alcotest))
 
