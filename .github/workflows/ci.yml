@@ -61,7 +61,8 @@ jobs:
     needs: build_docs
     
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout Tree
+        uses: actions/checkout@v4
         with:
           ref: gh-pages
       
