@@ -11,3 +11,4 @@ rm docs/PROJECT_NAME_.mld
 echo -e "{0 Index}\n\nHello World!" > "docs/$PROJECT_NAME.mld"
 
 rm setup.sh
+rm PROJECT_NAME_.opam
