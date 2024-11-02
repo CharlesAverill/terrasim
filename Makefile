@@ -1,40 +1,40 @@
 .PHONY: default build install uninstall test clean fmt
 .IGNORE: fmt
 
+OPAM ?= opam
+OPAM_EXEC ?= $(OPAM) exec --
+DUNE ?= dune
+
 default: build
 
 fmt:
-	opam exec -- dune build @fmt
-	opam exec -- dune promote
+	$(OPAM_EXEC) $(DUNE) build @fmt
+	$(OPAM_EXEC) $(DUNE) promote
 
 build: fmt
-	opam exec -- dune build
+	$(OPAM_EXEC) $(DUNE) build
 
 install:
-	opam exec -- dune install
+	$(OPAM_EXEC) $(DUNE) install
 
 uninstall:
-	opam exec -- dune uninstall
+	$(OPAM_EXEC) $(DUNE) uninstall
 
 clean:
-	opam exec -- dune clean
+	$(OPAM_EXEC) $(DUNE) clean
 	git clean -dfXq
 
 test: fmt
-	opam exec -- dune runtest
+	$(OPAM_EXEC) $(DUNE) runtest
 
 testf: fmt
-	opam exec -- dune runtest -f
+	$(OPAM_EXEC) $(DUNE) runtest -f
 
 run: build
-	opam exec -- dune exec -- PROJECT_NAME_
-
-raw_run: build
-	clear
-	_build/default/bin/main.exe 
+	$(OPAM_EXEC) $(DUNE) exec -- PROJECT_NAME_
 
 debug: build
-	opam exec -- ocamldebug _build/default/PROJECT_NAME_/main.bc
+	$(OPAM_EXEC) ocamldebug _build/default/PROJECT_NAME_/main.bc
 
 DOCS_PATH=docs/
 DOCS_NAME=PROJECT_NAME_
@@ -53,7 +53,7 @@ cleandocs:
 	rm -rf $(DOCS_PATH)module $(DOCS_PATH)docs $(DOCS_PATH)odoc.support $(DOCS_PATH)index.html
 
 docs: cleandocs build
-	opam exec -- dune build @doc
+	$(OPAM_EXEC) $(DUNE) build @doc
 	mv -f _build/default/_doc/_html/* $(DOCS_PATH)
 	rm -f $(DOCS_PATH)index.html
 	mv $(DOCS_PATH)PROJECT_NAME_/PROJECT_NAME_.html $(DOCS_PATH)index.html
