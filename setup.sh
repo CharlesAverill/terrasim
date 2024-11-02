@@ -10,5 +10,10 @@ echo "dir: ./docs" > "$PROJECT_NAME.odocl"
 rm docs/PROJECT_NAME_.mld
 echo -e "{0 Index}\n\nHello World!" > "docs/$PROJECT_NAME.mld"
 
+rm README.md
+echo "# $PROJECT_NAME" > README.md
+echo "" >> README.md
+echo "$PROJECT_DESCRIPTION" >> README.md
+
 rm setup.sh
 rm PROJECT_NAME_.opam
