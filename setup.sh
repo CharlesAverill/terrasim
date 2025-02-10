@@ -21,3 +21,8 @@ rm setup.sh
 rm PROJECT_NAME_.opam
 
 mv "../.git.$PROJECT_NAME" .git
+
+echo "Creating gh_pages branch, pushing to origin/gh_pages"
+git checkout -b gh_pages
+git push origin gh_pages
+git checkout main
