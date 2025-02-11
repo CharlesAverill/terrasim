@@ -22,6 +22,9 @@ rm PROJECT_NAME_.opam
 
 mv "../.git.$PROJECT_NAME" .git
 
+echo "Installing project dependencies from $PROJECT_NAME.opam via opam install . --deps-only"
+opam install . --deps-only
+
 echo "Creating gh-pages branch, pushing to origin/gh-pages"
 git checkout -b gh-pages
 git push origin gh-pages
