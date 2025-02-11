@@ -1,12 +1,30 @@
 # Friendly OCaml Template
 
-Just run `setup.sh` to set up a ready-for-development OCaml environment
+Just run `setup.sh` to set up a ready-for-development OCaml environment.
+
+## Features
+
+- [Makefile](./Makefile) supporting rules:
+    - `build`
+    - `run`
+    - `install`, `uninstall`
+    - `fmt` (formatting using [ocamlformat](./.ocamlformat))
+    - `clean`
+    - `test` (run alcotest tests)
+    - `debug` (using ocamldebug)
+    - `docs` (documentation generation)
+    - `push` (build, clean, etc. then push to origin/main provided a commit message)
+- [Argument parsing](./bin/argparse.ml)
+- [Logging](./lib/logging.ml)
+- [Github CI](./.github):
+    - Build and Test
+    - Build and publish docs to `gh-pages` branch for automatic documentation publication
 
 ## Warning
-Project description and synopsis should not include single quotes
+Project description and synopsis should not include single quotes.
 
 ## Docs note
-Once you modify `docs/PROJECT_NAME.mld` to contain multiple sections, the `up - PROJECT_NAME` navigation at the top of the index page will disappear, and a navigation sidebar will replace it
+Once you modify `docs/PROJECT_NAME.mld` to contain multiple sections, the `up - PROJECT_NAME` navigation at the top of the index page will disappear, and a navigation sidebar will replace it.
 
 ## License 
 The default license generated is MIT, but feel free to change it. <b>THIS TEMPLATE IS LICENSED UNDER THE UNLICENSE</b>
