@@ -4,7 +4,7 @@ synopsis: "_PROJECT_SYNOPSIS_"
 description: "_PROJECT_DESCRIPTION_"
 maintainer: ["_PROJECT_MAINTAINER"]
 authors: ["_PROJECT_MAINTAINER"]
-license: "LICENSE"
+license: "_PROJECT_LICENSE_"
 homepage: "https://github.com/_AUTHOR_USERNAME_/_PROJECT_NAME_"
 doc: "https://github.com/_AUTHOR_USERNAME_/_PROJECT_NAME_"
 bug-reports: "https://github.com/_AUTHOR_USERNAME_/_PROJECT_NAME_/issues"
