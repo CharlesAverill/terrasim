@@ -11,7 +11,7 @@
 
 (maintainers "_AUTHOR_NAME_")
 
-(license MIT)
+(license _SPX_LICENSE_)
 
 (documentation https://github.com/_AUTHOR_USERNAME_/PROJECT_NAME_)
 
