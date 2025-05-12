@@ -1,4 +1,4 @@
 (executable
- (public_name PROJECT_NAME_)
+ (public_name TerraSim)
  (name main)
- (libraries PROJECT_NAME_))
+ (libraries TerraSim))

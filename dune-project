@@ -1,23 +1,23 @@
 (lang dune 3.9)
 
-(name PROJECT_NAME_)
+(name TerraSim)
 
 (generate_opam_files true)
 
 (source
- (github _AUTHOR_USERNAME_/PROJECT_NAME_))
+ (github CharlesAverill/TerraSim))
 
-(authors "_AUTHOR_NAME_")
+(authors "Charles Averill")
 
-(maintainers "_AUTHOR_NAME_")
+(maintainers "Charles Averill")
 
 (license _SPX_LICENSE_)
 
-(documentation https://github.com/_AUTHOR_USERNAME_/PROJECT_NAME_)
+(documentation https://github.com/CharlesAverill/TerraSim)
 
 (package
- (name PROJECT_NAME_)
- (synopsis "_PROJECT_SYNOPSIS_")
- (description "_PROJECT_DESCRIPTION_")
+ (name TerraSim)
+ (synopsis "A SimEarth clone")
+ (description "A SimEarth clone")
  (depends ocaml dune alcotest ocamlformat odoc))
 

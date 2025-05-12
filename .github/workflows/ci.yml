@@ -75,8 +75,8 @@ jobs:
       - name: Commit
         uses: EndBug/add-and-commit@v9
         with:
-          author_name: _AUTHOR_NAME_
-          author_email: _AUTHOR_EMAIL_
+          author_name: Charles Averill
+          author_email: charlesaverill20@gmail.com
           message: "Latest docs - ${{ github.event.repository.updated_at}}"
           branch: gh-pages
           add: '[./*]'

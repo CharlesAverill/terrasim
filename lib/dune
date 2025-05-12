@@ -1,4 +1,4 @@
 (library
- (name PROJECT_NAME_)
- (public_name PROJECT_NAME_)
+ (name TerraSim)
+ (public_name TerraSim)
  (modules logging))
