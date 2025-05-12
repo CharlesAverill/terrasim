@@ -1,4 +1,4 @@
 (library
  (name TerraSim)
  (public_name TerraSim)
- (modules logging))
+ (libraries tsdl))

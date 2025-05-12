@@ -4,7 +4,7 @@ synopsis: "A SimEarth clone"
 description: "A SimEarth clone"
 maintainer: ["Charles Averill"]
 authors: ["Charles Averill"]
-license: "_SPX_LICENSE_"
+license: "MIT"
 homepage: "https://github.com/CharlesAverill/TerraSim"
 doc: "https://github.com/CharlesAverill/TerraSim"
 bug-reports: "https://github.com/CharlesAverill/TerraSim/issues"
@@ -14,6 +14,7 @@ depends: [
   "alcotest"
   "ocamlformat"
   "odoc"
+  "tsdl" {>= "1.1.0"}
 ]
 build: [
   ["dune" "subst"] {dev}

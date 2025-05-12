@@ -11,7 +11,7 @@
 
 (maintainers "Charles Averill")
 
-(license _SPX_LICENSE_)
+(license MIT)
 
 (documentation https://github.com/CharlesAverill/TerraSim)
 
@@ -19,5 +19,6 @@
  (name TerraSim)
  (synopsis "A SimEarth clone")
  (description "A SimEarth clone")
- (depends ocaml dune alcotest ocamlformat odoc))
+ (depends ocaml dune alcotest ocamlformat odoc 
+  (tsdl (>= 1.1.0))))
 

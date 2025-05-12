@@ -33,6 +33,8 @@ let rc_Ok = (0, "OK")
 
 and rc_Error = (1, "ERROR")
 
+and rc_SDL = (2, "SDL")
+
 (** ANSI encoding for bold text *)
 let ansi_bold = "\x1b[1m"
 
@@ -73,25 +75,33 @@ let string_of_log = function
       ansi_reset ^ "[NONE]"
 
 (** A fatal log statement that immediately exits the program *)
-let fatal rc message =
-  Printf.fprintf stderr
-    "%s[%s] - %s%s\n----------------------------------------\n" error_red
-    (snd rc) ansi_reset message ;
-  flush stderr ;
-  exit (fst rc)
+let fatal rc fmt =
+  Printf.ksprintf
+    (fun msg ->
+      Printf.fprintf stderr
+        "%s[%s] - %s%s\n----------------------------------------\n" error_red
+        (snd rc) ansi_reset msg ;
+      flush stderr ;
+      exit (fst rc) )
+    fmt
 
 (** Prints log statements to stdout/stderr *)
-let _log log_level message =
+let _log log_level fmt =
   if log_level = Log_None || int_of_log _GLOBAL_LOG_LEVEL > int_of_log log_level
   then
-    ()
+    Printf.ksprintf (fun _ -> ()) fmt
   else
-    let stream =
-      if log_level = Log_Debug || log_level = Log_Info then
-        stdout
-      else
-        stderr
-    in
-    Printf.fprintf stream "LOG:%s%s - %s\n" (string_of_log log_level) ansi_reset
-      message ;
-    flush stream
+    Printf.ksprintf
+      (fun msg ->
+        let stream =
+          if log_level = Log_Debug || log_level = Log_Info then
+            stdout
+          else
+            stderr
+        in
+        Printf.fprintf stream "LOG:%s%s - %s\n" (string_of_log log_level)
+          ansi_reset msg ;
+        flush stream )
+      fmt
+
+let err fmt = _log Log_Error fmt
