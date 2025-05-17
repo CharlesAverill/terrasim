@@ -4,14 +4,16 @@
 OPAM ?= opam
 OPAM_EXEC ?= $(OPAM) exec --
 DUNE ?= dune
+PYTHON ?= python
 
 default: build
 
 fmt:
-	$(OPAM_EXEC) $(DUNE) build @fmt
+	$(OPAM_EXEC) $(DUNE) fmt
 	$(OPAM_EXEC) $(DUNE) promote
 
 build: fmt
+	$(PYTHON) assets/sprites/gen_sprites_file.py lib/assets/sprites.ml
 	$(OPAM_EXEC) $(DUNE) build
 
 install:
@@ -34,7 +36,7 @@ run: build
 	$(OPAM_EXEC) $(DUNE) exec -- TerraSim
 
 debug: build
-	$(OPAM_EXEC) ocamldebug _build/default/TerraSim/main.bc
+	$(OPAM_EXEC) ocamldebug _build/terrasim/TerraSim/main.bc
 
 DOCS_PATH=docs/
 DOCS_NAME=TerraSim
@@ -54,7 +56,7 @@ cleandocs:
 
 docs: cleandocs build
 	$(OPAM_EXEC) $(DUNE) build @doc
-	mv -f _build/default/_doc/_html/* $(DOCS_PATH)
+	mv -f _build/terrasim/_doc/_html/* $(DOCS_PATH)
 	rm -f $(DOCS_PATH)index.html
 	mv $(DOCS_PATH)TerraSim/TerraSim.html $(DOCS_PATH)index.html
 	mv $(DOCS_PATH)TerraSim $(DOCS_PATH)module

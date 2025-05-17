@@ -19,6 +19,17 @@
  (name TerraSim)
  (synopsis "A SimEarth clone")
  (description "A SimEarth clone")
- (depends ocaml dune alcotest ocamlformat odoc 
-  (tsdl (>= 1.1.0))))
+ (depends 
+  (ocaml (= 4.14.3)) 
+  dune
+  (alcotest :with-test)
+  (ocamlformat :with-test)
+  (ocaml-lsp-server :with-test)
+  (merlin :with-test)
+  (odoc :with-doc)
+  (tsdl (= 1.1.0))
+  tsdl-image
+  ppx_blob
+ )
+)
 

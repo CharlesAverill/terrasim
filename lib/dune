@@ -1,4 +1,10 @@
+(include_subdirs unqualified)
+
 (library
  (name TerraSim)
  (public_name TerraSim)
- (libraries tsdl))
+ (libraries tsdl tsdl-image)
+ (preprocess
+  (pps ppx_blob))
+ (preprocessor_deps
+  (source_tree ../assets)))

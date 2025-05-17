@@ -9,12 +9,16 @@ homepage: "https://github.com/CharlesAverill/TerraSim"
 doc: "https://github.com/CharlesAverill/TerraSim"
 bug-reports: "https://github.com/CharlesAverill/TerraSim/issues"
 depends: [
-  "ocaml"
+  "ocaml" {= "4.14.3"}
   "dune" {>= "3.9"}
-  "alcotest"
-  "ocamlformat"
-  "odoc"
-  "tsdl" {>= "1.1.0"}
+  "alcotest" {with-test}
+  "ocamlformat" {with-test}
+  "ocaml-lsp-server" {with-test}
+  "merlin" {with-test}
+  "odoc" {with-doc}
+  "tsdl" {= "1.1.0"}
+  "tsdl-image"
+  "ppx_blob"
 ]
 build: [
   ["dune" "subst"] {dev}

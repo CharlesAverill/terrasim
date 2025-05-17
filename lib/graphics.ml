@@ -1,6 +1,7 @@
 open Logging
 open Tsdl
 open Sdl.Window
+open Spriteloader
 
 let ( let* ) r f =
   match r with Ok x -> f x | Error (`Msg e) -> fatal rc_SDL "%s" e
@@ -10,11 +11,16 @@ let init_sdl () =
   ()
 
 let create_window ?(w : int = 1920) ?(h : int = 1080) (window_name : string) =
-  let* w =
-    Sdl.create_window ~w ~h window_name
-      (Sdl.Window.resizable + Sdl.Window.opengl)
-  in
+  let* w = Sdl.create_window ~w ~h window_name Sdl.Window.opengl in
+  Sdl.set_window_minimum_size w ~w:1280 ~h:720 ;
   w
+
+let create_renderer window =
+  let* r = Sdl.create_renderer ~flags:Sdl.Renderer.software window in
+  r
+
+let set_window_icon window blob =
+  Sdl.set_window_icon window (surface_of_blob blob)
 
 let get_window_surf (w : Sdl.window) =
   let* s = Sdl.get_window_surface w in
