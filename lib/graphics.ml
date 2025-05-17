@@ -11,7 +11,10 @@ let init_sdl () =
   ()
 
 let create_window ?(w : int = 1920) ?(h : int = 1080) (window_name : string) =
-  let* w = Sdl.create_window ~w ~h window_name Sdl.Window.opengl in
+  let* w =
+    Sdl.create_window ~w ~h window_name
+      (Sdl.Window.opengl + Sdl.Window.fullscreen_desktop)
+  in
   Sdl.set_window_minimum_size w ~w:1280 ~h:720 ;
   w
 

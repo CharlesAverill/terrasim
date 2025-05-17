@@ -9,7 +9,7 @@ type log_type =
   | Log_Error
   | Log_Critical
 
-let _GLOBAL_LOG_LEVEL = Log_Info
+let _GLOBAL_LOG_LEVEL = Log_Debug
 
 (** Follows the order in the type definition, \[0:5\]*)
 let int_of_log = function
