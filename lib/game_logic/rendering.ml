@@ -6,6 +6,7 @@ open Cursor
 open Worldgrid
 open Biomes
 open Spriteloader
+open Globals
 
 let animated_tile_update_factor = 16
 
@@ -29,11 +30,11 @@ let do_render window renderer frame_counter fps =
   let window_w, window_h =
     match Sdl.get_window_size window with w, h -> (w, h)
   in
-  let tile_w = window_w / view_width in
-  let tile_h = window_h / view_height in
+  tile_w := window_w / view_width ;
+  tile_h := window_h / view_height ;
   (* 2. Determine number of tiles to draw (view width/height) *)
-  let tiles_x = window_w / tile_w in
-  let tiles_y = window_h / tile_h in
+  let tiles_x = window_w / !tile_w in
+  let tiles_y = window_h / !tile_h in
   (* 3. Render each tile relative to camera *)
   for dy = 0 to tiles_y - 1 do
     for dx = 0 to tiles_x - 1 do
@@ -41,7 +42,8 @@ let do_render window renderer frame_counter fps =
       let gy = (current_camera.y + dy) mod world_height in
       let tile = grid.(gy).(gx) in
       let dst_rect =
-        Sdl.Rect.create ~x:(dx * tile_w) ~y:(dy * tile_h) ~w:tile_w ~h:tile_h
+        Sdl.Rect.create ~x:(dx * !tile_w) ~y:(dy * !tile_h) ~w:!tile_w
+          ~h:!tile_h
       in
       ignore
         (Sdl.render_copy renderer

@@ -1,4 +1,5 @@
 open Sprites
+open Utils
 
 type biome =
   | Arctic
@@ -7,7 +8,7 @@ type biome =
   | Forest
   | Grass
   | Jungle
-  | Nothing
+  | Nothing of int
   | Swamp
 
 type ocean = Shallow | Regular | Deep
@@ -29,8 +30,8 @@ let blob_of_tile frame_count = function
       biomes_grass_sprite
   | Land Jungle ->
       biomes_jungle_sprite
-  | Land Nothing ->
-      biomes_nothing_sprite
+  | Land (Nothing x) ->
+      List.nth land_sprites (Utils.clamp x 0 (List.length land_sprites))
   | Land Swamp ->
       biomes_swamp_sprite
   | Ocean Shallow ->
@@ -40,4 +41,4 @@ let blob_of_tile frame_count = function
   | Ocean Deep ->
       List.nth ocean_deep_sprites (frame_count mod sprites_per_animated_tile)
 
-let tile_w, tile_h = (16, 16)
+let tile_sprite_w, tile_sprite_h = (16, 16)
