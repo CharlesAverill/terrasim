@@ -14,7 +14,7 @@ fmt:
 
 build: fmt
 	$(PYTHON) assets/sprites/gen_sprites_file.py lib/assets/sprites.ml
-	$(OPAM_EXEC) $(DUNE) build
+	$(OPAM_EXEC) $(DUNE) build --profile=release
 
 install:
 	$(OPAM_EXEC) $(DUNE) install

@@ -3,7 +3,7 @@
 (library
  (name TerraSim)
  (public_name TerraSim)
- (libraries tsdl tsdl-image domainslib)
+ (libraries tsdl tsdl-image domainslib ctypes ctypes.foreign digestif)
  (preprocess
   (pps ppx_blob))
  (preprocessor_deps

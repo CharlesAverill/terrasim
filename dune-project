@@ -31,6 +31,7 @@
   tsdl-image
   ppx_blob
   domainslib
+  digestif
  )
 )
 

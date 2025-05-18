@@ -20,6 +20,7 @@ depends: [
   "tsdl-image"
   "ppx_blob"
   "domainslib"
+  "digestif"
 ]
 build: [
   ["dune" "subst"] {dev}

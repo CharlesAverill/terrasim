@@ -1,4 +1,5 @@
 open Tsdl
+open Sdl
 open Tsdl_image
 open Logging
 open Utils
@@ -18,12 +19,17 @@ let rec surface_of_blob blob =
       surface_of_blob blob
 
 (* Load the image and create an SDL texture *)
+let blob_cache : (string, Sdl.texture) Hashtbl.t = Hashtbl.create 100
+
 let texture_of_blob renderer blob =
-  let* rw = rwops_of_blob blob in
-  let surface = surface_of_blob blob in
-  match Sdl.create_texture_from_surface renderer surface with
-  | Error (`Msg e) ->
+  let digest = Digestif.SHA1.digest_string (fst blob) |> Digestif.SHA1.to_hex in
+  match Hashtbl.find_opt blob_cache digest with
+  | Some texture ->
+      texture
+  | None ->
+      let* rw = rwops_of_blob blob in
+      let surface = surface_of_blob blob in
+      let* texture = Sdl.create_texture_from_surface renderer surface in
       Sdl.free_surface surface ;
-      failwith ("Create texture failed: " ^ e)
-  | Ok texture ->
-      Sdl.free_surface surface ; texture
+      Hashtbl.add blob_cache digest texture ;
+      texture
