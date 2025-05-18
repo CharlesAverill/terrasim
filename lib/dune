@@ -3,7 +3,7 @@
 (library
  (name TerraSim)
  (public_name TerraSim)
- (libraries tsdl tsdl-image)
+ (libraries tsdl tsdl-image domainslib)
  (preprocess
   (pps ppx_blob))
  (preprocessor_deps

@@ -1,20 +1,20 @@
 open Biomes
 open Utils
 
-let world_width = 256
+let world_width = 128
 
-let world_height = 128
+let world_height = 64
 
-let grid = Array.make_matrix world_height world_width (Ocean Regular)
+let grid = Array.make_matrix world_height world_width (Ocean Deep)
 
 let get_global_tile x y =
-  if x < 0 || y < 0 then
+  if x < 0 || y < 0 || x >= world_width || y >= world_height then
     None
   else
-    Some grid.(mod_wrap y world_height).(mod_wrap x world_width)
+    Some grid.(y).(x)
 
 let set_global_tile x y t =
-  if x < 0 || y < 0 then
+  if x < 0 || y < 0 || x >= world_width || y >= world_height then
     ()
   else
-    grid.(mod_wrap y world_height).(mod_wrap x world_width) <- t
+    grid.(y).(x) <- t

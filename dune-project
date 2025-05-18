@@ -20,7 +20,7 @@
  (synopsis "A SimEarth clone")
  (description "A SimEarth clone")
  (depends 
-  (ocaml (= 4.14.3)) 
+  (ocaml (= 5.3.0)) 
   dune
   (alcotest :with-test)
   (ocamlformat :with-test)
@@ -30,6 +30,7 @@
   (tsdl (= 1.1.0))
   tsdl-image
   ppx_blob
+  domainslib
  )
 )
 

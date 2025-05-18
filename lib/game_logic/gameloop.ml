@@ -3,6 +3,8 @@ open Sdl
 open Graphics
 open Ui
 open Logging
+open Camera
+open Cursor
 
 let frame_counter : uint8 ref = ref 64
 
@@ -20,12 +22,23 @@ let gameloop_iter window renderer event =
   let loop_continue = ref true in
   pump_events () ;
   while poll_event (Some event) do
-    if Event.get event Event.keyboard_keycode = K.escape then
-      loop_continue := false ;
-    handle_ui_event event
+    if Event.get event Event.typ = Event.key_down then
+      if Event.get event Event.keyboard_keycode = Sdl.K.escape then
+        loop_continue := false ;
+    match !current_camera_mode with
+    | Flat2D _ ->
+        handle_atlas_ui_event event window renderer
+    | Globe3D ->
+        handle_globe_ui_event event window renderer
   done ;
   (* Render *)
-  Rendering.do_render window renderer !frame_counter !real_fps ;
+  ( match !current_camera_mode with
+  | Flat2D _ ->
+      pan_camera_if_needed window ;
+      cursor_go_to_camera () ;
+      Rendering.render_atlas window renderer !frame_counter !real_fps
+  | Globe3D ->
+      Rendering.render_globe window renderer !frame_counter !real_fps ) ;
   (* Delay for ideal framerate *)
   let frame_time = Int32.sub (Sdl.get_ticks ()) frame_start in
   if frame_time < frame_delay then Sdl.delay (Int32.sub frame_delay frame_time) ;

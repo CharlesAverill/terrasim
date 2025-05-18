@@ -46,7 +46,7 @@ def write_sprite_bindings():
         rel_path = path.as_posix()
         ident = f"{flatten_path(path.relative_to(SPRITES_DIR))}_sprite"
 
-        bindings.append(f'let {ident} : string = [%blob "{rel_path}"]')
+        bindings.append(f'let {ident} : string * string = "{rel_path}", [%blob "{rel_path}"]')
 
         group_key = get_group_key(path)
         groups[group_key].append(ident)
@@ -65,7 +65,7 @@ def write_sprite_bindings():
                 continue
             list_name = f"{group}_sprites"
             list_elems = "; ".join(idents)
-            f.write(f"let {list_name} : string list = [{list_elems}]\n")
+            f.write(f"let {list_name} : (string * string) list = [{list_elems}]\n")
 
 if __name__ == "__main__":
     write_sprite_bindings()

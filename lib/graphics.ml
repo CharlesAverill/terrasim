@@ -1,20 +1,15 @@
 open Logging
 open Tsdl
-open Sdl.Window
 open Spriteloader
-
-let ( let* ) r f =
-  match r with Ok x -> f x | Error (`Msg e) -> fatal rc_SDL "%s" e
+open Utils
 
 let init_sdl () =
   let* _ = Sdl.init Sdl.Init.(video + events) in
   ()
 
 let create_window ?(w : int = 1920) ?(h : int = 1080) (window_name : string) =
-  let* w =
-    Sdl.create_window ~w ~h window_name
-      (Sdl.Window.opengl + Sdl.Window.fullscreen_desktop)
-  in
+  let open Sdl.Window in
+  let* w = Sdl.create_window ~w ~h window_name Sdl.Window.opengl in
   Sdl.set_window_minimum_size w ~w:1280 ~h:720 ;
   w
 
@@ -57,3 +52,76 @@ let hsv_to_rgb h s v =
   let m = (float v /. 255.0) -. c in
   let scale x = int_of_float ((x +. m) *. 255.0) in
   (scale r, scale g, scale b)
+
+(* https://gist.github.com/Gumichan01/332c26f6197a432db91cc4327fcabb1c *)
+let render_draw_circle renderer x y radius =
+  let rec loop offsetx offsety d status =
+    if offsety < offsetx then
+      status
+    else
+      let draw_points : (int * int) list =
+        [ (x + offsetx, y + offsety)
+        ; (x + offsety, y + offsetx)
+        ; (x - offsetx, y + offsety)
+        ; (x - offsety, y + offsetx)
+        ; (x + offsetx, y - offsety)
+        ; (x + offsety, y - offsetx)
+        ; (x - offsetx, y - offsety)
+        ; (x - offsety, y - offsetx) ]
+      in
+      let status =
+        List.fold_left
+          (fun acc (px, py) ->
+            match Sdl.render_draw_point renderer px py with
+            | Ok () ->
+                acc
+            | Error _ ->
+                -1 )
+          status draw_points
+      in
+      if status < 0 then
+        status
+      else if d >= 2 * offsetx then
+        loop (offsetx + 1) offsety (d - (2 * offsetx) - 1) status
+      else if d < 2 * (radius - offsety) then
+        loop offsetx (offsety - 1) (d + (2 * offsety) - 1) status
+      else
+        loop (offsetx + 1) (offsety - 1)
+          (d + (2 * (offsety - offsetx - 1)))
+          status
+  in
+  loop 0 radius (radius - 1) 0
+
+let render_fill_circle renderer x y radius =
+  let rec loop offsetx offsety d status =
+    if offsety < offsetx then
+      status
+    else
+      let draw_lines =
+        [ (x - offsety, y + offsetx, x + offsety, y + offsetx)
+        ; (x - offsetx, y + offsety, x + offsetx, y + offsety)
+        ; (x - offsetx, y - offsety, x + offsetx, y - offsety)
+        ; (x - offsety, y - offsetx, x + offsety, y - offsetx) ]
+      in
+      let status =
+        List.fold_left
+          (fun acc (x1, y1, x2, y2) ->
+            match Sdl.render_draw_line renderer x1 y1 x2 y2 with
+            | Ok () ->
+                acc
+            | Error _ ->
+                -1 )
+          status draw_lines
+      in
+      if status < 0 then
+        status
+      else if d >= 2 * offsetx then
+        loop (offsetx + 1) offsety (d - (2 * offsetx) - 1) status
+      else if d < 2 * (radius - offsety) then
+        loop offsetx (offsety - 1) (d + (2 * offsety) - 1) status
+      else
+        loop (offsetx + 1) (offsety - 1)
+          (d + (2 * (offsety - offsetx - 1)))
+          status
+  in
+  loop 0 radius (radius - 1) 0
