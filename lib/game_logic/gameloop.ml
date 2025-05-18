@@ -8,7 +8,7 @@ open Cursor
 
 let frame_counter : uint8 ref = ref 64
 
-let target_fps = 30
+let target_fps = 60
 
 let real_fps = ref 0
 
@@ -42,7 +42,7 @@ let gameloop_iter window renderer event =
   (* Delay for ideal framerate *)
   let frame_time = Int32.sub (Sdl.get_ticks ()) frame_start in
   if frame_time < frame_delay then Sdl.delay (Int32.sub frame_delay frame_time) ;
-  real_fps := 1000 / Int32.to_int frame_time ;
+  real_fps := 1000 / (1 + Int32.to_int frame_time) ;
   _log Log_Debug "FPS: %d" !real_fps ;
   !loop_continue
 

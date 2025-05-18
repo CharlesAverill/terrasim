@@ -17,8 +17,13 @@ let create_window ?(w : int = 1920) ?(h : int = 1080) (window_name : string) =
   w
 
 let create_renderer window =
-  let* r = create_renderer ~flags:Renderer.software window in
-  r
+  let open Renderer in
+  match create_renderer ~flags:(accelerated + presentvsync) window with
+  | Error _ ->
+      let* r = create_renderer ~flags:(software + presentvsync) window in
+      r
+  | Ok r ->
+      r
 
 let set_window_icon window blob = set_window_icon window (surface_of_blob blob)
 
