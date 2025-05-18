@@ -70,8 +70,6 @@ let render_atlas window renderer frame_counter fps =
   (* 5. Show result *)
   Sdl.render_present renderer
 
-let globe_cache : (int * int, Sdl.texture) Hashtbl.t = Hashtbl.create 100
-
 let render_globe window renderer frame_counter fps =
   let lon_q = !rotation_lon in
   let lat_q = !rotation_lat in

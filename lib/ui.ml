@@ -78,7 +78,8 @@ let globe_handle_textinput e window renderer =
   match text with "c" -> toggle_camera_mode renderer | _ -> ()
 
 let handle_atlas_ui_event (e : Sdl.event) window renderer =
-  match get e typ with
+  let atlas_updated = ref false in
+  ( match get e typ with
   | t when t = mouse_motion ->
       let* _ = show_cursor true in
       ()
@@ -90,7 +91,8 @@ let handle_atlas_ui_event (e : Sdl.event) window renderer =
       set_global_cursor tile_x tile_y ;
       match button with
       | 1 (* Left click *) ->
-          raise_terrain_gaussian tile_x tile_y
+          raise_terrain_gaussian tile_x tile_y ;
+          atlas_updated := true
       | 3 (* Right click *) ->
           let current_tile =
             match get_global_tile tile_x tile_y with
@@ -99,7 +101,8 @@ let handle_atlas_ui_event (e : Sdl.event) window renderer =
             | Some x ->
                 x
           in
-          set_global_tile tile_x tile_y (decrease_tile current_tile)
+          set_global_tile tile_x tile_y (decrease_tile current_tile) ;
+          atlas_updated := true
       | _ ->
           () )
   | t when t = text_input ->
@@ -108,7 +111,8 @@ let handle_atlas_ui_event (e : Sdl.event) window renderer =
   | t when t = key_down ->
       atlas_handle_scancodes e window
   | _ ->
-      ()
+      () ) ;
+  if !atlas_updated then clear_globe_cache ()
 
 let handle_globe_ui_event (e : Sdl.event) window renderer =
   match get e typ with
