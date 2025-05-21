@@ -1,0 +1,3 @@
+(library
+ (name native)
+ (public_name TerraSim.native))

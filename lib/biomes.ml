@@ -8,16 +8,16 @@ type biome =
   | Forest
   | Grass
   | Jungle
-  | Nothing of int
+  | Nothing
   | Swamp
 
 type ocean = Shallow | Regular | Deep
 
-type tile = Land of biome | Ocean of ocean
+type biome_tile = Land of biome | Ocean of ocean
 
 let sprites_per_animated_tile = 8
 
-let blob_of_tile frame_count = function
+let blob_of_tile frame_count altitude = function
   | Land Arctic ->
       biomes_arctic_sprite
   | Land Boreal ->
@@ -30,8 +30,8 @@ let blob_of_tile frame_count = function
       biomes_grass_sprite
   | Land Jungle ->
       biomes_jungle_sprite
-  | Land (Nothing x) ->
-      List.nth land_sprites (Utils.clamp x 0 (List.length land_sprites))
+  | Land Nothing ->
+      List.nth land_sprites (Utils.clamp altitude 0 (List.length land_sprites))
   | Land Swamp ->
       biomes_swamp_sprite
   | Ocean Shallow ->
