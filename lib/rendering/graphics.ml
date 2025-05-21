@@ -11,7 +11,7 @@ let init_sdl () =
 let create_window ?(w : int = 1920) ?(h : int = 1080) (window_name : string) =
   let open Window in
   let* w =
-    create_window ~w ~h window_name (Window.vulkan + Window.fullscreen_desktop)
+    create_window ~w ~h window_name (Window.opengl + Window.fullscreen_desktop)
   in
   set_window_minimum_size w ~w:1280 ~h:720 ;
   w

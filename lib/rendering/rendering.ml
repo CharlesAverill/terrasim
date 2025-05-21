@@ -9,25 +9,51 @@ open Spriteloader
 open Globals
 open Utils
 open Graphics
+open Gradients
+open Altitude
+open Globe_render.Globe_render_stubs
 
 let animated_tile_update_factor = 16
 
 let scale () = scaled_tile_w () / tile_sprite_w
 
 (* Create the cache *)
-let tile_texture_cache : (tile * int, Sdl.texture) Hashtbl.t =
+let tile_texture_cache : (biome_tile * int * int, Sdl.texture) Hashtbl.t =
   Hashtbl.create 1024
 
 (* Cached texture_of_tile function *)
-let texture_of_tile renderer (t : tile) frame_count =
+let texture_of_tile renderer (t : world_tile) frame_count =
   let frame_count = frame_count / animated_tile_update_factor in
-  match Hashtbl.find_opt tile_texture_cache (t, frame_count) with
+  match
+    Hashtbl.find_opt tile_texture_cache (t.biome, t.altitude, frame_count)
+  with
   | Some tex ->
       tex
   | None ->
-      let tex = texture_of_blob renderer (blob_of_tile frame_count t) in
-      Hashtbl.add tile_texture_cache (t, frame_count) tex ;
+      let tex =
+        texture_of_blob renderer (blob_of_tile frame_count t.altitude t.biome)
+      in
+      Hashtbl.add tile_texture_cache (t.biome, t.altitude, frame_count) tex ;
       tex
+
+let render_rgb_buffer renderer
+    (buffer : rgb_pixel Ctypes.structure Ctypes.carray) ~win_w ~win_h =
+  let open Ctypes in
+  let ptr = CArray.start buffer in
+  for y = 0 to win_h - 1 do
+    for x = 0 to win_w - 1 do
+      let i = (y * win_w) + x in
+      let pixel_ptr = CArray.get buffer i in
+      (* pointer to the struct *)
+      let r = Unsigned.UInt8.to_int (Ctypes.getf pixel_ptr r) in
+      let g = Unsigned.UInt8.to_int (Ctypes.getf pixel_ptr g) in
+      let b = Unsigned.UInt8.to_int (Ctypes.getf pixel_ptr b) in
+      let* () = Sdl.set_render_draw_color renderer r g b 255 in
+      let rect = Sdl.Rect.create ~x ~y ~w:1 ~h:1 in
+      let* () = Sdl.render_fill_rect renderer (Some rect) in
+      ()
+    done
+  done
 
 let render_atlas window renderer frame_counter fps =
   let* _ = Sdl.render_clear renderer in
@@ -70,6 +96,39 @@ let render_atlas window renderer frame_counter fps =
   (* 5. Show result *)
   Sdl.render_present renderer
 
+let draw_starfield renderer =
+  let draw_point x y b =
+    let* () = Sdl.set_render_draw_color renderer b b b 255 in
+    let rect = Sdl.Rect.create ~x ~y ~w:1 ~h:1 in
+    let* _ = Sdl.render_fill_rect renderer (Some rect) in
+    ()
+  in
+  let* width, height = get_renderer_output_size renderer in
+  for _ = 0 to 1000 do
+    let brightness = 200 + Random.int 56 in
+    let x = Random.int width in
+    let y = Random.int height in
+    match Random.int 3 with
+    | 0 ->
+        draw_point x y brightness
+    | 1 ->
+        let dim = brightness / 2 in
+        draw_point x y brightness ;
+        draw_point (x + 1) y dim ;
+        draw_point (x - 1) y dim ;
+        draw_point x (y + 1) dim ;
+        draw_point x (y - 1) dim
+    | 2 ->
+        let dim = brightness / 2 in
+        draw_point x y brightness ;
+        draw_point (x + 1) (y + 1) dim ;
+        draw_point (x - 1) (y + 1) dim ;
+        draw_point (x + 1) (y - 1) dim ;
+        draw_point (x - 1) (y - 1) dim
+    | _ ->
+        ()
+  done
+
 let render_globe window renderer frame_counter fps =
   let lon_q = !rotation_lon in
   let lat_q = !rotation_lat in
@@ -94,14 +153,26 @@ let render_globe window renderer frame_counter fps =
       let radius = int_of_float (float win_h /. 2.2) in
       let center_x = win_w / 2 in
       let center_y = win_h / 2 in
+      (* let open Ctypes in
+      let pixel_buffer = CArray.make rgb_pixel (win_w * win_h) in
+      globe_render win_w win_h lon_q lat_q world_width world_height
+        (CArray.start
+           (CArray.of_list int
+              (Array.to_list
+                 (flatten_matrix (matrix_map grid (fun t -> t.altitude)) 0) ) ) )
+        max_land_height
+        (CArray.start pixel_buffer) ;
+      render_rgb_buffer renderer pixel_buffer ~win_w ~win_h ; *)
       let rot_lon = float_of_int lon_q *. Float.pi /. 180.0 in
       let rot_lat = float_of_int lat_q *. Float.pi /. 180.0 in
       let* _ = set_render_draw_color renderer 0 0 0 255 in
       let* _ = Sdl.render_clear renderer in
+      draw_starfield renderer ;
       let cos_lat = cos rot_lat in
       let sin_lat = sin rot_lat in
       let cos_lon = cos rot_lon in
       let sin_lon = sin rot_lon in
+      let altitudes = altitude () in
       for dy = -radius to radius do
         for dx = -radius to radius do
           let fx = float dx /. float radius in
@@ -128,17 +199,19 @@ let render_globe window renderer frame_counter fps =
             let y_frac = (lat /. Float.pi) +. 0.5 in
             let wx = int_of_float (x_frac *. float world_width) in
             let wy = int_of_float (y_frac *. float world_height) in
-            match get_global_tile wx wy with
-            | Some tile ->
-                let texture = texture_of_tile renderer tile frame_counter in
-                let src = Sdl.Rect.create ~x:0 ~y:0 ~w:!tile_w ~h:!tile_h in
-                let dst =
-                  Sdl.Rect.create ~x:(center_x + dx) ~y:(center_y + dy) ~w:1
-                    ~h:1
-                in
-                ignore (Sdl.render_copy ~src ~dst renderer texture)
-            | None ->
-                ()
+            let idx = (wy * world_width) + wx in
+            if idx < Array.length altitudes then
+              let alt = Array.get altitudes idx in
+              let norm_alt =
+                clamp (float alt /. float max_land_height) 0.0 1.0
+              in
+              let r, g, b = interpolate_gradient height_gradient norm_alt in
+              let* _ = Sdl.set_render_draw_color renderer r g b 255 in
+              let dst_x = center_x + dx in
+              let dst_y = center_y + dy in
+              let point = Sdl.Rect.create ~x:dst_x ~y:dst_y ~w:1 ~h:1 in
+              let* _ = Sdl.render_fill_rect renderer (Some point) in
+              ()
         done
       done ;
       (* Store texture in cache and reset render target *)

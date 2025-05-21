@@ -9,7 +9,7 @@ homepage: "https://github.com/CharlesAverill/TerraSim"
 doc: "https://github.com/CharlesAverill/TerraSim"
 bug-reports: "https://github.com/CharlesAverill/TerraSim/issues"
 depends: [
-  "ocaml" {= "5.3.0"}
+  "ocaml" {= "5.1.1"}
   "dune" {>= "3.9"}
   "alcotest" {with-test}
   "ocamlformat" {with-test}

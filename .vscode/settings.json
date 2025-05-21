@@ -2,5 +2,9 @@
     "ocaml.sandbox": {
         "kind": "opam",
         "switch": "terrasim"
+    },
+    "files.associations": {
+        "src/utils/arguments.c": "C",
+        "globe_renderer.h": "c"
     }
 }

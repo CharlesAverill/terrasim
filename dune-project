@@ -20,7 +20,7 @@
  (synopsis "A SimEarth clone")
  (description "A SimEarth clone")
  (depends 
-  (ocaml (= 5.3.0)) 
+  (ocaml (= 5.1.1)) 
   dune
   (alcotest :with-test)
   (ocamlformat :with-test)

@@ -1,0 +1,11 @@
+(library
+ (name globe_render)
+ (public_name TerraSim.native.globe_render)
+ (libraries ctypes ctypes.foreign)
+ (foreign_stubs
+  (language c)
+  (flags
+   (:standard -O3))
+  (names globe_render))
+ (c_library_flags
+  (-lm -fopenmp)))

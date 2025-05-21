@@ -94,14 +94,7 @@ let handle_atlas_ui_event (e : Sdl.event) window renderer =
           raise_terrain_gaussian tile_x tile_y ;
           atlas_updated := true
       | 3 (* Right click *) ->
-          let current_tile =
-            match get_global_tile tile_x tile_y with
-            | None ->
-                Land (Nothing 0)
-            | Some x ->
-                x
-          in
-          set_global_tile tile_x tile_y (decrease_tile current_tile) ;
+          change_altitude tile_x tile_y (-1) ;
           atlas_updated := true
       | _ ->
           () )

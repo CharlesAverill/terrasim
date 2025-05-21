@@ -27,3 +27,23 @@ let rangef ?(start : float = 0.) ?(step : float = 1.) j =
       aux (n -. step) (n :: acc)
   in
   aux (j -. 1.) []
+
+let flatten_matrix (matrix : 'a array array) default : 'a array =
+  let rows = Array.length matrix in
+  let cols =
+    if rows > 0 then
+      Array.length matrix.(0)
+    else
+      0
+  in
+  let flat = Array.make (rows * cols) default in
+  for y = 0 to rows - 1 do
+    for x = 0 to cols - 1 do
+      let index = (y * cols) + x in
+      flat.(index) <- matrix.(y).(x)
+    done
+  done ;
+  flat
+
+let matrix_map (matrix : 'a array array) (f : 'a -> 'b) : 'b array array =
+  Array.map (Array.map f) matrix
