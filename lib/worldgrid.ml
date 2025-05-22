@@ -68,3 +68,10 @@ let set_global_tile x y t =
     ()
   else
     grid.((y * world_width) + x) <- t
+
+let set_biome x y b =
+  match get_global_tile x y with
+  | None ->
+      ()
+  | Some t ->
+      set_global_tile x y {t with biome= b}

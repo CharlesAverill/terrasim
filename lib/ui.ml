@@ -12,7 +12,7 @@ open Utils
 
 let render_ui window (renderer : Sdl.renderer) = draw_cursor renderer
 
-let atlas_handle_keycodes e window =
+let edit_handle_keycodes e window =
   let* _ = show_cursor false in
   let mods = get_mod_state () in
   let shift = mods land Kmod.lshift <> 0 || mods land Kmod.rshift <> 0 in
@@ -21,7 +21,7 @@ let atlas_handle_keycodes e window =
   let keycode = get e keyboard_keycode in
   match (ctrl, shift, alt, keycode) with _ -> ()
 
-let atlas_handle_scancodes e window =
+let edit_handle_scancodes e window =
   let* _ = show_cursor false in
   let mods = get_mod_state () in
   let shift = mods land Kmod.lshift <> 0 || mods land Kmod.rshift <> 0 in
@@ -59,7 +59,7 @@ let globe_handle_scancodes e window =
   | _, _, _, _ ->
       ()
 
-let atlas_handle_textinput e window renderer =
+let edit_handle_textinput e window renderer =
   let* _ = show_cursor false in
   let text = get e text_input_text in
   match text with
@@ -77,8 +77,8 @@ let globe_handle_textinput e window renderer =
   let text = get e text_input_text in
   match text with "c" -> toggle_camera_mode renderer | _ -> ()
 
-let handle_atlas_ui_event (e : Sdl.event) window renderer =
-  let atlas_updated = ref false in
+let handle_edit_ui_event (e : Sdl.event) window renderer =
+  let edit_updated = ref false in
   ( match get e typ with
   | t when t = mouse_motion ->
       let* _ = show_cursor true in
@@ -86,26 +86,26 @@ let handle_atlas_ui_event (e : Sdl.event) window renderer =
   | t when t = mouse_button_down -> (
       let _, (x, y) = Sdl.get_mouse_state () in
       let button = get e mouse_button_button in
-      let tile_x = (x / scaled_tile_w ()) + atlas_camera.x in
-      let tile_y = (y / scaled_tile_h ()) + atlas_camera.y in
+      let tile_x = (x / scaled_tile_w ()) + edit_camera.x in
+      let tile_y = (y / scaled_tile_h ()) + edit_camera.y in
       set_global_cursor tile_x tile_y ;
       match button with
       | 1 (* Left click *) ->
           raise_terrain_gaussian tile_x tile_y ;
-          atlas_updated := true
+          edit_updated := true
       | 3 (* Right click *) ->
           change_altitude tile_x tile_y (-1) ;
-          atlas_updated := true
+          edit_updated := true
       | _ ->
           () )
   | t when t = text_input ->
-      atlas_handle_textinput e window renderer ;
-      atlas_handle_keycodes e window
+      edit_handle_textinput e window renderer ;
+      edit_handle_keycodes e window
   | t when t = key_down ->
-      atlas_handle_scancodes e window
+      edit_handle_scancodes e window
   | _ ->
       () ) ;
-  if !atlas_updated then clear_globe_cache ()
+  if !edit_updated then clear_globe_cache ()
 
 let handle_globe_ui_event (e : Sdl.event) window renderer =
   match get e typ with

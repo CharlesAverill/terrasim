@@ -22,8 +22,8 @@ let move_global_cursor dx dy =
 let draw_cursor renderer =
   let dst_rect =
     Sdl.Rect.create
-      ~x:((global_cursor.x - atlas_camera.x) * scaled_tile_w ())
-      ~y:((global_cursor.y - atlas_camera.y) * scaled_tile_h ())
+      ~x:((global_cursor.x - edit_camera.x) * scaled_tile_w ())
+      ~y:((global_cursor.y - edit_camera.y) * scaled_tile_h ())
       ~w:(scaled_tile_h ()) ~h:(scaled_tile_w ())
   in
   let* _ =
@@ -36,5 +36,5 @@ let draw_cursor renderer =
 let cursor_go_to_camera () =
   let _, (x, y) = Sdl.get_mouse_state () in
   set_global_cursor
-    ((x / scaled_tile_w ()) + atlas_camera.x)
-    ((y / scaled_tile_h ()) + atlas_camera.y)
+    ((x / scaled_tile_w ()) + edit_camera.x)
+    ((y / scaled_tile_h ()) + edit_camera.y)

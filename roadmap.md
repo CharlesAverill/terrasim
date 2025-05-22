@@ -10,11 +10,12 @@
 
 - [x] Camera zoom
 - [ ] Alternate rendering modes
-    - [ ] globe
-    - [ ] atlas
+    - [x] globe
+    - [x] edit
+    - [ ] map
 - [x] Implement keyboard-based cursor
 - [x] Pan screen when cursor nears window edge
-- [ ] Refactor grid to separate elevation from biome
+- [x] Refactor grid to separate elevation from biome
 - [ ] Add rendering logic to scale view based on window & view dimensions
 
 # Geosphere and Terrain Generation

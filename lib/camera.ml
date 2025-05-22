@@ -19,9 +19,9 @@ let view_width () =
 let view_height () =
   match !zoom_level with NormalZoom -> 27 | CloseZoom -> 18 | FarZoom -> 36
 
-let atlas_camera = {x= 0; y= 0}
+let edit_camera = {x= 0; y= 0}
 
-let current_camera_mode = ref (Flat2D atlas_camera)
+let current_camera_mode = ref (Flat2D edit_camera)
 
 let toggle_camera_mode renderer =
   let* _ = render_clear renderer in
@@ -29,13 +29,13 @@ let toggle_camera_mode renderer =
   | Flat2D _ ->
       current_camera_mode := Globe3D
   | Globe3D ->
-      current_camera_mode := Flat2D atlas_camera
+      current_camera_mode := Flat2D edit_camera
 
 let clamp_camera_to_bounds () =
   let max_x = world_width - view_width () in
   let max_y = world_height - view_height () in
-  atlas_camera.x <- clamp atlas_camera.x (-1) max_x ;
-  atlas_camera.y <- clamp atlas_camera.y (-1) (max_y + 1)
+  edit_camera.x <- clamp edit_camera.x (-1) max_x ;
+  edit_camera.y <- clamp edit_camera.y (-1) (max_y + 1)
 
 let zoom_in () =
   (zoom_level :=
@@ -56,8 +56,8 @@ let zoom_out () =
   clamp_camera_to_bounds ()
 
 let move_world_camera dx dy =
-  atlas_camera.x <- atlas_camera.x + dx ;
-  atlas_camera.y <- atlas_camera.y + dy ;
+  edit_camera.x <- edit_camera.x + dx ;
+  edit_camera.y <- edit_camera.y + dy ;
   clamp_camera_to_bounds ()
 
 (* Edge panning *)

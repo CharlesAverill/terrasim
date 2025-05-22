@@ -5,6 +5,7 @@ open Ui
 open Logging
 open Camera
 open Cursor
+open World_setup
 
 let frame_counter : uint8 ref = ref 64
 
@@ -27,7 +28,7 @@ let gameloop_iter window renderer event =
         loop_continue := false ;
     match !current_camera_mode with
     | Flat2D _ ->
-        handle_atlas_ui_event event window renderer
+        handle_edit_ui_event event window renderer
     | Globe3D ->
         handle_globe_ui_event event window renderer
   done ;
@@ -36,7 +37,7 @@ let gameloop_iter window renderer event =
   | Flat2D _ ->
       pan_camera_if_needed window ;
       cursor_go_to_camera () ;
-      Rendering.render_atlas window renderer !frame_counter !real_fps
+      Rendering.render_edit window renderer !frame_counter !real_fps
   | Globe3D ->
       Rendering.render_globe window renderer !frame_counter !real_fps ) ;
   (* Delay for ideal framerate *)
@@ -50,6 +51,7 @@ let run_game_loop window renderer =
   let event = Event.create () in
   let loop_continue = ref true in
   let hue = ref 0 in
+  world_setup () ;
   while !loop_continue do
     loop_continue := gameloop_iter window renderer event
   done ;

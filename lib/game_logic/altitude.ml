@@ -5,13 +5,37 @@ open Logging
 
 let max_land_height = 31
 
+let deep_ocean_theshold = int_of_float (0.25 *. float max_land_height)
+
+let regular_ocean_theshold = int_of_float (0.35 *. float max_land_height)
+
+let shallow_ocean_theshold = int_of_float (0.5 *. float max_land_height)
+
+let ocean_height = function
+  | Ocean Deep ->
+      Some 0
+  | Ocean Regular ->
+      Some 1
+  | Ocean Shallow ->
+      Some 2
+  | _ ->
+      None
+
 let change_altitude x y delta =
   match get_global_tile x y with
   | None ->
       ()
   | Some t ->
-      set_global_tile x y
-        {t with altitude= clamp (t.altitude + delta) 0 max_land_height}
+      let new_alt = clamp (t.altitude + delta) 0 max_land_height in
+      set_global_tile x y {t with altitude= new_alt} ;
+      if new_alt < deep_ocean_theshold then
+        set_biome x y (Ocean Deep)
+      else if new_alt < regular_ocean_theshold then
+        set_biome x y (Ocean Regular)
+      else if new_alt < shallow_ocean_theshold then
+        set_biome x y (Ocean Shallow)
+      else
+        set_biome x y (Land Nothing)
 
 let gaussian ~x ~y ~cx ~cy ~sigma =
   let dx = float_of_int (x - cx) in

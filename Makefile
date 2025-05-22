@@ -12,8 +12,14 @@ fmt:
 	$(OPAM_EXEC) $(DUNE) fmt
 	$(OPAM_EXEC) $(DUNE) promote
 
-build: fmt
-	$(PYTHON) assets/sprites/gen_sprites_file.py lib/assets/sprites.ml
+SPRITE_DIR := assets/sprites
+SPRITE_OUTPUT := lib/assets/sprites.ml
+SPRITE_SCRIPT := assets/sprites/gen_sprites_file.py
+
+$(SPRITE_OUTPUT): $(SPRITE_SCRIPT) $(wildcard $(SPRITE_DIR)/*)
+	$(PYTHON) $(SPRITE_SCRIPT) $(SPRITE_OUTPUT)
+
+build: fmt $(SPRITE_OUTPUT)
 	$(OPAM_EXEC) $(DUNE) build --profile=release
 
 install:

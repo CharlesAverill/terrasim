@@ -31,7 +31,8 @@ let blob_of_tile frame_count altitude = function
   | Land Jungle ->
       biomes_jungle_sprite
   | Land Nothing ->
-      List.nth land_sprites (Utils.clamp altitude 0 (List.length land_sprites))
+      List.nth land_sprites
+        (Utils.clamp altitude 0 (List.length land_sprites - 1))
   | Land Swamp ->
       biomes_swamp_sprite
   | Ocean Shallow ->

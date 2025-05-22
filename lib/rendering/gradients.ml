@@ -1,5 +1,5 @@
 (* Seaborn-inspired gradient: from blue to green to brown to white *)
-let height_gradient =
+let seaborn_gradient =
   [| (0.0, (0, 0, 128))
    ; (* Deep ocean blue *)
      (0.3, (70, 130, 180))
@@ -10,6 +10,32 @@ let height_gradient =
    ; (* Mountain brown *)
      (1.0, (255, 250, 250))
      (* Snow white *) |]
+
+let mars_gradient =
+  [| (0.0, (101, 67, 33)) (* Dark brown - low elevation *)
+   ; (0.25, (139, 69, 19)) (* Saddle brown *)
+   ; (0.5, (160, 82, 45)) (* Sienna *)
+   ; (0.75, (210, 105, 30)) (* Chocolate *)
+   ; (1.0, (222, 184, 135)) (* Burlywood - light brown *) |]
+
+let bgr_gradient =
+  [| (0.0, (0, 0, 255)) (* Deep blue - lowest point *)
+   ; (0.3, (0, 255, 0)) (* Green - mid elevation *)
+   ; (1.0, (255, 0, 0)) (* Red - highest point *) |]
+
+let height_gradient =
+  [| (0.0, (74, 55, 25))
+   ; (0.15, (115, 82, 56))
+   ; (0.3, (136, 110, 88))
+   ; (0.5, (157, 137, 119))
+   ; (0.75, (178, 164, 150))
+   ; (1.0, (192, 192, 192)) (* Gray - high *) |]
+
+let ocean_gradient =
+  [| (0.0, (13, 65, 225))
+   ; (1. /. 3., (10, 133, 237))
+   ; (2. /. 3., (7, 200, 249))
+   ; (1., (7, 200, 249)) |]
 
 (* Normalize and interpolate color *)
 let interpolate_gradient gradient v =

@@ -13,7 +13,7 @@ open Gradients
 open Altitude
 open Globe_render.Globe_render_stubs
 
-let animated_tile_update_factor = 16
+let animated_tile_update_factor = 8
 
 let scale () = scaled_tile_w () / tile_sprite_w
 
@@ -55,7 +55,7 @@ let render_rgb_buffer renderer
     done
   done
 
-let render_atlas window renderer frame_counter fps =
+let render_edit window renderer frame_counter fps =
   let* _ = Sdl.render_clear renderer in
   (* 1. Get window size in pixels *)
   let window_w, window_h =
@@ -69,8 +69,8 @@ let render_atlas window renderer frame_counter fps =
   (* 3. Render each tile relative to camera *)
   for dy = 0 to tiles_y - 1 do
     for dx = 0 to tiles_x - 1 do
-      let gx = atlas_camera.x + dx in
-      let gy = atlas_camera.y + dy in
+      let gx = edit_camera.x + dx in
+      let gy = edit_camera.y + dy in
       let dst_rect =
         Sdl.Rect.create
           ~x:(dx * scaled_tile_w ())
@@ -97,6 +97,7 @@ let render_atlas window renderer frame_counter fps =
   Sdl.render_present renderer
 
 let draw_starfield renderer =
+  Random.init 42 ;
   let draw_point x y b =
     let* () = Sdl.set_render_draw_color renderer b b b 255 in
     let rect = Sdl.Rect.create ~x ~y ~w:1 ~h:1 in
@@ -169,6 +170,7 @@ let render_globe window renderer frame_counter fps =
       let cos_lon = cos rot_lon in
       let sin_lon = sin rot_lon in
       let altitudes = altitude () in
+      let biomes = biomes () in
       for dy = -radius to radius do
         for dx = -radius to radius do
           let fx = float dx /. float radius in
@@ -198,10 +200,18 @@ let render_globe window renderer frame_counter fps =
             let idx = (wy * world_width) + wx in
             if idx < Array.length altitudes then
               let alt = Array.get altitudes idx in
+              let biome = Array.get biomes idx in
               let norm_alt =
                 clamp (float alt /. float max_land_height) 0.0 1.0
               in
-              let r, g, b = interpolate_gradient height_gradient norm_alt in
+              let r, g, b =
+                match ocean_height biome with
+                | None ->
+                    interpolate_gradient height_gradient norm_alt
+                | Some h ->
+                    interpolate_gradient ocean_gradient
+                      (clamp (float h /. 3.) 0. 1.)
+              in
               let* _ = Sdl.set_render_draw_color renderer r g b 255 in
               let dst_x = center_x + dx in
               let dst_y = center_y + dy in
