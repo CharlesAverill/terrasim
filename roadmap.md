@@ -24,7 +24,7 @@
     - [ ] Continents
     - [ ] Biomes
     - [ ] Tectonic plates
-- [ ] Track elevation as a scalar field
+- [x] Track elevation as a scalar field
 
 # Life Simulation
 

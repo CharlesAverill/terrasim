@@ -77,7 +77,7 @@ let render_edit window renderer frame_counter fps =
           ~y:(dy * scaled_tile_h ())
           ~w:(scaled_tile_w ()) ~h:(scaled_tile_h ())
       in
-      match get_global_tile gx gy with
+      match get_global_tile ~wrap_x:true gx gy with
       | None ->
           let* _ = Sdl.set_render_draw_color renderer 0 0 0 255 in
           let* _ = Sdl.render_fill_rect renderer (Some dst_rect) in
