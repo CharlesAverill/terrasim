@@ -1,173 +1,10 @@
+open Utils
 open Tsdl
 open Sdl
-open Ui
-open Edit_camera
-open Atlas_camera
-open Cursor
-open Worldgrid
-open Biomes
-open Spriteloader
 open Globals
-open Utils
-open Graphics
-open Gradients
+open Worldgrid
 open Altitude
-open Globe_render.Globe_render_stubs
-
-let animated_tile_update_factor = 8
-
-let scale () = scaled_tile_w () / tile_sprite_w
-
-(* Create the cache *)
-let tile_texture_cache : (biome_tile * int * int, Sdl.texture) Hashtbl.t =
-  Hashtbl.create 1024
-
-(* Cached texture_of_tile function *)
-let texture_of_tile renderer (t : world_tile) frame_count =
-  let frame_count = frame_count / animated_tile_update_factor in
-  match
-    Hashtbl.find_opt tile_texture_cache (t.biome, t.altitude, frame_count)
-  with
-  | Some tex ->
-      tex
-  | None ->
-      let tex =
-        texture_of_blob renderer (blob_of_tile frame_count t.altitude t.biome)
-      in
-      Hashtbl.add tile_texture_cache (t.biome, t.altitude, frame_count) tex ;
-      tex
-
-let render_rgb_buffer renderer
-    (buffer : rgb_pixel Ctypes.structure Ctypes.carray) ~win_w ~win_h =
-  let open Ctypes in
-  let ptr = CArray.start buffer in
-  for y = 0 to win_h - 1 do
-    for x = 0 to win_w - 1 do
-      let i = (y * win_w) + x in
-      let pixel_ptr = CArray.get buffer i in
-      (* pointer to the struct *)
-      let r = Unsigned.UInt8.to_int (Ctypes.getf pixel_ptr r) in
-      let g = Unsigned.UInt8.to_int (Ctypes.getf pixel_ptr g) in
-      let b = Unsigned.UInt8.to_int (Ctypes.getf pixel_ptr b) in
-      let* () = Sdl.set_render_draw_color renderer r g b 255 in
-      let rect = Sdl.Rect.create ~x ~y ~w:1 ~h:1 in
-      let* () = Sdl.render_fill_rect renderer (Some rect) in
-      ()
-    done
-  done
-
-let render_edit window renderer frame_counter fps =
-  let* _ = Sdl.render_clear renderer in
-  (* 1. Get window size in pixels *)
-  let window_w, window_h =
-    match Sdl.get_window_size window with w, h -> (w, h)
-  in
-  tile_w := window_w / view_width () ;
-  tile_h := window_h / view_height () ;
-  (* 2. Determine number of tiles to draw (view width/height) *)
-  let tiles_x = window_w / scaled_tile_w () in
-  let tiles_y = window_h / scaled_tile_h () in
-  (* 3. Render each tile relative to camera *)
-  for dy = 0 to tiles_y - 1 do
-    for dx = 0 to tiles_x - 1 do
-      let gx = edit_camera.x + dx in
-      let gy = edit_camera.y + dy in
-      let dst_rect =
-        Sdl.Rect.create
-          ~x:(dx * scaled_tile_w ())
-          ~y:(dy * scaled_tile_h ())
-          ~w:(scaled_tile_w ()) ~h:(scaled_tile_h ())
-      in
-      match get_global_tile ~wrap_x:true gx gy with
-      | None ->
-          let* _ = Sdl.set_render_draw_color renderer 0 0 0 255 in
-          let* _ = Sdl.render_fill_rect renderer (Some dst_rect) in
-          ()
-      | Some tile ->
-          let* _ =
-            Sdl.render_copy renderer
-              (texture_of_tile renderer tile frame_counter)
-              ~dst:dst_rect
-          in
-          ()
-    done
-  done ;
-  (* 4. Draw UI on top *)
-  render_ui window renderer ;
-  (* 5. Show result *)
-  Sdl.render_present renderer
-
-module ColorSet = Set.Make (struct
-  type t = int * int * int
-
-  let compare = compare
-end)
-
-let render_atlas window renderer =
-  let* win_w, win_h = get_renderer_output_size renderer in
-  let altitudes = altitude () in
-  let biomes = biomes () in
-  let* _ = Sdl.set_render_draw_color renderer 0 0 0 255 in
-  let* _ = Sdl.render_clear renderer in
-  let scale_x = float win_w /. float world_width in
-  let scale_y = float win_h /. float world_height in
-  (* let rects_by_color : (int * int * int, Sdl.rect list ref) Hashtbl.t =
-    Hashtbl.create 32
-  in *)
-  let rect = Sdl.Rect.create ~x:0 ~y:0 ~w:0 ~h:0 in
-  let update_rect x y w h =
-    Sdl.Rect.set_x rect x ;
-    Sdl.Rect.set_y rect y ;
-    Sdl.Rect.set_w rect w ;
-    Sdl.Rect.set_h rect h
-  in
-  for wy = 0 to world_height - 1 do
-    for wx = 0 to world_width - 1 do
-      let idx =
-        (wy * world_width) + mod_wrap (wx - atlas_camera.x) world_width
-      in
-      let alt = Array.get altitudes idx in
-      let biome = Array.get biomes idx in
-      let norm_alt = clamp (float alt /. float max_land_height) 0.0 1.0 in
-      let r, g, b =
-        match ocean_height biome with
-        | None ->
-            interpolate_gradient height_gradient norm_alt
-        | Some h ->
-            interpolate_gradient ocean_gradient (clamp (float h /. 3.) 0. 1.)
-      in
-      let x = int_of_float (float wx *. scale_x) in
-      let y = int_of_float (float wy *. scale_y) in
-      let w =
-        max 1 (int_of_float (scale_x +. 0.5))
-        (* ensure at least 1px visible *)
-      in
-      let h = max 1 (int_of_float (scale_y +. 0.5)) in
-      update_rect x y w h ;
-      let* _ = Sdl.set_render_draw_color renderer r g b 255 in
-      let* _ = Sdl.render_fill_rect renderer (Some rect) in
-      ()
-      (* let rects =
-        match Hashtbl.find_opt rects_by_color (r, g, b) with
-        | Some lst ->
-            lst
-        | None ->
-            let l = ref [] in
-            Hashtbl.add rects_by_color (r, g, b) l ;
-            l
-      in
-      rects := Sdl.Rect.create ~x ~y ~w ~h :: !rects *)
-    done
-  done ;
-  (* Hashtbl.iter
-    (fun (r, g, b) rects ->
-      let* _ = Sdl.set_render_draw_color renderer r g b 255 in
-      let* _ = Sdl.render_fill_rects renderer !rects in
-      () )
-    rects_by_color ; *)
-  (* 4. Draw UI on top *)
-  render_ui window renderer ;
-  Sdl.render_present renderer
+open Gradients
 
 let draw_starfield renderer =
   Random.init 42 ;
@@ -245,7 +82,7 @@ let render_globe window renderer =
       let altitudes = altitude () in
       let biomes = biomes () in
       let rects = ref (fun c -> []) in
-      let colors = ref ColorSet.empty in
+      (* let colors = ref ColorSet.empty in *)
       let rect = Sdl.Rect.create ~x:0 ~y:0 ~w:0 ~h:0 in
       let update_rect x y w h =
         Sdl.Rect.set_x rect x ;

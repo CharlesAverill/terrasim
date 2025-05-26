@@ -87,7 +87,6 @@ let fatal rc fmt =
 
 (** Prints log statements to stdout/stderr *)
 let _log log_level fmt =
-  
   if log_level = Log_None || int_of_log _GLOBAL_LOG_LEVEL > int_of_log log_level
   then
     Printf.ksprintf (fun _ -> ()) fmt

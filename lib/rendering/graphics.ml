@@ -25,6 +25,10 @@ let create_renderer window =
   | Ok r ->
       r
 
+let get_opengl_context window =
+  let* ctx = Sdl.gl_create_context window in
+  ctx
+
 let set_window_icon window blob = set_window_icon window (surface_of_blob blob)
 
 let get_window_surf (w : window) =

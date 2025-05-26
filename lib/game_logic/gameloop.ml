@@ -17,7 +17,7 @@ let real_fps = ref 0
 
 let frame_delay = Int32.of_int (1000 / target_fps) (* in milliseconds *)
 
-let gameloop_iter window renderer event =
+let gameloop_iter window renderer opengl_ctx event =
   (* Compute target framerate *)
   let frame_start = Sdl.get_ticks () in
   frame_counter := !frame_counter + 1 ;
@@ -43,13 +43,13 @@ let gameloop_iter window renderer event =
   | Some (Edit2D _) ->
       pan_edit_camera_if_needed window ;
       cursor_go_to_camera () ;
-      Rendering.render_edit window renderer !frame_counter !real_fps
+      Edit_screen.render_edit window renderer !frame_counter !real_fps
   | Some Atlas2D ->
       pan_atlas_camera_if_needed window ;
       cursor_go_to_camera () ;
-      Rendering.render_atlas window renderer
+      Atlas_screen.render_atlas window renderer
   | Some Globe3D ->
-      Rendering.render_globe window renderer
+      Globe_screen.render_globe window renderer
   | None ->
       () ) ;
   (* Delay for ideal framerate *)
@@ -65,7 +65,8 @@ let run_game_loop window renderer =
   let hue = ref 0 in
   world_setup () ;
   current_camera_mode := Some (Edit2D edit_camera) ;
+  let opengl_ctx = get_opengl_context window in
   while !loop_continue do
-    loop_continue := gameloop_iter window renderer event
+    loop_continue := gameloop_iter window renderer opengl_ctx event
   done ;
   Sdl.quit ()

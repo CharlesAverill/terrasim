@@ -8,6 +8,7 @@ pkgs.mkShell {
 	pkgs.pkg-config
 	pkgs.linuxPackages_latest.perf
 	pkgs.flamegraph
+	pkgs.glxinfo
   ];
 
   shellHook = ''
