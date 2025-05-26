@@ -6,5 +6,6 @@
     "files.associations": {
         "src/utils/arguments.c": "C",
         "globe_renderer.h": "c"
-    }
+    },
+    "makefile.configureOnOpen": false
 }

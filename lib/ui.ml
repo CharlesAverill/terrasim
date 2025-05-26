@@ -5,6 +5,7 @@ open Logging
 open Globals
 open Altitude
 open Camera
+open Edit_camera
 open Worldgrid
 open Biomes
 open Cursor
@@ -30,13 +31,32 @@ let edit_handle_scancodes e window =
   let scancode = get e keyboard_scancode in
   match (ctrl, shift, alt, scancode) with
   | _, _, _, x when x = Scancode.left ->
-      move_global_cursor (-1) 0 ; move_world_camera (-1) 0
+      move_global_cursor (-1) 0 ; move_edit_camera (-1) 0
   | _, _, _, x when x = Scancode.right ->
-      move_global_cursor 1 0 ; move_world_camera 1 0
+      move_global_cursor 1 0 ; move_edit_camera 1 0
   | _, _, _, x when x = Scancode.up ->
-      move_global_cursor 0 (-1) ; move_world_camera 0 (-1)
+      move_global_cursor 0 (-1) ; move_edit_camera 0 (-1)
   | _, _, _, x when x = Scancode.down ->
-      move_global_cursor 0 1 ; move_world_camera 0 1
+      move_global_cursor 0 1 ; move_edit_camera 0 1
+  | _, _, _, _ ->
+      ()
+
+let atlas_handle_scancodes e window =
+  let* _ = show_cursor false in
+  let mods = get_mod_state () in
+  let shift = mods land Kmod.lshift <> 0 || mods land Kmod.rshift <> 0 in
+  let ctrl = mods land Kmod.lctrl <> 0 || mods land Kmod.rctrl <> 0 in
+  let alt = mods land Kmod.lalt <> 0 || mods land Kmod.ralt <> 0 in
+  let scancode = get e keyboard_scancode in
+  match (ctrl, shift, alt, scancode) with
+  (* | _, _, _, x when x = Scancode.left ->
+            rotation_lon := mod_wrap (!rotation_lon - 15) 360
+        | _, _, _, x when x = Scancode.right ->
+            rotation_lon := mod_wrap (!rotation_lon + 15) 360
+        | _, _, _, x when x = Scancode.up ->
+            rotation_lat := mod_wrap (!rotation_lat - 15) 360
+        | _, _, _, x when x = Scancode.down ->
+            rotation_lat := mod_wrap (!rotation_lat + 15) 360 *)
   | _, _, _, _ ->
       ()
 
@@ -59,6 +79,18 @@ let globe_handle_scancodes e window =
   | _, _, _, _ ->
       ()
 
+let toggle_camera_mode renderer =
+  let* _ = render_clear renderer in
+  match !current_camera_mode with
+  | Some (Edit2D _) ->
+      current_camera_mode := Some Atlas2D
+  | Some Atlas2D ->
+      current_camera_mode := Some Globe3D
+  | Some Globe3D ->
+      current_camera_mode := Some (Edit2D edit_camera)
+  | None ->
+      ()
+
 let edit_handle_textinput e window renderer =
   let* _ = show_cursor false in
   let text = get e text_input_text in
@@ -73,6 +105,11 @@ let edit_handle_textinput e window renderer =
       ()
 
 let globe_handle_textinput e window renderer =
+  let* _ = show_cursor false in
+  let text = get e text_input_text in
+  match text with "c" -> toggle_camera_mode renderer | _ -> ()
+
+let atlas_handle_textinput e window renderer =
   let* _ = show_cursor false in
   let text = get e text_input_text in
   match text with "c" -> toggle_camera_mode renderer | _ -> ()
@@ -106,6 +143,20 @@ let handle_edit_ui_event (e : Sdl.event) window renderer =
   | _ ->
       () ) ;
   if !edit_updated then clear_globe_cache ()
+
+let handle_atlas_ui_event (e : Sdl.event) window renderer =
+  match get e typ with
+  | t when t = mouse_motion ->
+      let* _ = show_cursor true in
+      ()
+  | t when t = mouse_button_down ->
+      ()
+  | t when t = text_input ->
+      atlas_handle_textinput e window renderer
+  | t when t = key_down ->
+      atlas_handle_scancodes e window
+  | _ ->
+      ()
 
 let handle_globe_ui_event (e : Sdl.event) window renderer =
   match get e typ with

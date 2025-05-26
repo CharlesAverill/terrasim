@@ -1,13 +1,8 @@
-open Worldgrid
+open Camera
 open Tsdl
 open Sdl
-open Globals
 open Utils
-
-(* Screen-space coordinates *)
-type camera = {mutable x: int; mutable y: int}
-
-type camera_mode = Flat2D of camera | Globe3D
+open Worldgrid
 
 type zoom = CloseZoom | NormalZoom | FarZoom
 
@@ -20,16 +15,6 @@ let view_height () =
   match !zoom_level with NormalZoom -> 27 | CloseZoom -> 18 | FarZoom -> 36
 
 let edit_camera = {x= 0; y= 0}
-
-let current_camera_mode = ref (Flat2D edit_camera)
-
-let toggle_camera_mode renderer =
-  let* _ = render_clear renderer in
-  match !current_camera_mode with
-  | Flat2D _ ->
-      current_camera_mode := Globe3D
-  | Globe3D ->
-      current_camera_mode := Flat2D edit_camera
 
 let clamp_camera_to_bounds () =
   (* let max_x = world_width - view_width () in *)
@@ -59,22 +44,22 @@ let zoom_out () =
          NormalZoom ) ;
   clamp_camera_to_bounds ()
 
-let move_world_camera dx dy =
+let move_edit_camera dx dy =
   edit_camera.x <- edit_camera.x + dx ;
   edit_camera.y <- edit_camera.y + dy ;
   clamp_camera_to_bounds ()
 
 (* Edge panning *)
-let pan_margin = 16
+let pan_margin = 32
 
-let pan_camera_if_needed window =
+let pan_edit_camera_if_needed window =
   let mouse_x, mouse_y = Sdl.get_mouse_state () |> snd in
   let win_w, win_h = Sdl.get_window_size window in
   if mouse_x < pan_margin then
-    move_world_camera (-1) 0
+    move_edit_camera (-1) 0
   else if mouse_x > win_w - pan_margin then
-    move_world_camera 1 0 ;
+    move_edit_camera 1 0 ;
   if mouse_y < pan_margin then
-    move_world_camera 0 (-1)
+    move_edit_camera 0 (-1)
   else if mouse_y > win_h - pan_margin then
-    move_world_camera 0 1
+    move_edit_camera 0 1

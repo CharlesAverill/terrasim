@@ -9,3 +9,7 @@
 *.cmxs
 *.cmxa
 _build
+*.dump
+perf.data*
+out.perf-folded
+perf.svg

@@ -1,7 +1,8 @@
 open Tsdl
 open Sdl
 open Ui
-open Camera
+open Edit_camera
+open Atlas_camera
 open Cursor
 open Worldgrid
 open Biomes
@@ -96,6 +97,78 @@ let render_edit window renderer frame_counter fps =
   (* 5. Show result *)
   Sdl.render_present renderer
 
+module ColorSet = Set.Make (struct
+  type t = int * int * int
+
+  let compare = compare
+end)
+
+let render_atlas window renderer =
+  let* win_w, win_h = get_renderer_output_size renderer in
+  let altitudes = altitude () in
+  let biomes = biomes () in
+  let* _ = Sdl.set_render_draw_color renderer 0 0 0 255 in
+  let* _ = Sdl.render_clear renderer in
+  let scale_x = float win_w /. float world_width in
+  let scale_y = float win_h /. float world_height in
+  (* let rects_by_color : (int * int * int, Sdl.rect list ref) Hashtbl.t =
+    Hashtbl.create 32
+  in *)
+  let rect = Sdl.Rect.create ~x:0 ~y:0 ~w:0 ~h:0 in
+  let update_rect x y w h =
+    Sdl.Rect.set_x rect x ;
+    Sdl.Rect.set_y rect y ;
+    Sdl.Rect.set_w rect w ;
+    Sdl.Rect.set_h rect h
+  in
+  for wy = 0 to world_height - 1 do
+    for wx = 0 to world_width - 1 do
+      let idx =
+        (wy * world_width) + mod_wrap (wx - atlas_camera.x) world_width
+      in
+      let alt = Array.get altitudes idx in
+      let biome = Array.get biomes idx in
+      let norm_alt = clamp (float alt /. float max_land_height) 0.0 1.0 in
+      let r, g, b =
+        match ocean_height biome with
+        | None ->
+            interpolate_gradient height_gradient norm_alt
+        | Some h ->
+            interpolate_gradient ocean_gradient (clamp (float h /. 3.) 0. 1.)
+      in
+      let x = int_of_float (float wx *. scale_x) in
+      let y = int_of_float (float wy *. scale_y) in
+      let w =
+        max 1 (int_of_float (scale_x +. 0.5))
+        (* ensure at least 1px visible *)
+      in
+      let h = max 1 (int_of_float (scale_y +. 0.5)) in
+      update_rect x y w h ;
+      let* _ = Sdl.set_render_draw_color renderer r g b 255 in
+      let* _ = Sdl.render_fill_rect renderer (Some rect) in
+      ()
+      (* let rects =
+        match Hashtbl.find_opt rects_by_color (r, g, b) with
+        | Some lst ->
+            lst
+        | None ->
+            let l = ref [] in
+            Hashtbl.add rects_by_color (r, g, b) l ;
+            l
+      in
+      rects := Sdl.Rect.create ~x ~y ~w ~h :: !rects *)
+    done
+  done ;
+  (* Hashtbl.iter
+    (fun (r, g, b) rects ->
+      let* _ = Sdl.set_render_draw_color renderer r g b 255 in
+      let* _ = Sdl.render_fill_rects renderer !rects in
+      () )
+    rects_by_color ; *)
+  (* 4. Draw UI on top *)
+  render_ui window renderer ;
+  Sdl.render_present renderer
+
 let draw_starfield renderer =
   Random.init 42 ;
   let draw_point x y b =
@@ -130,7 +203,7 @@ let draw_starfield renderer =
         ()
   done
 
-let render_globe window renderer frame_counter fps =
+let render_globe window renderer =
   let lon_q = !rotation_lon in
   let lat_q = !rotation_lat in
   let key = (lon_q, lat_q) in
@@ -171,6 +244,15 @@ let render_globe window renderer frame_counter fps =
       let sin_lon = sin rot_lon in
       let altitudes = altitude () in
       let biomes = biomes () in
+      let rects = ref (fun c -> []) in
+      let colors = ref ColorSet.empty in
+      let rect = Sdl.Rect.create ~x:0 ~y:0 ~w:0 ~h:0 in
+      let update_rect x y w h =
+        Sdl.Rect.set_x rect x ;
+        Sdl.Rect.set_y rect y ;
+        Sdl.Rect.set_w rect w ;
+        Sdl.Rect.set_h rect h
+      in
       for dy = -radius to radius do
         for dx = -radius to radius do
           let fx = float dx /. float radius in
@@ -198,7 +280,7 @@ let render_globe window renderer frame_counter fps =
             let wx = int_of_float (x_frac *. float world_width) in
             let wy = int_of_float (y_frac *. float world_height) in
             let idx = (wy * world_width) + wx in
-            if idx < Array.length altitudes then
+            if idx < Array.length altitudes then (
               let alt = Array.get altitudes idx in
               let biome = Array.get biomes idx in
               let norm_alt =
@@ -215,11 +297,20 @@ let render_globe window renderer frame_counter fps =
               let* _ = Sdl.set_render_draw_color renderer r g b 255 in
               let dst_x = center_x + dx in
               let dst_y = center_y + dy in
-              let point = Sdl.Rect.create ~x:dst_x ~y:dst_y ~w:1 ~h:1 in
-              let* _ = Sdl.render_fill_rect renderer (Some point) in
+              update_rect dst_x dst_y 1 1 ;
+              let* _ = Sdl.render_fill_rect renderer (Some rect) in
               ()
+            )
+          (* colors := ColorSet.add (r, g, b) !colors ;
+              rects := update !rects (r, g, b) (point :: !rects (r, g, b)) *)
         done
       done ;
+      (* ColorSet.iter
+        (fun (r, g, b) ->
+          let* _ = Sdl.set_render_draw_color renderer r g b 255 in
+          let* _ = Sdl.render_fill_rects renderer (!rects (r, g, b)) in
+          () )
+        !colors ; *)
       (* Store texture in cache and reset render target *)
       Hashtbl.replace globe_cache key target_texture ;
       let* _ = Sdl.set_render_target renderer None in

@@ -6,6 +6,8 @@ pkgs.mkShell {
     pkgs.SDL2_image
 	pkgs.libffi
 	pkgs.pkg-config
+	pkgs.linuxPackages_latest.perf
+	pkgs.flamegraph
   ];
 
   shellHook = ''

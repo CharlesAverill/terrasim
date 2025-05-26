@@ -32,6 +32,17 @@ clean:
 	$(OPAM_EXEC) $(DUNE) clean
 	git clean -dfXq
 
+profile: build
+	perf record --call-graph=dwarf -- ./_build/default/bin/main.exe
+
+profile_report:
+	perf report
+
+profile_vis:
+	perf script | stackcollapse-perf.pl > out.perf-folded
+	flamegraph.pl out.perf-folded > perf.svg
+	firefox perf.svg
+
 test: fmt
 	$(OPAM_EXEC) $(DUNE) runtest
 

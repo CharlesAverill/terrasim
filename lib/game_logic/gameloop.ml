@@ -4,6 +4,8 @@ open Graphics
 open Ui
 open Logging
 open Camera
+open Edit_camera
+open Atlas_camera
 open Cursor
 open World_setup
 
@@ -27,19 +29,29 @@ let gameloop_iter window renderer event =
       if Event.get event Event.keyboard_keycode = Sdl.K.escape then
         loop_continue := false ;
     match !current_camera_mode with
-    | Flat2D _ ->
+    | Some (Edit2D _) ->
         handle_edit_ui_event event window renderer
-    | Globe3D ->
+    | Some Atlas2D ->
+        handle_atlas_ui_event event window renderer
+    | Some Globe3D ->
         handle_globe_ui_event event window renderer
+    | None ->
+        ()
   done ;
   (* Render *)
   ( match !current_camera_mode with
-  | Flat2D _ ->
-      pan_camera_if_needed window ;
+  | Some (Edit2D _) ->
+      pan_edit_camera_if_needed window ;
       cursor_go_to_camera () ;
       Rendering.render_edit window renderer !frame_counter !real_fps
-  | Globe3D ->
-      Rendering.render_globe window renderer !frame_counter !real_fps ) ;
+  | Some Atlas2D ->
+      pan_atlas_camera_if_needed window ;
+      cursor_go_to_camera () ;
+      Rendering.render_atlas window renderer
+  | Some Globe3D ->
+      Rendering.render_globe window renderer
+  | None ->
+      () ) ;
   (* Delay for ideal framerate *)
   let frame_time = Int32.sub (Sdl.get_ticks ()) frame_start in
   if frame_time < frame_delay then Sdl.delay (Int32.sub frame_delay frame_time) ;
@@ -52,6 +64,7 @@ let run_game_loop window renderer =
   let loop_continue = ref true in
   let hue = ref 0 in
   world_setup () ;
+  current_camera_mode := Some (Edit2D edit_camera) ;
   while !loop_continue do
     loop_continue := gameloop_iter window renderer event
   done ;

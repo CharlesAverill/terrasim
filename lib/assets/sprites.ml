@@ -79,6 +79,7 @@ let ocean_shallow_05_sprite : string * string = "assets/sprites/ocean/shallow/05
 let ocean_shallow_06_sprite : string * string = "assets/sprites/ocean/shallow/06.png", [%blob "assets/sprites/ocean/shallow/06.png"]
 let ocean_shallow_07_sprite : string * string = "assets/sprites/ocean/shallow/07.png", [%blob "assets/sprites/ocean/shallow/07.png"]
 let tomcat_sprite : string * string = "assets/sprites/tomcat.png", [%blob "assets/sprites/tomcat.png"]
+let ui_atlascursor_sprite : string * string = "assets/sprites/ui/atlascursor.png", [%blob "assets/sprites/ui/atlascursor.png"]
 let ui_cursor_sprite : string * string = "assets/sprites/ui/cursor.png", [%blob "assets/sprites/ui/cursor.png"]
 
 (* Grouped sprite lists *)
@@ -90,4 +91,4 @@ let ocean_sprites : (string * string) list = [ocean_deep_00_sprite; ocean_deep_0
 let ocean_deep_sprites : (string * string) list = [ocean_deep_00_sprite; ocean_deep_01_sprite; ocean_deep_02_sprite; ocean_deep_03_sprite; ocean_deep_04_sprite; ocean_deep_05_sprite; ocean_deep_06_sprite; ocean_deep_07_sprite]
 let ocean_regular_sprites : (string * string) list = [ocean_regular_00_sprite; ocean_regular_01_sprite; ocean_regular_02_sprite; ocean_regular_03_sprite; ocean_regular_04_sprite; ocean_regular_05_sprite; ocean_regular_06_sprite; ocean_regular_07_sprite]
 let ocean_shallow_sprites : (string * string) list = [ocean_shallow_00_sprite; ocean_shallow_01_sprite; ocean_shallow_02_sprite; ocean_shallow_03_sprite; ocean_shallow_04_sprite; ocean_shallow_05_sprite; ocean_shallow_06_sprite; ocean_shallow_07_sprite]
-let ui_sprites : (string * string) list = [ui_cursor_sprite]
+let ui_sprites : (string * string) list = [ui_atlascursor_sprite; ui_cursor_sprite]

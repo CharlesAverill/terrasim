@@ -4,7 +4,9 @@ open Utils
 open Spriteloader
 open Sprites
 open Camera
+open Edit_camera
 open Globals
+open Worldgrid
 
 (* World-space coordinates *)
 type cursor = {mutable x: int; mutable y: int}
@@ -20,21 +22,51 @@ let move_global_cursor dx dy =
   global_cursor.y <- global_cursor.y + dy
 
 let draw_cursor renderer =
-  let dst_rect =
-    Sdl.Rect.create
-      ~x:((global_cursor.x - edit_camera.x) * scaled_tile_w ())
-      ~y:((global_cursor.y - edit_camera.y) * scaled_tile_h ())
-      ~w:(scaled_tile_h ()) ~h:(scaled_tile_w ())
-  in
-  let* _ =
-    Sdl.render_copy renderer
-      (texture_of_blob renderer ui_cursor_sprite)
-      ~dst:dst_rect
-  in
-  ()
+  match !current_camera_mode with
+  | Some (Edit2D _) ->
+      let dst_rect =
+        Sdl.Rect.create
+          ~x:((global_cursor.x - edit_camera.x) * scaled_tile_w ())
+          ~y:((global_cursor.y - edit_camera.y) * scaled_tile_h ())
+          ~w:(scaled_tile_h ()) ~h:(scaled_tile_w ())
+      in
+      let* _ =
+        Sdl.render_copy renderer
+          (texture_of_blob renderer ui_cursor_sprite)
+          ~dst:dst_rect
+      in
+      ()
+  | Some Atlas2D ->
+      let* win_w, win_h = get_renderer_output_size renderer in
+      let scale_x = win_w / world_width in
+      let scale_y = win_h / world_height in
+      let w = 18 * scale_x in
+      let h = 14 * scale_y in
+      let dst_rect =
+        Sdl.Rect.create
+          ~x:(global_cursor.x - (w / 2))
+          ~y:(global_cursor.y - (h / 2))
+          ~w ~h
+      in
+      (* let* _ =
+        Sdl.render_copy renderer
+          (texture_of_blob renderer ui_atlascursor_sprite)
+          ~dst:dst_rect
+      in *)
+      let* _ = Sdl.set_render_draw_color renderer 255 0 255 255 in
+      let* _ = Sdl.render_draw_rect renderer (Some dst_rect) in
+      ()
+  | _ ->
+      ()
 
 let cursor_go_to_camera () =
   let _, (x, y) = Sdl.get_mouse_state () in
-  set_global_cursor
-    ((x / scaled_tile_w ()) + edit_camera.x)
-    ((y / scaled_tile_h ()) + edit_camera.y)
+  match !current_camera_mode with
+  | Some (Edit2D _) ->
+      set_global_cursor
+        ((x / scaled_tile_w ()) + edit_camera.x)
+        ((y / scaled_tile_h ()) + edit_camera.y)
+  | Some Atlas2D ->
+      set_global_cursor x y
+  | _ ->
+      ()
