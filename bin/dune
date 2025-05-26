@@ -1,6 +1,6 @@
 (executable
  (public_name TerraSim)
  (name main)
- (libraries TerraSim tsdl tgls domainslib)
+ (libraries TerraSim tsdl)
  (ocamlopt_flags
   (:standard -O3)))

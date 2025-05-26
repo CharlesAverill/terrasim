@@ -6,6 +6,8 @@
  (libraries
   tsdl
   tsdl-image
+  tgls
+  tgls.tgl4
   domainslib
   ctypes
   ctypes.foreign

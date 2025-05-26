@@ -66,6 +66,7 @@ let run_game_loop window renderer =
   world_setup () ;
   current_camera_mode := Some (Edit2D edit_camera) ;
   let opengl_ctx = get_opengl_context window in
+  (* ignore (Blank_screen.main window) ; *)
   while !loop_continue do
     loop_continue := gameloop_iter window renderer opengl_ctx event
   done ;

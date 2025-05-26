@@ -28,7 +28,7 @@
   (merlin :with-test)
   (odoc :with-doc)
   (tsdl (= 1.1.0))
-  (tlgs (= 0.8.6))
+  (tgls (= 0.8.6))
   tsdl-image
   ppx_blob
   domainslib
