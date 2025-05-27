@@ -19,7 +19,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          opam pin add tgls --dev-repo
+          opam pin tgls --dev-repo
           opam install . --deps-only --with-test
           eval $(opam env)
 
@@ -43,6 +43,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
+          opam pin tgls --dev-repo
           opam install . --deps-only --with-doc
           eval $(opam env)
       
