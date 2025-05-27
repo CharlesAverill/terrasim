@@ -9,19 +9,19 @@
 # World and Camera Mechanics
 
 - [x] Camera zoom
-- [ ] Alternate rendering modes
+- [x] Alternate rendering modes
     - [x] globe
     - [x] edit
-    - [ ] map
+    - [x] atlas
 - [x] Implement keyboard-based cursor
 - [x] Pan screen when cursor nears window edge
 - [x] Refactor grid to separate elevation from biome
-- [ ] Add rendering logic to scale view based on window & view dimensions
+- [x] Add rendering logic to scale view based on window & view dimensions
 
 # Geosphere and Terrain Generation
 
 - [ ] Implement terrain generation
-    - [ ] Continents
+    - [x] Continents
     - [ ] Biomes
     - [ ] Tectonic plates
 - [x] Track elevation as a scalar field
