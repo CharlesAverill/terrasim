@@ -15,10 +15,11 @@ jobs:
       - name: Setup OCaml
         uses: ocaml/setup-ocaml@v3
         with:
-          ocaml-compiler: 4.13.x
+          ocaml-compiler: 5.1.x
 
       - name: Install Dependencies
         run: |
+          opam pin add tgls --dev-repo
           opam install . --deps-only --with-test
           eval $(opam env)
 
@@ -38,7 +39,7 @@ jobs:
       - name: Setup OCaml
         uses: ocaml/setup-ocaml@v3
         with:
-          ocaml-compiler: 4.13.x
+          ocaml-compiler: 5.1.x
 
       - name: Install Dependencies
         run: |
