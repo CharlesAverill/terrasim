@@ -3,6 +3,7 @@ open Tsdl
 open Sdl
 open Spriteloader
 open Utils
+open Globals
 
 let init_sdl () =
   let* _ = init Init.(video + events) in
@@ -136,3 +137,48 @@ let render_fill_circle renderer x y radius =
           status
   in
   loop 0 radius (radius - 1) 0
+
+type render_mode =
+  | UninitRender
+  | SdlRender of renderer
+  | GlRender of gl_context
+
+let current_render_mode = ref UninitRender
+
+let use_sdl ?(gl_ctx = None) window =
+  (match gl_ctx with None -> () | Some x -> Sdl.gl_delete_context x) ;
+  create_renderer window
+
+let use_opengl window renderer =
+  Sdl.destroy_renderer renderer ;
+  get_opengl_context window
+
+let swap_render_mode window =
+  (* Edit screen reset *)
+  clear_edit_cache () ;
+  (* Atlas screen reset *)
+  Atlas_screen_opengl.sprogram := None ;
+  (* Globe screen reset *)
+  clear_globe_cache () ;
+  current_render_mode :=
+    match !current_render_mode with
+    | UninitRender ->
+        SdlRender (use_sdl window)
+    | SdlRender r ->
+        GlRender (use_opengl window r)
+    | GlRender g ->
+        SdlRender (use_sdl ~gl_ctx:(Some g) window)
+
+let get_global_renderer () =
+  match !current_render_mode with
+  | SdlRender r ->
+      r
+  | _ ->
+      fatal rc_Error "Tried to get SDL renderer when not in SDL mode"
+
+let get_global_gl_ctx () =
+  match !current_render_mode with
+  | GlRender g ->
+      g
+  | _ ->
+      fatal rc_Error "Tried to get GL context when not in GL mode"

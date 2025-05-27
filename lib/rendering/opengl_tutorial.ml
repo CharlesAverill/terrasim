@@ -2,39 +2,7 @@ open Tsdl
 open Sdl
 open Tgl4
 open Logging
-
-let draw pid gid win =
-  Gl.clear_color 0. 0. 0. 1. ;
-  Gl.clear Gl.color_buffer_bit ;
-  Gl.use_program pid ;
-  Gl.bind_vertex_array gid ;
-  Gl.draw_elements Gl.triangles 3 Gl.unsigned_byte (`Offset 0) ;
-  Gl.bind_vertex_array 0 ;
-  Sdl.gl_swap_window win ;
-  ()
-
-let bigarray_create k len = Bigarray.(Array1.create k c_layout len)
-
-let get_int =
-  let a = bigarray_create Bigarray.int32 1 in
-  fun f ->
-    f a ;
-    Int32.to_int a.{0}
-
-let get_string len f =
-  let a = bigarray_create Bigarray.char len in
-  f a ; Gl.string_of_bigarray a
-
-let set_3d ba i x y z =
-  let start = i * 3 in
-  ba.{start} <- x ;
-  ba.{start + 1} <- y ;
-  ba.{start + 2} <- z
-
-let verts_of_list (verts : (float * float * float) list) =
-  let vs = bigarray_create Bigarray.float32 (3 * List.length verts) in
-  List.iteri (fun i (x, y, z) -> set_3d vs i x y z) verts ;
-  vs
+open Opengl_utils
 
 let tri_verts = verts_of_list [(-0.8, -0.8, 0.); (0.8, -0.8, 0.); (0., 0.8, 0.)]
 

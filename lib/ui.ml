@@ -10,6 +10,7 @@ open Worldgrid
 open Biomes
 open Cursor
 open Utils
+open Graphics
 
 let render_ui window (renderer : Sdl.renderer) = draw_cursor renderer
 
@@ -79,19 +80,20 @@ let globe_handle_scancodes e window =
   | _, _, _, _ ->
       ()
 
-let toggle_camera_mode renderer =
-  let* _ = render_clear renderer in
+let toggle_camera_mode window =
   match !current_camera_mode with
   | Some (Edit2D _) ->
+      swap_render_mode window ;
       current_camera_mode := Some Atlas2D
   | Some Atlas2D ->
+      swap_render_mode window ;
       current_camera_mode := Some Globe3D
   | Some Globe3D ->
       current_camera_mode := Some (Edit2D edit_camera)
   | None ->
       ()
 
-let edit_handle_textinput e window renderer =
+let edit_handle_textinput e window =
   let* _ = show_cursor false in
   let text = get e text_input_text in
   match text with
@@ -100,21 +102,21 @@ let edit_handle_textinput e window renderer =
   | "-" ->
       zoom_out ()
   | "c" ->
-      toggle_camera_mode renderer
+      toggle_camera_mode window
   | _ ->
       ()
 
-let globe_handle_textinput e window renderer =
+let globe_handle_textinput e window =
   let* _ = show_cursor false in
   let text = get e text_input_text in
-  match text with "c" -> toggle_camera_mode renderer | _ -> ()
+  match text with "c" -> toggle_camera_mode window | _ -> ()
 
-let atlas_handle_textinput e window renderer =
+let atlas_handle_textinput e window =
   let* _ = show_cursor false in
   let text = get e text_input_text in
-  match text with "c" -> toggle_camera_mode renderer | _ -> ()
+  match text with "c" -> toggle_camera_mode window | _ -> ()
 
-let handle_edit_ui_event (e : Sdl.event) window renderer =
+let handle_edit_ui_event (e : Sdl.event) window =
   let edit_updated = ref false in
   ( match get e typ with
   | t when t = mouse_motion ->
@@ -136,7 +138,7 @@ let handle_edit_ui_event (e : Sdl.event) window renderer =
       | _ ->
           () )
   | t when t = text_input ->
-      edit_handle_textinput e window renderer ;
+      edit_handle_textinput e window ;
       edit_handle_keycodes e window
   | t when t = key_down ->
       edit_handle_scancodes e window
@@ -144,7 +146,7 @@ let handle_edit_ui_event (e : Sdl.event) window renderer =
       () ) ;
   if !edit_updated then clear_globe_cache ()
 
-let handle_atlas_ui_event (e : Sdl.event) window renderer =
+let handle_atlas_ui_event (e : Sdl.event) window =
   match get e typ with
   | t when t = mouse_motion ->
       let* _ = show_cursor true in
@@ -152,13 +154,13 @@ let handle_atlas_ui_event (e : Sdl.event) window renderer =
   | t when t = mouse_button_down ->
       ()
   | t when t = text_input ->
-      atlas_handle_textinput e window renderer
+      atlas_handle_textinput e window
   | t when t = key_down ->
       atlas_handle_scancodes e window
   | _ ->
       ()
 
-let handle_globe_ui_event (e : Sdl.event) window renderer =
+let handle_globe_ui_event (e : Sdl.event) window =
   match get e typ with
   | t when t = mouse_motion ->
       let* _ = show_cursor true in
@@ -166,7 +168,7 @@ let handle_globe_ui_event (e : Sdl.event) window renderer =
   | t when t = mouse_button_down ->
       ()
   | t when t = text_input ->
-      globe_handle_textinput e window renderer
+      globe_handle_textinput e window
   | t when t = key_down ->
       globe_handle_scancodes e window
   | _ ->

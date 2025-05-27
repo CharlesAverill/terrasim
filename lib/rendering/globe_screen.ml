@@ -5,6 +5,7 @@ open Globals
 open Worldgrid
 open Altitude
 open Gradients
+open Graphics
 
 let draw_starfield renderer =
   Random.init 42 ;
@@ -40,7 +41,8 @@ let draw_starfield renderer =
         ()
   done
 
-let render_globe window renderer =
+let render_globe window =
+  let renderer = get_global_renderer () in
   let lon_q = !rotation_lon in
   let lat_q = !rotation_lat in
   let key = (lon_q, lat_q) in

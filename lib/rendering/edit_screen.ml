@@ -7,6 +7,7 @@ open Worldgrid
 open Biomes
 open Spriteloader
 open Ui
+open Graphics
 
 let animated_tile_update_factor = 8
 
@@ -29,7 +30,13 @@ let texture_of_tile renderer (t : world_tile) frame_count =
       Hashtbl.add tile_texture_cache (t.biome, t.altitude, frame_count) tex ;
       tex
 
-let render_edit window renderer frame_counter fps =
+let render_edit window frame_counter fps =
+  let renderer = get_global_renderer () in
+  if !need_to_flush_edit_tile_cache then (
+    Hashtbl.clear tile_texture_cache ;
+    Hashtbl.clear blob_cache ;
+    need_to_flush_edit_tile_cache := false
+  ) ;
   let* _ = Sdl.render_clear renderer in
   (* 1. Get window size in pixels *)
   let window_w, window_h =
