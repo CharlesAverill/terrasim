@@ -3,12 +3,12 @@ open Noise
 open Altitude
 open Biomes
 
-let classify_ocean_tile tile =
-  if tile.altitude <= deep_ocean_theshold then
+let classify_ocean_tile alt =
+  if alt <= deep_ocean_theshold then
     Ocean Deep
-  else if tile.altitude <= regular_ocean_theshold then
+  else if alt <= regular_ocean_theshold then
     Ocean Regular
-  else if tile.altitude <= shallow_ocean_theshold then
+  else if alt <= shallow_ocean_theshold then
     Ocean Shallow
   else
     Land Nothing
@@ -22,25 +22,25 @@ let world_setup () =
   let seed = Random.int (int_of_float (Float.pow 2. 20.)) in
   for x = 0 to world_width do
     for y = 0 to world_height do
-      match get_global_tile x y with
+      match get_global_tile x y [] with
       | None ->
           ()
-      | Some tile ->
+      | Some [] ->
           let world_scale = 0.3 in
           (* Altitude *)
-          let tile =
-            { tile with
-              altitude=
-                int_of_float
-                  ( latitudinal_falloff y *. float max_land_height
-                  *. fbm ~seed ~mag_scale:7. ~x_scale:world_scale
-                       ~y_scale:(world_scale /. 7.) ~octaves:3
-                       ~tile_x_width:(Some world_width)
-                       (float x, float y, 0.) ) }
+          let alt =
+            int_of_float
+              ( latitudinal_falloff y *. float max_land_height
+              *. fbm ~seed ~mag_scale:7. ~x_scale:world_scale
+                   ~y_scale:(world_scale /. 7.) ~octaves:3
+                   ~tile_x_width:(Some world_width)
+                   (float x, float y, 0.) )
           in
           (* Oceans *)
-          let tile = {tile with biome= classify_ocean_tile tile} in
-          let is_ocean = match tile.biome with Ocean _ -> true | _ -> false in
-          set_global_tile x y tile
+          let biome = classify_ocean_tile alt in
+          let is_ocean = match biome with Ocean _ -> true | _ -> false in
+          set_global_tile x y [`Altitude alt; `Biome biome]
+      | _ ->
+          [%unreachable]
     done
   done

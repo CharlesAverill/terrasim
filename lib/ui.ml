@@ -86,9 +86,9 @@ let toggle_camera_mode window =
       swap_render_mode window ;
       current_camera_mode := Some Atlas2D
   | Some Atlas2D ->
-      swap_render_mode window ;
       current_camera_mode := Some Globe3D
   | Some Globe3D ->
+      swap_render_mode window ;
       current_camera_mode := Some (Edit2D edit_camera)
   | None ->
       ()

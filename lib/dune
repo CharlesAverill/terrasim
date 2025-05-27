@@ -12,9 +12,10 @@
   ctypes
   ctypes.foreign
   globe_render
-  digestif)
+  digestif
+  ppx_unreachable)
  (preprocess
-  (pps ppx_blob))
+  (pps ppx_blob ppx_unreachable))
  (preprocessor_deps
   (source_tree ../assets)
   (source_tree ../shaders)))

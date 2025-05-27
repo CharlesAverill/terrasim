@@ -62,16 +62,6 @@ let render_globe window =
       let radius = int_of_float (float win_h /. 2.2) in
       let center_x = win_w / 2 in
       let center_y = win_h / 2 in
-      (* let open Ctypes in
-      let pixel_buffer = CArray.make rgb_pixel (win_w * win_h) in
-      globe_render win_w win_h lon_q lat_q world_width world_height
-        (CArray.start
-           (CArray.of_list int
-              (Array.to_list
-                 (flatten_matrix (matrix_map grid (fun t -> t.altitude)) 0) ) ) )
-        max_land_height
-        (CArray.start pixel_buffer) ;
-      render_rgb_buffer renderer pixel_buffer ~win_w ~win_h ; *)
       let rot_lon = float_of_int lon_q *. Float.pi /. 180.0 in
       let rot_lat = float_of_int lat_q *. Float.pi /. 180.0 in
       let* _ = set_render_draw_color renderer 0 0 0 255 in
@@ -81,8 +71,8 @@ let render_globe window =
       let sin_lat = sin rot_lat in
       let cos_lon = cos rot_lon in
       let sin_lon = sin rot_lon in
-      let altitudes = altitude () in
-      let biomes = biomes () in
+      let altitudes = grid.altitude in
+      let biomes = grid.biome in
       let rects = ref (fun c -> []) in
       (* let colors = ref ColorSet.empty in *)
       let rect = Sdl.Rect.create ~x:0 ~y:0 ~w:0 ~h:0 in
@@ -140,16 +130,8 @@ let render_globe window =
               let* _ = Sdl.render_fill_rect renderer (Some rect) in
               ()
             )
-          (* colors := ColorSet.add (r, g, b) !colors ;
-              rects := update !rects (r, g, b) (point :: !rects (r, g, b)) *)
         done
       done ;
-      (* ColorSet.iter
-        (fun (r, g, b) ->
-          let* _ = Sdl.set_render_draw_color renderer r g b 255 in
-          let* _ = Sdl.render_fill_rects renderer (!rects (r, g, b)) in
-          () )
-        !colors ; *)
       (* Store texture in cache and reset render target *)
       Hashtbl.replace globe_cache key target_texture ;
       let* _ = Sdl.set_render_target renderer None in

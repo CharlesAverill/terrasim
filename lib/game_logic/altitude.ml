@@ -22,12 +22,12 @@ let ocean_height = function
       None
 
 let change_altitude x y delta =
-  match get_global_tile x y with
+  match get_global_tile x y [`Altitude] with
   | None ->
       ()
-  | Some t ->
-      let new_alt = clamp (t.altitude + delta) 0 max_land_height in
-      set_global_tile ~wrap_x:true x y {t with altitude= new_alt} ;
+  | Some [`Altitude alt] ->
+      let new_alt = clamp (alt + delta) 0 max_land_height in
+      set_global_tile x y [`Altitude new_alt] ;
       if new_alt < deep_ocean_theshold then
         set_biome x y (Ocean Deep)
       else if new_alt < regular_ocean_theshold then
@@ -36,6 +36,8 @@ let change_altitude x y delta =
         set_biome x y (Ocean Shallow)
       else
         set_biome x y (Land Nothing)
+  | _ ->
+      [%unreachable]
 
 let gaussian ~x ~y ~cx ~cy ~sigma =
   let dx = float_of_int (x - cx) in

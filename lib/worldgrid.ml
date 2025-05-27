@@ -5,85 +5,133 @@ let world_width = 128
 
 let world_height = 64
 
-type world_tile =
-  { altitude: int
-  ; event: unit
-  ; magma: unit
-  ; water_temp: unit
-  ; water_current: unit
-  ; air_temp: unit
-  ; air_current: unit
-  ; rain: unit
-  ; biome: biome_tile
-  ; life: unit
-  ; civilization: unit }
+type world_tile_attr_getters =
+  [ `Altitude
+  | `Event
+  | `Magma
+  | `WaterTemp
+  | `AirTemp
+  | `AirCurrent
+  | `Rain
+  | `Biome
+  | `Life
+  | `Civilization ]
 
-type world_grid = world_tile array
+type world_tile_attr_setters =
+  [ `AirCurrent of unit
+  | `AirTemp of unit
+  | `Altitude of int
+  | `Biome of biome_tile
+  | `Civilization of unit
+  | `Event of unit
+  | `Life of unit
+  | `Magma of unit
+  | `Rain of unit
+  | `WaterCurrent of unit
+  | `WaterTemp of unit ]
+
+type world_grid =
+  { altitude: int array
+  ; event: unit array
+  ; magma: unit array
+  ; water_temp: unit array
+  ; water_current: unit array
+  ; air_temp: unit array
+  ; air_current: unit array
+  ; rain: unit array
+  ; biome: biome_tile array
+  ; life: unit array
+  ; civilization: unit array }
 
 let grid : world_grid =
-  Array.make
-    (world_height * world_width)
-    { altitude= 0
-    ; event= ()
-    ; magma= ()
-    ; water_temp= ()
-    ; water_current= ()
-    ; air_temp= ()
-    ; air_current= ()
-    ; rain= ()
-    ; biome= Land Nothing
-    ; life= ()
-    ; civilization= () }
+  let size = world_height * world_width in
+  { altitude= Array.make size 0
+  ; event= Array.make size ()
+  ; magma= Array.make size ()
+  ; water_temp= Array.make size ()
+  ; water_current= Array.make size ()
+  ; air_temp= Array.make size ()
+  ; air_current= Array.make size ()
+  ; rain= Array.make size ()
+  ; biome= Array.make size (Land Nothing)
+  ; life= Array.make size ()
+  ; civilization= Array.make size () }
 
-let altitude () = Array.map (fun t -> t.altitude) grid
+let get_grid_attr i = function
+  | `Altitude ->
+      `Altitude grid.altitude.(i)
+  | `Event ->
+      `Event grid.event.(i)
+  | `Magma ->
+      `Magma grid.magma.(i)
+  | `WaterTemp ->
+      `WaterTemp grid.water_temp.(i)
+  | `WaterCurrent ->
+      `WaterCurrent grid.water_current.(i)
+  | `AirTemp ->
+      `AirTemp grid.air_temp.(i)
+  | `AirCurrent ->
+      `AirCurrent grid.air_current.(i)
+  | `Rain ->
+      `Rain grid.rain.(i)
+  | `Biome ->
+      `Biome grid.biome.(i)
+  | `Life ->
+      `Life grid.life.(i)
+  | `Civilization ->
+      `Civilization grid.civilization.(i)
 
-let events () = Array.map (fun t -> t.event) grid
+let set_grid_attr i = function
+  | `Altitude x ->
+      grid.altitude.(i) <- x
+  | `Event x ->
+      grid.event.(i) <- x
+  | `Magma x ->
+      grid.magma.(i) <- x
+  | `WaterTemp x ->
+      grid.water_temp.(i) <- x
+  | `WaterCurrent x ->
+      grid.water_current.(i) <- x
+  | `AirTemp x ->
+      grid.air_temp.(i) <- x
+  | `AirCurrent x ->
+      grid.air_current.(i) <- x
+  | `Rain x ->
+      grid.rain.(i) <- x
+  | `Biome x ->
+      grid.biome.(i) <- x
+  | `Life x ->
+      grid.life.(i) <- x
+  | `Civilization x ->
+      grid.civilization.(i) <- x
 
-let magma () = Array.map (fun t -> t.magma) grid
-
-let water_temp () = Array.map (fun t -> t.water_temp) grid
-
-let water_current () = Array.map (fun t -> t.water_current) grid
-
-let air_temp () = Array.map (fun t -> t.air_temp) grid
-
-let air_current () = Array.map (fun t -> t.air_current) grid
-
-let rain () = Array.map (fun t -> t.rain) grid
-
-let biomes () = Array.map (fun t -> t.biome) grid
-
-let life () = Array.map (fun t -> t.life) grid
-
-let civilization () = Array.map (fun t -> t.civilization) grid
-
-let get_global_tile ?(wrap_x = true) x y =
-  if wrap_x then
-    let x = ((x mod world_width) + world_width) mod world_width in
-    if y < 0 || y >= world_height then
-      None
+let get_global_tile ?(wrap_x = true) x y fields =
+  let x =
+    if wrap_x then
+      ((x mod world_width) + world_width) mod world_width
     else
-      Some grid.((y * world_width) + x)
-  else if x < 0 || y < 0 || x >= world_width || y >= world_height then
+      x
+  in
+  if x < 0 || y < 0 || x >= world_width || y >= world_height then
     None
   else
-    Some grid.((y * world_width) + x)
+    Some (List.map (get_grid_attr ((y * world_width) + x)) fields)
 
-let set_global_tile ?(wrap_x = true) x y t =
-  if wrap_x then
-    let x = ((x mod world_width) + world_width) mod world_width in
-    if y < 0 || y >= world_height then
-      ()
+let set_global_tile ?(wrap_x = true) x y fields =
+  let x =
+    if wrap_x then
+      ((x mod world_width) + world_width) mod world_width
     else
-      grid.((y * world_width) + x) <- t
-  else if x < 0 || y < 0 || x >= world_width || y >= world_height then
+      x
+  in
+  if x < 0 || y < 0 || x >= world_width || y >= world_height then
     ()
   else
-    grid.((y * world_width) + x) <- t
+    List.iter (set_grid_attr ((y * world_width) + x)) fields
 
 let set_biome x y b =
-  match get_global_tile x y with
+  match get_global_tile x y [`Biome] with
   | None ->
       ()
-  | Some t ->
-      set_global_tile x y {t with biome= b}
+  | Some _ ->
+      set_global_tile x y [`Biome b]

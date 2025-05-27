@@ -16,18 +16,16 @@ let tile_texture_cache : (biome_tile * int * int, Sdl.texture) Hashtbl.t =
   Hashtbl.create 1024
 
 (* Cached texture_of_tile function *)
-let texture_of_tile renderer (t : world_tile) frame_count =
+let texture_of_tile renderer (biome, altitude) frame_count =
   let frame_count = frame_count / animated_tile_update_factor in
-  match
-    Hashtbl.find_opt tile_texture_cache (t.biome, t.altitude, frame_count)
-  with
+  match Hashtbl.find_opt tile_texture_cache (biome, altitude, frame_count) with
   | Some tex ->
       tex
   | None ->
       let tex =
-        texture_of_blob renderer (blob_of_tile frame_count t.altitude t.biome)
+        texture_of_blob renderer (blob_of_tile frame_count altitude biome)
       in
-      Hashtbl.add tile_texture_cache (t.biome, t.altitude, frame_count) tex ;
+      Hashtbl.add tile_texture_cache (biome, altitude, frame_count) tex ;
       tex
 
 let render_edit window frame_counter fps =
@@ -58,18 +56,20 @@ let render_edit window frame_counter fps =
           ~y:(dy * scaled_tile_h ())
           ~w:(scaled_tile_w ()) ~h:(scaled_tile_h ())
       in
-      match get_global_tile gx gy with
+      match get_global_tile gx gy [`Altitude; `Biome] with
       | None ->
           let* _ = Sdl.set_render_draw_color renderer 0 0 0 255 in
           let* _ = Sdl.render_fill_rect renderer (Some dst_rect) in
           ()
-      | Some tile ->
+      | Some [`Altitude alt; `Biome b] ->
           let* _ =
             Sdl.render_copy renderer
-              (texture_of_tile renderer tile frame_counter)
+              (texture_of_tile renderer (b, alt) frame_counter)
               ~dst:dst_rect
           in
           ()
+      | _ ->
+          [%unreachable]
     done
   done ;
   (* 4. Draw UI on top *)

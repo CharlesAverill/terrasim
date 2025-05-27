@@ -6,21 +6,21 @@ open Opengl_utils
 open Worldgrid
 open Altitude
 open Utils
-open Atlas_camera
 open Gradients
+open Globals
 
 let quad_verts =
   Bigarray.Array1.of_array Bigarray.float32 Bigarray.c_layout
     [|0.; 0.; 1.; 0.; 1.; 1.; 0.; 0.; 1.; 1.; 0.; 1.|]
 
-let atlas_vertex_shader_src = [%blob "shaders/atlas.vert"]
+let globe_vertex_shader_src = [%blob "shaders/globe.vert"]
 
-let atlas_fragment_shader_src = [%blob "shaders/atlas.frag"]
+let globe_fragment_shader_src = [%blob "shaders/globe.frag"]
 
 let compile_shaders () =
   (* Compile the vertex shader *)
   let vshader = Gl.create_shader Gl.vertex_shader in
-  Gl.shader_source vshader atlas_vertex_shader_src ;
+  Gl.shader_source vshader globe_vertex_shader_src ;
   Gl.compile_shader vshader ;
   (* Check if compiling shader errored *)
   if get_int (Gl.get_shaderiv vshader Gl.compile_status) = Gl.false_ then (
@@ -31,7 +31,7 @@ let compile_shaders () =
   ) ;
   (* Compile the fragment shader *)
   let fshader = Gl.create_shader Gl.fragment_shader in
-  Gl.shader_source fshader atlas_fragment_shader_src ;
+  Gl.shader_source fshader globe_fragment_shader_src ;
   Gl.compile_shader fshader ;
   if get_int (Gl.get_shaderiv fshader Gl.compile_status) = Gl.false_ then (
     let len = get_int (Gl.get_shaderiv fshader Gl.info_log_length) in
@@ -52,10 +52,10 @@ let compile_shaders () =
   Gl.delete_shader fshader ;
   sprogram
 
-let setup_tile_buffers ~offsets ~colors =
+let setup_globe_tile_buffers ~directions ~colors =
   let vao = get_int (Gl.gen_vertex_arrays 1) in
   Gl.bind_vertex_array vao ;
-  (* Vertex buffer for quad *)
+  (* Reuse quad VBO (same as globe renderer) *)
   let quad_vbo = get_int (Gl.gen_buffers 1) in
   Gl.bind_buffer Gl.array_buffer quad_vbo ;
   Gl.buffer_data Gl.array_buffer
@@ -63,62 +63,56 @@ let setup_tile_buffers ~offsets ~colors =
     (Some quad_verts) Gl.static_draw ;
   Gl.vertex_attrib_pointer 0 2 Gl.float false 0 (`Offset 0) ;
   Gl.enable_vertex_attrib_array 0 ;
-  (* Interleave instance data: offset (2 floats) + color (3 floats) *)
-  let num_tiles = Array.length offsets in
+  (* Instance buffer: direction + color = 6 floats *)
+  let num_tiles = Array.length directions in
   let instance_data =
-    Bigarray.Array1.create Bigarray.float32 Bigarray.c_layout (num_tiles * 5)
+    Bigarray.Array1.create Bigarray.float32 Bigarray.c_layout (num_tiles * 6)
   in
   Array.iteri
-    (fun i (ox, oy) ->
+    (fun i (dx, dy, dz) ->
       let r, g, b = colors.(i) in
-      let i5 = i * 5 in
-      instance_data.{i5 + 0} <- ox ;
-      instance_data.{i5 + 1} <- oy ;
-      instance_data.{i5 + 2} <- r ;
-      instance_data.{i5 + 3} <- g ;
-      instance_data.{i5 + 4} <- b )
-    offsets ;
-  (* Instance buffer *)
+      let i6 = i * 6 in
+      instance_data.{i6 + 0} <- dx ;
+      instance_data.{i6 + 1} <- dy ;
+      instance_data.{i6 + 2} <- dz ;
+      instance_data.{i6 + 3} <- r ;
+      instance_data.{i6 + 4} <- g ;
+      instance_data.{i6 + 5} <- b )
+    directions ;
   let instance_vbo = get_int (Gl.gen_buffers 1) in
   Gl.bind_buffer Gl.array_buffer instance_vbo ;
   Gl.buffer_data Gl.array_buffer
     (Gl.bigarray_byte_size instance_data)
     (Some instance_data) Gl.static_draw ;
-  (* 5 floats per instance * 4 bytes per float *)
-  let stride = 5 * 4 in
-  (* Offset: location = 1 *)
-  Gl.vertex_attrib_pointer 1 2 Gl.float false stride (`Offset 0) ;
+  let stride = 6 * 4 in
+  Gl.vertex_attrib_pointer 1 3 Gl.float false stride (`Offset 0) ;
   Gl.enable_vertex_attrib_array 1 ;
   Gl.vertex_attrib_divisor 1 1 ;
-  (* Color: location = 2 *)
-  Gl.vertex_attrib_pointer 2 3 Gl.float false stride (`Offset (2 * 4)) ;
+  Gl.vertex_attrib_pointer 2 3 Gl.float false stride (`Offset (3 * 4)) ;
   Gl.enable_vertex_attrib_array 2 ;
   Gl.vertex_attrib_divisor 2 1 ;
   Gl.bind_vertex_array 0 ;
   vao
 
-let render_tiles win sprogram vao num_instances =
-  Gl.clear_color 0.1 0.1 0.1 1. ;
-  Gl.clear Gl.color_buffer_bit ;
-  Gl.use_program sprogram ;
-  Gl.bind_vertex_array vao ;
-  let u_scale = Gl.get_uniform_location sprogram "uScale" in
-  Gl.uniform1f u_scale (1. /. 30.) ;
-  Gl.draw_arrays_instanced Gl.triangles 0 6 num_instances ;
-  Sdl.gl_swap_window win
-
-let make_tile_data () =
+let generate_directions_and_colors () =
   let num_tiles = world_width * world_height in
-  let offsets = Array.make num_tiles (0.0, 0.0) in
-  let colors = Array.make num_tiles (0.0, 0.0, 0.0) in
-  (* NDC units *)
-  let scale_x = 2.0 /. float world_width in
-  let scale_y = 2.0 /. float world_height in
+  let directions = Array.make num_tiles (0., 0., 0.) in
+  let colors = Array.make num_tiles (0., 0., 0.) in
   let altitudes = grid.altitude in
   let biomes = grid.biome in
   let idx = ref 0 in
-  Array.iter2
-    (fun alt biome ->
+  for j = 0 to world_height - 1 do
+    for i = 0 to world_width - 1 do
+      let lon = (float i /. float world_width *. 2. *. Float.pi) -. Float.pi in
+      let lat =
+        (float j /. float world_height *. Float.pi) -. (Float.pi /. 2.)
+      in
+      let x = cos lat *. sin lon in
+      let y = -.sin lat in
+      let z = cos lat *. cos lon in
+      directions.(!idx) <- (x, y, z) ;
+      let alt = altitudes.(!idx) in
+      let biome = biomes.(!idx) in
       let norm_alt = clamp (float alt /. float max_land_height) 0.0 1.0 in
       let r, g, b =
         match ocean_height biome with
@@ -127,20 +121,30 @@ let make_tile_data () =
         | Some h ->
             interpolate_gradient ocean_gradient (clamp (float h /. 3.) 0. 1.)
       in
-      let wx, wy = (!idx mod world_width, !idx / world_width) in
-      let wx = mod_wrap (wx + atlas_camera.x) world_width in
-      (* Convert to NDC position of bottom-left corner of tile *)
-      let ndc_x = -1.0 +. (float wx *. scale_x) in
-      let ndc_y = -1.0 +. (float wy *. scale_y) in
-      offsets.(!idx) <- (ndc_x, -.ndc_y -. scale_y) ;
       colors.(!idx) <- (float r /. 255., float g /. 255., float b /. 255.) ;
-      idx := !idx + 1 )
-    altitudes biomes ;
-  (offsets, colors)
+      idx := !idx + 1
+    done
+  done ;
+  (directions, colors)
+
+let do_globe_render win sprogram vao num_instances =
+  Gl.clear_color 0.0 0.0 0.0 1.0 ;
+  Gl.clear Gl.color_buffer_bit ;
+  Gl.use_program sprogram ;
+  Gl.bind_vertex_array vao ;
+  let uRotLon = Gl.get_uniform_location sprogram "uRotLon" in
+  let uRotLat = Gl.get_uniform_location sprogram "uRotLat" in
+  let uRadius = Gl.get_uniform_location sprogram "uRadius" in
+  Gl.uniform1f uRotLon (float_of_int !rotation_lon *. Float.pi /. 180.) ;
+  Gl.uniform1f uRotLat (float_of_int !rotation_lat *. Float.pi /. 180.) ;
+  Gl.uniform1f uRadius 0.9 ;
+  (* NDC radius *)
+  Gl.draw_arrays_instanced Gl.triangles 0 6 num_instances ;
+  Sdl.gl_swap_window win
 
 let sprogram = ref None
 
-let atlas_render win =
+let globe_render win =
   let sprogram =
     match !sprogram with
     | None ->
@@ -150,6 +154,6 @@ let atlas_render win =
     | Some x ->
         x
   in
-  let offsets, colors = make_tile_data () in
-  let vao = setup_tile_buffers ~offsets ~colors in
-  render_tiles win sprogram vao (Array.length offsets)
+  let directions, colors = generate_directions_and_colors () in
+  let vao = setup_globe_tile_buffers ~directions ~colors in
+  do_globe_render win sprogram vao (Array.length directions)

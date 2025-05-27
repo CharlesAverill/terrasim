@@ -9,8 +9,8 @@ open Ui
 
 let render_atlas window renderer =
   let* win_w, win_h = get_renderer_output_size renderer in
-  let altitudes = altitude () in
-  let biomes = biomes () in
+  let altitudes = grid.altitude in
+  let biomes = grid.biome in
   let* _ = Sdl.set_render_draw_color renderer 0 0 0 255 in
   let* _ = Sdl.render_clear renderer in
   let scale_x = float win_w /. float world_width in
