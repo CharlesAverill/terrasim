@@ -1,13 +1,3 @@
-(*
-   Minimal Tgl4 example. This code is in the public domain.
-   Draws a fantastic tri-colored triangle.
-
-   Compile with:
-   ocamlfind ocamlc -linkpkg -package result,tsdl,tgls.tgl4 -o trigl4.byte trigl4.ml
-   ocamlfind ocamlopt -linkpkg -package result,tsdl,tgls.tgl4 -o trigl4.native \
-                      trigl4.ml
-*)
-
 open Tsdl
 open Tgl4
 open Result

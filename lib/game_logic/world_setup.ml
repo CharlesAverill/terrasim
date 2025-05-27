@@ -38,7 +38,6 @@ let world_setup () =
                        ~tile_x_width:(Some world_width)
                        (float x, float y, 0.) ) }
           in
-          Printf.printf "%d %d %f\n" y tile.altitude (latitudinal_falloff y) ;
           (* Oceans *)
           let tile = {tile with biome= classify_ocean_tile tile} in
           let is_ocean = match tile.biome with Ocean _ -> true | _ -> false in

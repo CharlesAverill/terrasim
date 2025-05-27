@@ -16,4 +16,5 @@
  (preprocess
   (pps ppx_blob))
  (preprocessor_deps
-  (source_tree ../assets)))
+  (source_tree ../assets)
+  (source_tree ../shaders)))
