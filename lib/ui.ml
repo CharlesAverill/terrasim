@@ -130,10 +130,10 @@ let handle_edit_ui_event (e : Sdl.event) window =
       set_global_cursor tile_x tile_y ;
       match button with
       | 1 (* Left click *) ->
-          raise_terrain_gaussian tile_x tile_y ;
+          adjust_terrain_gaussian ~raise:true tile_x tile_y ;
           edit_updated := true
       | 3 (* Right click *) ->
-          change_altitude tile_x tile_y (-1) ;
+          adjust_terrain_gaussian ~raise:false tile_x tile_y ;
           edit_updated := true
       | _ ->
           () )

@@ -27,7 +27,7 @@ let change_altitude x y delta =
       ()
   | Some t ->
       let new_alt = clamp (t.altitude + delta) 0 max_land_height in
-      set_global_tile x y {t with altitude= new_alt} ;
+      set_global_tile ~wrap_x:true x y {t with altitude= new_alt} ;
       if new_alt < deep_ocean_theshold then
         set_biome x y (Ocean Deep)
       else if new_alt < regular_ocean_theshold then
@@ -43,7 +43,7 @@ let gaussian ~x ~y ~cx ~cy ~sigma =
   let exponent = -.(((dx *. dx) +. (dy *. dy)) /. (2.0 *. sigma *. sigma)) in
   exp exponent
 
-let raise_terrain_gaussian x y =
+let adjust_terrain_gaussian ?(raise = true) x y =
   (* Parameters to control the shape of the volcano *)
   let volcano_radius = 6 in
   let volcano_peak_height = 10. in
@@ -53,7 +53,13 @@ let raise_terrain_gaussian x y =
       let tx = x + dx in
       let ty = y + dy in
       let influence = gaussian ~x:tx ~y:ty ~cx:x ~cy:y ~sigma:volcano_sigma in
-      let delta = int_of_float (influence *. volcano_peak_height) in
+      let delta =
+        ( if raise then
+            1
+          else
+            -1 )
+        * int_of_float (influence *. volcano_peak_height)
+      in
       change_altitude tx ty delta
     done
   done

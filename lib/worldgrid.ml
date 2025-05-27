@@ -57,20 +57,26 @@ let life () = Array.map (fun t -> t.life) grid
 
 let civilization () = Array.map (fun t -> t.civilization) grid
 
-let get_global_tile ?(wrap_x = false) x y =
+let get_global_tile ?(wrap_x = true) x y =
   if wrap_x then
     let x = ((x mod world_width) + world_width) mod world_width in
     if y < 0 || y >= world_height then
       None
     else
-      Some grid.((y * world_width) + (x mod world_width))
+      Some grid.((y * world_width) + x)
   else if x < 0 || y < 0 || x >= world_width || y >= world_height then
     None
   else
     Some grid.((y * world_width) + x)
 
-let set_global_tile x y t =
-  if x < 0 || y < 0 || x >= world_width || y >= world_height then
+let set_global_tile ?(wrap_x = true) x y t =
+  if wrap_x then
+    let x = ((x mod world_width) + world_width) mod world_width in
+    if y < 0 || y >= world_height then
+      ()
+    else
+      grid.((y * world_width) + x) <- t
+  else if x < 0 || y < 0 || x >= world_width || y >= world_height then
     ()
   else
     grid.((y * world_width) + x) <- t

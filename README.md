@@ -29,7 +29,7 @@ There are three views right now:
 |---|---|
 | Mouse move | Pan view |
 | LMB | Raise terrain (volcano) |
-| RMB | Lower terrain (meteorite) |
+| RMB | Lower terrain (meteor) |
 | `c` | Switch to Atlas view |
 
 ### Atlas view (Cartesian)
