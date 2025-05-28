@@ -60,10 +60,10 @@ run: build
 	$(OPAM_EXEC) $(DUNE) exec -- TerraSim
 
 debug: build
-	$(OPAM_EXEC) ocamldebug _build/terrasim/TerraSim/main.bc
+	$(OPAM_EXEC) ocamldebug _build/default/TerraSim/main.bc
 
 DOCS_PATH=docs/
-DOCS_NAME=TerraSim
+DOCS_NAME=terrasim
 DOCS_DESCR=A SimEarth clone
 DOCS_INDEX_TITLE=$(DOCS_NAME) - $(DOCS_DESCR)
 define DOCS_EMBED
@@ -76,14 +76,15 @@ cleandocs:
 	if [ ! -d $(DOCS_PATH) ]; then \
 		mkdir $(DOCS_PATH); \
 	fi
-	rm -rf $(DOCS_PATH)module $(DOCS_PATH)docs $(DOCS_PATH)odoc.support $(DOCS_PATH)index.html
+	rm -rf $(DOCS_PATH)
+	mkdir $(DOCS_PATH)
 
 docs: cleandocs build
 	$(OPAM_EXEC) $(DUNE) build @doc
-	mv -f _build/terrasim/_doc/_html/* $(DOCS_PATH)
+	cp -rf _build/default/_doc/_html/* $(DOCS_PATH)
 	rm -f $(DOCS_PATH)index.html
-	mv $(DOCS_PATH)TerraSim/TerraSim.html $(DOCS_PATH)index.html
-	mv $(DOCS_PATH)TerraSim $(DOCS_PATH)module
+	mv $(DOCS_PATH)terrasim/TerraSim.html $(DOCS_PATH)index.html
+	mv $(DOCS_PATH)terrasim $(DOCS_PATH)module
 	
 	@echo "Preparing Index\n--------------"
 	# Header
