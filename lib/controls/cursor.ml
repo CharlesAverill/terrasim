@@ -7,12 +7,12 @@ open Cameras.Edit_camera
 open World.Grid
 
 (* World-space coordinates *)
-type cursor = {mutable x: int; mutable y: int}
+type cursor = { mutable x : int; mutable y : int }
 
-let global_cursor = {x= 0; y= 0}
+let global_cursor = { x = 0; y = 0 }
 
 let set_global_cursor x y =
-  global_cursor.x <- x ;
+  global_cursor.x <- x;
   global_cursor.y <- y
 
 let move_global_cursor dx dy =

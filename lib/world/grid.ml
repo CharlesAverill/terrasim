@@ -2,7 +2,6 @@ open Biomes
 open Utils
 
 let world_width = 128
-
 let world_height = 64
 
 type world_tile_attr_getters =
@@ -30,32 +29,35 @@ type world_tile_attr_setters =
   | `WaterCurrent of unit
   | `WaterTemp of unit ]
 
-type world_grid =
-  { altitude: int array
-  ; event: unit array
-  ; magma: unit array
-  ; water_temp: unit array
-  ; water_current: unit array
-  ; air_temp: unit array
-  ; air_current: unit array
-  ; rain: unit array
-  ; biome: biome_tile array
-  ; life: unit array
-  ; civilization: unit array }
+type world_grid = {
+  altitude : int array;
+  event : unit array;
+  magma : unit array;
+  water_temp : unit array;
+  water_current : unit array;
+  air_temp : unit array;
+  air_current : unit array;
+  rain : unit array;
+  biome : biome_tile array;
+  life : unit array;
+  civilization : unit array;
+}
 
 let grid : world_grid =
   let size = world_height * world_width in
-  { altitude= Array.make size 0
-  ; event= Array.make size ()
-  ; magma= Array.make size ()
-  ; water_temp= Array.make size ()
-  ; water_current= Array.make size ()
-  ; air_temp= Array.make size ()
-  ; air_current= Array.make size ()
-  ; rain= Array.make size ()
-  ; biome= Array.make size (Land Nothing)
-  ; life= Array.make size ()
-  ; civilization= Array.make size () }
+  {
+    altitude = Array.make size 0;
+    event = Array.make size ();
+    magma = Array.make size ();
+    water_temp = Array.make size ();
+    water_current = Array.make size ();
+    air_temp = Array.make size ();
+    air_current = Array.make size ();
+    rain = Array.make size ();
+    biome = Array.make size (Land Nothing);
+    life = Array.make size ();
+    civilization = Array.make size ();
+  }
 
 let get_grid_attr i = function
   | `Altitude ->
@@ -130,8 +132,8 @@ let set_global_tile ?(wrap_x = true) x y fields =
     List.iter (set_grid_attr ((y * world_width) + x)) fields
 
 let set_biome x y b =
-  match get_global_tile x y [`Biome] with
+  match get_global_tile x y [ `Biome ] with
   | None ->
       ()
   | Some _ ->
-      set_global_tile x y [`Biome b]
+      set_global_tile x y [ `Biome b ]

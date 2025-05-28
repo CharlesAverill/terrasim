@@ -4,22 +4,23 @@ let bigarray_create k len = Bigarray.(Array1.create k c_layout len)
 
 let get_int f : int =
   let a = bigarray_create Bigarray.int32 1 in
-  f a ;
+  f a;
   Int32.to_int a.{0}
 
 let get_string len f =
   let a = bigarray_create Bigarray.char len in
-  f a ; Gl.string_of_bigarray a
+  f a;
+  Gl.string_of_bigarray a
 
 let set_3d ba i x y z =
   let start = i * 3 in
-  ba.{start} <- x ;
-  ba.{start + 1} <- y ;
+  ba.{start} <- x;
+  ba.{start + 1} <- y;
   ba.{start + 2} <- z
 
 let verts_of_list (verts : (float * float * float) list) =
   let vs = bigarray_create Bigarray.float32 (3 * List.length verts) in
-  List.iteri (fun i (x, y, z) -> set_3d vs i x y z) verts ;
+  List.iteri (fun i (x, y, z) -> set_3d vs i x y z) verts;
   vs
 
 module Mat4 = struct
@@ -29,11 +30,11 @@ module Mat4 = struct
 
   let identity =
     let m = create () in
-    Bigarray.Array1.fill m 0.0 ;
-    m.{0} <- 1.0 ;
-    m.{5} <- 1.0 ;
-    m.{10} <- 1.0 ;
-    m.{15} <- 1.0 ;
+    Bigarray.Array1.fill m 0.0;
+    m.{0} <- 1.0;
+    m.{5} <- 1.0;
+    m.{10} <- 1.0;
+    m.{15} <- 1.0;
     m
 
   let mul a b =
@@ -43,30 +44,30 @@ module Mat4 = struct
         let sum = ref 0.0 in
         for k = 0 to 3 do
           sum := !sum +. (a.{(i * 4) + k} *. b.{(k * 4) + j})
-        done ;
+        done;
         res.{(i * 4) + j} <- !sum
       done
-    done ;
+    done;
     res
 
   let init m00 m01 m02 m03 m10 m11 m12 m13 m20 m21 m22 m23 m30 m31 m32 m33 =
     let m = create () in
-    m.{0} <- m00 ;
-    m.{1} <- m01 ;
-    m.{2} <- m02 ;
-    m.{3} <- m03 ;
-    m.{4} <- m10 ;
-    m.{5} <- m11 ;
-    m.{6} <- m12 ;
-    m.{7} <- m13 ;
-    m.{8} <- m20 ;
-    m.{9} <- m21 ;
-    m.{10} <- m22 ;
-    m.{11} <- m23 ;
-    m.{12} <- m30 ;
-    m.{13} <- m31 ;
-    m.{14} <- m32 ;
-    m.{15} <- m33 ;
+    m.{0} <- m00;
+    m.{1} <- m01;
+    m.{2} <- m02;
+    m.{3} <- m03;
+    m.{4} <- m10;
+    m.{5} <- m11;
+    m.{6} <- m12;
+    m.{7} <- m13;
+    m.{8} <- m20;
+    m.{9} <- m21;
+    m.{10} <- m22;
+    m.{11} <- m23;
+    m.{12} <- m30;
+    m.{13} <- m31;
+    m.{14} <- m32;
+    m.{15} <- m33;
     m
 end
 
@@ -111,7 +112,7 @@ let look_at (eye : float * float * float) (center : float * float * float)
   let s =
     normalize
       (let a, b, c = cross f up in
-       (a, b, c) )
+       (a, b, c))
   in
   let u = cross s f in
   let s0, s1, s2 = s in

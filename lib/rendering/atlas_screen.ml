@@ -18,9 +18,9 @@ let render_atlas window renderer =
   in *)
   let rect = Sdl.Rect.create ~x:0 ~y:0 ~w:0 ~h:0 in
   let update_rect x y w h =
-    Sdl.Rect.set_x rect x ;
-    Sdl.Rect.set_y rect y ;
-    Sdl.Rect.set_w rect w ;
+    Sdl.Rect.set_x rect x;
+    Sdl.Rect.set_y rect y;
+    Sdl.Rect.set_w rect w;
     Sdl.Rect.set_h rect h
   in
   for wy = 0 to world_height - 1 do
@@ -45,7 +45,7 @@ let render_atlas window renderer =
         (* ensure at least 1px visible *)
       in
       let h = max 1 (int_of_float (scale_y +. 0.5)) in
-      update_rect x y w h ;
+      update_rect x y w h;
       let* _ = Sdl.set_render_draw_color renderer r g b 255 in
       let* _ = Sdl.render_fill_rect renderer (Some rect) in
       ()
@@ -60,7 +60,7 @@ let render_atlas window renderer =
       in
       rects := Sdl.Rect.create ~x ~y ~w ~h :: !rects *)
     done
-  done ;
+  done;
   (* Hashtbl.iter
     (fun (r, g, b) rects ->
       let* _ = Sdl.set_render_draw_color renderer r g b 255 in

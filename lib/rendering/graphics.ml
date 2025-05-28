@@ -15,9 +15,9 @@ let create_window ?(w : int = 1920) ?(h : int = 1080) (window_name : string) =
   let* w =
     Sdl.create_window ~w ~h window_name
       (let open Sdl.Window in
-       opengl + fullscreen_desktop )
+       opengl + fullscreen_desktop)
   in
-  Sdl.set_window_minimum_size w ~w:1280 ~h:720 ;
+  Sdl.set_window_minimum_size w ~w:1280 ~h:720;
   w
 
 let create_renderer window =
@@ -25,7 +25,7 @@ let create_renderer window =
     Sdl.create_renderer
       ~flags:
         (let open Sdl.Renderer in
-         accelerated + presentvsync )
+         accelerated + presentvsync)
       window
   with
   | Error _ ->
@@ -33,7 +33,7 @@ let create_renderer window =
         Sdl.create_renderer
           ~flags:
             (let open Sdl.Renderer in
-             software + presentvsync )
+             software + presentvsync)
           window
       in
       r
@@ -55,7 +55,8 @@ let get_color ?(format : Sdl.Pixel.format_enum = Sdl.Pixel.format_rgba8888)
     ?(a : int = 255) r g b =
   let* f = Sdl.alloc_format format in
   let x = Sdl.map_rgba f r g b a in
-  Sdl.free_format f ; x
+  Sdl.free_format f;
+  x
 
 let hsv_to_rgb h s v =
   let h = float h /. 60.0 in
@@ -88,23 +89,23 @@ type render_mode =
 let current_render_mode = ref UninitRender
 
 let use_sdl ?(gl_ctx = None) window =
-  (match gl_ctx with None -> () | Some x -> Sdl.gl_delete_context x) ;
+  (match gl_ctx with None -> () | Some x -> Sdl.gl_delete_context x);
   create_renderer window
 
 let use_opengl window renderer =
-  Sdl.destroy_renderer renderer ;
+  Sdl.destroy_renderer renderer;
   get_opengl_context window
 
 let swap_render_mode window =
   (* Edit screen reset *)
-  clear_edit_cache () ;
+  clear_edit_cache ();
   (* Atlas screen reset *)
-  Atlas_screen_opengl.sprogram := None ;
+  Atlas_screen_opengl.sprogram := None;
   (* Globe screen reset *)
-  clear_globe_cache () ;
-  clear_opengl_globe_cache () ;
-  Globe_screen_opengl.sprogram := None ;
-  Globe_screen_opengl.fbo_atlastex := None ;
+  clear_globe_cache ();
+  clear_opengl_globe_cache ();
+  Globe_screen_opengl.sprogram := None;
+  Globe_screen_opengl.fbo_atlastex := None;
   current_render_mode :=
     match !current_render_mode with
     | UninitRender ->

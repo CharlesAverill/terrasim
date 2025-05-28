@@ -12,7 +12,6 @@ type biome =
   | Swamp
 
 type ocean = Shallow | Regular | Deep
-
 type biome_tile = Land of biome | Ocean of ocean
 
 let sprites_per_animated_tile = 8

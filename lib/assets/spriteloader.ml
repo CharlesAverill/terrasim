@@ -9,12 +9,12 @@ let rwops_of_blob (blob : string * string) =
 
 let rec surface_of_blob blob =
   let* rw = rwops_of_blob blob in
-  _log Log_Debug "Loading %s" (fst blob) ;
+  _log Log_Debug "Loading %s" (fst blob);
   match Image.load_rw rw true with
   | Ok surf ->
       surf
   | Error (`Msg e) ->
-      _log Log_Error "Failed to load %s, trying again" (fst blob) ;
+      _log Log_Error "Failed to load %s, trying again" (fst blob);
       surface_of_blob blob
 
 (* Load the image and create an SDL texture *)
@@ -29,6 +29,6 @@ let texture_of_blob renderer blob =
       let* rw = rwops_of_blob blob in
       let surface = surface_of_blob blob in
       let* texture = Sdl.create_texture_from_surface renderer surface in
-      Sdl.free_surface surface ;
-      Hashtbl.add blob_cache digest texture ;
+      Sdl.free_surface surface;
+      Hashtbl.add blob_cache digest texture;
       texture

@@ -8,7 +8,7 @@ open Graphics
 open Globe_data
 
 let draw_starfield renderer =
-  Random.init 42 ;
+  Random.init 42;
   let draw_point x y b =
     let* () = Sdl.set_render_draw_color renderer b b b 255 in
     let rect = Sdl.Rect.create ~x ~y ~w:1 ~h:1 in
@@ -25,17 +25,17 @@ let draw_starfield renderer =
         draw_point x y brightness
     | 1 ->
         let dim = brightness / 2 in
-        draw_point x y brightness ;
-        draw_point (x + 1) y dim ;
-        draw_point (x - 1) y dim ;
-        draw_point x (y + 1) dim ;
+        draw_point x y brightness;
+        draw_point (x + 1) y dim;
+        draw_point (x - 1) y dim;
+        draw_point x (y + 1) dim;
         draw_point x (y - 1) dim
     | 2 ->
         let dim = brightness / 2 in
-        draw_point x y brightness ;
-        draw_point (x + 1) (y + 1) dim ;
-        draw_point (x - 1) (y + 1) dim ;
-        draw_point (x + 1) (y - 1) dim ;
+        draw_point x y brightness;
+        draw_point (x + 1) (y + 1) dim;
+        draw_point (x - 1) (y + 1) dim;
+        draw_point (x + 1) (y - 1) dim;
         draw_point (x - 1) (y - 1) dim
     | _ ->
         ()
@@ -66,7 +66,7 @@ let render_globe window =
       let rot_lat = lat_q *. Float.pi /. 180.0 in
       let* _ = Sdl.set_render_draw_color renderer 0 0 0 255 in
       let* _ = Sdl.render_clear renderer in
-      draw_starfield renderer ;
+      draw_starfield renderer;
       let cos_lat = cos rot_lat in
       let sin_lat = sin rot_lat in
       let cos_lon = cos rot_lon in
@@ -77,9 +77,9 @@ let render_globe window =
       (* let colors = ref ColorSet.empty in *)
       let rect = Sdl.Rect.create ~x:0 ~y:0 ~w:0 ~h:0 in
       let update_rect x y w h =
-        Sdl.Rect.set_x rect x ;
-        Sdl.Rect.set_y rect y ;
-        Sdl.Rect.set_w rect w ;
+        Sdl.Rect.set_x rect x;
+        Sdl.Rect.set_y rect y;
+        Sdl.Rect.set_w rect w;
         Sdl.Rect.set_h rect h
       in
       for dy = -radius to radius do
@@ -126,14 +126,14 @@ let render_globe window =
               let* _ = Sdl.set_render_draw_color renderer r g b 255 in
               let dst_x = center_x + dx in
               let dst_y = center_y + dy in
-              update_rect dst_x dst_y 1 1 ;
+              update_rect dst_x dst_y 1 1;
               let* _ = Sdl.render_fill_rect renderer (Some rect) in
               ()
             )
         done
-      done ;
+      done;
       (* Store texture in cache and reset render target *)
-      Hashtbl.replace globe_cache key target_texture ;
+      Hashtbl.replace globe_cache key target_texture;
       let* _ = Sdl.set_render_target renderer None in
       let dst = Sdl.Rect.create ~x:0 ~y:0 ~w:win_w ~h:win_h in
       let* _ = Sdl.render_copy ~dst renderer target_texture in

@@ -8,14 +8,16 @@ let render_draw_circle renderer x y radius =
       status
     else
       let draw_points : (int * int) list =
-        [ (x + offsetx, y + offsety)
-        ; (x + offsety, y + offsetx)
-        ; (x - offsetx, y + offsety)
-        ; (x - offsety, y + offsetx)
-        ; (x + offsetx, y - offsety)
-        ; (x + offsety, y - offsetx)
-        ; (x - offsetx, y - offsety)
-        ; (x - offsety, y - offsetx) ]
+        [
+          (x + offsetx, y + offsety);
+          (x + offsety, y + offsetx);
+          (x - offsetx, y + offsety);
+          (x - offsety, y + offsetx);
+          (x + offsetx, y - offsety);
+          (x + offsety, y - offsetx);
+          (x - offsetx, y - offsety);
+          (x - offsety, y - offsetx);
+        ]
       in
       let status =
         List.fold_left
@@ -24,7 +26,7 @@ let render_draw_circle renderer x y radius =
             | Ok () ->
                 acc
             | Error _ ->
-                -1 )
+                -1)
           status draw_points
       in
       if status < 0 then
@@ -46,10 +48,12 @@ let render_fill_circle renderer x y radius =
       status
     else
       let draw_lines =
-        [ (x - offsety, y + offsetx, x + offsety, y + offsetx)
-        ; (x - offsetx, y + offsety, x + offsetx, y + offsety)
-        ; (x - offsetx, y - offsety, x + offsetx, y - offsety)
-        ; (x - offsety, y - offsetx, x + offsety, y - offsetx) ]
+        [
+          (x - offsety, y + offsetx, x + offsety, y + offsetx);
+          (x - offsetx, y + offsety, x + offsetx, y + offsety);
+          (x - offsetx, y - offsety, x + offsetx, y - offsety);
+          (x - offsety, y - offsetx, x + offsety, y - offsetx);
+        ]
       in
       let status =
         List.fold_left
@@ -58,7 +62,7 @@ let render_fill_circle renderer x y radius =
             | Ok () ->
                 acc
             | Error _ ->
-                -1 )
+                -1)
           status draw_lines
       in
       if status < 0 then

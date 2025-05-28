@@ -1,7 +1,5 @@
-let patterns = [|0o25; 0o70; 0o62; 0o54; 0o15; 0o23; 0o07; 0o52|]
-
+let patterns = [| 0o25; 0o70; 0o62; 0o54; 0o15; 0o23; 0o07; 0o52 |]
 let btst n b = (n lsr b) land 1
-
 let bmix i j k b = patterns.((btst i b lsl 2) lor (btst j b lsl 1) lor btst k b)
 
 let shuffle ?(seed = 0) (i, j, k) =
@@ -52,12 +50,14 @@ let magnitude ?(mag_scale = 1.) h (x, y, z) =
       assert false
 
 let simplices =
-  [| [|(0, 0, 0); (1, 0, 0); (1, 1, 0); (1, 1, 1)|]
-   ; [|(0, 0, 0); (1, 0, 0); (1, 0, 1); (1, 1, 1)|]
-   ; [|(0, 0, 0); (0, 1, 0); (1, 1, 0); (1, 1, 1)|]
-   ; [|(0, 0, 0); (0, 1, 0); (0, 1, 1); (1, 1, 1)|]
-   ; [|(0, 0, 0); (0, 0, 1); (1, 0, 1); (1, 1, 1)|]
-   ; [|(0, 0, 0); (0, 0, 1); (0, 1, 1); (1, 1, 1)|] |]
+  [|
+    [| (0, 0, 0); (1, 0, 0); (1, 1, 0); (1, 1, 1) |];
+    [| (0, 0, 0); (1, 0, 0); (1, 0, 1); (1, 1, 1) |];
+    [| (0, 0, 0); (0, 1, 0); (1, 1, 0); (1, 1, 1) |];
+    [| (0, 0, 0); (0, 1, 0); (0, 1, 1); (1, 1, 1) |];
+    [| (0, 0, 0); (0, 0, 1); (1, 0, 1); (1, 1, 1) |];
+    [| (0, 0, 0); (0, 0, 1); (0, 1, 1); (1, 1, 1) |];
+  |]
 
 let permindex (u, v, w) =
   if u >= w then
@@ -94,7 +94,6 @@ let unskew (x, y, z) (i, j, k) =
   (u, v, w)
 
 let norm2 (x, y, z) = (x *. x) +. (y *. y) +. (z *. z)
-
 let addi3 (i, j, k) (i', j', k') = (i + i', j + j', k + k')
 
 let noise ?(seed = 0) ?(mag_scale = 1.) ?(tile_x_width = None) ?(x_scale = 1.)
@@ -120,7 +119,7 @@ let noise ?(seed = 0) ?(mag_scale = 1.) ?(tile_x_width = None) ?(x_scale = 1.)
       let h = shuffle ~seed (addi3 l v) in
       let t = t *. t in
       f := !f +. (8. *. t *. t *. magnitude ~mag_scale h y)
-  done ;
+  done;
   (!f +. 1.) /. 2.
 
 let contrast f power =
@@ -141,11 +140,11 @@ let fbm ?(seed = 0) ?(octaves = 5) ?(persistence = 0.5) ?(lacunarity = 2.0)
       !f
       +. !amp
          *. noise ~seed ~mag_scale ~tile_x_width ~x_scale ~y_scale
-              (x *. !freq, y *. !freq, z *. !freq) ;
-    max_amp := !max_amp +. !amp ;
-    amp := !amp *. persistence ;
+              (x *. !freq, y *. !freq, z *. !freq);
+    max_amp := !max_amp +. !amp;
+    amp := !amp *. persistence;
     freq := !freq *. lacunarity
-  done ;
+  done;
   let x = !f /. !max_amp in
   let x =
     if x < 0. then

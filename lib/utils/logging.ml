@@ -26,15 +26,12 @@ let int_of_log = function
   | Log_None ->
       0
 
-(** For exits, their appropriate return code and the message type *)
 type return_code = int * string
+(** For exits, their appropriate return code and the message type *)
 
 let rc_Ok = (0, "OK")
-
 and rc_Error = (1, "ERROR")
-
 and rc_SDL = (2, "SDL")
-
 and rc_OpenGL = (3, "OpenGL")
 
 (** ANSI encoding for bold text *)
@@ -82,9 +79,9 @@ let fatal rc fmt =
     (fun msg ->
       Printf.fprintf stderr
         "%s[%s] - %s%s\n----------------------------------------\n" error_red
-        (snd rc) ansi_reset msg ;
-      flush stderr ;
-      exit (fst rc) )
+        (snd rc) ansi_reset msg;
+      flush stderr;
+      exit (fst rc))
     fmt
 
 (** Prints log statements to stdout/stderr *)
@@ -102,8 +99,8 @@ let _log log_level fmt =
             stderr
         in
         Printf.fprintf stream "LOG:%s%s - %s\n" (string_of_log log_level)
-          ansi_reset msg ;
-        flush stream )
+          ansi_reset msg;
+        flush stream)
       fmt
 
 let err fmt = _log Log_Error fmt

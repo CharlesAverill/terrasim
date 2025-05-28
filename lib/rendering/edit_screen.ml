@@ -25,27 +25,24 @@ let texture_of_tile renderer (biome, altitude) frame_count =
       let tex =
         texture_of_blob renderer (blob_of_tile frame_count altitude biome)
       in
-      Hashtbl.add tile_texture_cache (biome, altitude, frame_count) tex ;
+      Hashtbl.add tile_texture_cache (biome, altitude, frame_count) tex;
       tex
 
 let ui_bg_color = rgb_of_hex "DDDDDD"
-
 let ui_bevel_light_color = rgb_of_hex "EEEEEE"
-
 let ui_bevel_dark_color = rgb_of_hex "CCCCCC"
-
 let black_color = rgb_of_hex "000000"
 
 let draw_edit_ui window renderer cursor_pos =
-  Draw_cursor.draw_cursor window cursor_pos ;
+  Draw_cursor.draw_cursor window cursor_pos;
   let win_w, (win_h, ui_h) = get_edit_window_ui_height window in
   let bevel_w = win_w / 100 in
   let ui_buffer = bevel_w / 3 in
   (* Draw bg *)
   let ui_bg_rect = Sdl.Rect.create ~x:0 ~y:win_h ~w:win_w ~h:ui_h in
-  set_render_color ui_bg_color renderer ;
+  set_render_color ui_bg_color renderer;
   let* _ = Sdl.render_fill_rect renderer (Some ui_bg_rect) in
-  () ;
+  ();
   (* Draw bevels *)
   let light_bevel_verts =
     List.map
@@ -53,21 +50,23 @@ let draw_edit_ui window renderer cursor_pos =
         let x, y = (float x, float y) in
         Sdl.Vertex.create ~position:(Sdl.Fpoint.create ~x ~y)
           ~color:(sdlcolor_of_tuple ui_bevel_light_color)
-          ~tex_coord:(Sdl.Fpoint.create ~x:0. ~y:0.) )
-      [ (* Left edge *)
-        (0, win_h)
-      ; (0, win_h + ui_h)
-      ; (bevel_w, win_h + ui_h - bevel_w)
-      ; (0, win_h)
-      ; (bevel_w, win_h)
-      ; (bevel_w, win_h + ui_h - bevel_w)
-      ; (* Top edge*)
-        (0, win_h)
-      ; (win_w, win_h)
-      ; (win_w - bevel_w, win_h + bevel_w)
-      ; (0, win_h)
-      ; (0, win_h + bevel_w)
-      ; (win_w - bevel_w, win_h + bevel_w) ]
+          ~tex_coord:(Sdl.Fpoint.create ~x:0. ~y:0.))
+      [
+        (* Left edge *)
+        (0, win_h);
+        (0, win_h + ui_h);
+        (bevel_w, win_h + ui_h - bevel_w);
+        (0, win_h);
+        (bevel_w, win_h);
+        (bevel_w, win_h + ui_h - bevel_w);
+        (* Top edge*)
+        (0, win_h);
+        (win_w, win_h);
+        (win_w - bevel_w, win_h + bevel_w);
+        (0, win_h);
+        (0, win_h + bevel_w);
+        (win_w - bevel_w, win_h + bevel_w);
+      ]
   in
   let dark_bevel_verts =
     List.map
@@ -75,21 +74,23 @@ let draw_edit_ui window renderer cursor_pos =
         let x, y = (float x, float y) in
         Sdl.Vertex.create ~position:(Sdl.Fpoint.create ~x ~y)
           ~color:(sdlcolor_of_tuple ui_bevel_dark_color)
-          ~tex_coord:(Sdl.Fpoint.create ~x:0. ~y:0.) )
-      [ (* Right edge *)
-        (win_w, win_h)
-      ; (win_w, win_h + ui_h)
-      ; (win_w - bevel_w, win_h + ui_h - bevel_w)
-      ; (win_w, win_h)
-      ; (win_w - bevel_w, win_h + bevel_w)
-      ; (win_w - bevel_w, win_h + ui_h - bevel_w)
-      ; (* Bottom edge*)
-        (0, win_h + ui_h)
-      ; (win_w, win_h + ui_h)
-      ; (win_w, win_h + ui_h - bevel_w)
-      ; (0, win_h + ui_h)
-      ; (bevel_w, win_h + ui_h - bevel_w)
-      ; (win_w, win_h + ui_h - bevel_w) ]
+          ~tex_coord:(Sdl.Fpoint.create ~x:0. ~y:0.))
+      [
+        (* Right edge *)
+        (win_w, win_h);
+        (win_w, win_h + ui_h);
+        (win_w - bevel_w, win_h + ui_h - bevel_w);
+        (win_w, win_h);
+        (win_w - bevel_w, win_h + bevel_w);
+        (win_w - bevel_w, win_h + ui_h - bevel_w);
+        (* Bottom edge*)
+        (0, win_h + ui_h);
+        (win_w, win_h + ui_h);
+        (win_w, win_h + ui_h - bevel_w);
+        (0, win_h + ui_h);
+        (bevel_w, win_h + ui_h - bevel_w);
+        (win_w, win_h + ui_h - bevel_w);
+      ]
   in
   let* _ =
     Sdl.render_geometry renderer (light_bevel_verts @ dark_bevel_verts)
@@ -101,7 +102,7 @@ let draw_edit_ui window renderer cursor_pos =
       (let* x =
          Assets.Spriteloader.rwops_of_blob Assets.Fonts._NewPortLand_npl_font
        in
-       x )
+       x)
       1 ptsize
   in
   let* text_surf =
@@ -121,16 +122,16 @@ let draw_edit_ui window renderer cursor_pos =
 let render_edit window frame_counter fps cursor_pos =
   let renderer = get_global_renderer () in
   if !need_to_flush_edit_tile_cache then (
-    Hashtbl.clear tile_texture_cache ;
-    Hashtbl.clear blob_cache ;
+    Hashtbl.clear tile_texture_cache;
+    Hashtbl.clear blob_cache;
     need_to_flush_edit_tile_cache := false
-  ) ;
-  set_render_color black_color renderer ;
+  );
+  set_render_color black_color renderer;
   let* _ = Sdl.render_clear renderer in
   (* 1. Get window size in pixels *)
   let window_w, (window_h, _) = get_edit_window_ui_height window in
-  tile_w := window_w / view_width () ;
-  tile_h := window_h / view_height () ;
+  tile_w := window_w / view_width ();
+  tile_h := window_h / view_height ();
   (* 2. Determine number of tiles to draw (view width/height) *)
   let tiles_x = window_w / scaled_tile_w () in
   let tiles_y = window_h / scaled_tile_h () in
@@ -145,12 +146,12 @@ let render_edit window frame_counter fps cursor_pos =
           ~y:(dy * scaled_tile_h ())
           ~w:(scaled_tile_w ()) ~h:(scaled_tile_h ())
       in
-      match get_global_tile gx gy [`Altitude; `Biome] with
+      match get_global_tile gx gy [ `Altitude; `Biome ] with
       | None ->
           let* _ = Sdl.set_render_draw_color renderer 0 0 0 255 in
           let* _ = Sdl.render_fill_rect renderer (Some dst_rect) in
           ()
-      | Some [`Altitude alt; `Biome b] ->
+      | Some [ `Altitude alt; `Biome b ] ->
           let* _ =
             Sdl.render_copy renderer
               (texture_of_tile renderer (b, alt) frame_counter)
@@ -160,8 +161,8 @@ let render_edit window frame_counter fps cursor_pos =
       | _ ->
           [%unreachable]
     done
-  done ;
+  done;
   (* 4. Draw UI on top *)
-  draw_edit_ui window renderer cursor_pos ;
+  draw_edit_ui window renderer cursor_pos;
   (* 5. Show result *)
   Sdl.render_present renderer

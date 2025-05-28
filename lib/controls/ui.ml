@@ -35,13 +35,17 @@ let edit_handle_scancodes e window =
   let scancode = Sdl.Event.get e Sdl.Event.keyboard_scancode in
   match (ctrl, shift, alt, scancode) with
   | _, _, _, x when x = Sdl.Scancode.left ->
-      move_global_cursor (-1) 0 ; move_edit_camera (-1) 0
+      move_global_cursor (-1) 0;
+      move_edit_camera (-1) 0
   | _, _, _, x when x = Sdl.Scancode.right ->
-      move_global_cursor 1 0 ; move_edit_camera 1 0
+      move_global_cursor 1 0;
+      move_edit_camera 1 0
   | _, _, _, x when x = Sdl.Scancode.up ->
-      move_global_cursor 0 (-1) ; move_edit_camera 0 (-1)
+      move_global_cursor 0 (-1);
+      move_edit_camera 0 (-1)
   | _, _, _, x when x = Sdl.Scancode.down ->
-      move_global_cursor 0 1 ; move_edit_camera 0 1
+      move_global_cursor 0 1;
+      move_edit_camera 0 1
   | _, _, _, _ ->
       ()
 
@@ -80,12 +84,12 @@ let globe_handle_scancodes e window =
 let toggle_camera_mode window =
   match !current_camera_mode with
   | Some (Edit2D _) ->
-      swap_render_mode window ;
+      swap_render_mode window;
       current_camera_mode := Some Atlas2D
   | Some Atlas2D ->
       current_camera_mode := Some Globe3D
   | Some Globe3D ->
-      swap_render_mode window ;
+      swap_render_mode window;
       current_camera_mode := Some (Edit2D edit_camera)
   | None ->
       ()
@@ -127,8 +131,8 @@ let globe_handle_mousemotion e =
       let dx, dy = (-.dx /. mag, -.dy /. mag) in
       (* rotation_lon := modf_wrap (!rotation_lon +. dx) 360. ;
       rotation_lat := !rotation_lat +. dy ; *)
-      velocity_lon := clamp dx (-.flick_globe_speed) flick_globe_speed ;
-      velocity_lat := dy ;
+      velocity_lon := clamp dx (-.flick_globe_speed) flick_globe_speed;
+      velocity_lat := dy;
       globe_last_mouse_pos := Some (x, y)
   | _ ->
       globe_last_mouse_pos := Some (x, y)
@@ -142,7 +146,7 @@ let globe_handle_mousebutton e =
 
 let handle_edit_ui_event (e : Sdl.event) window =
   let edit_updated = ref false in
-  ( match Sdl.Event.get e Sdl.Event.typ with
+  (match Sdl.Event.get e Sdl.Event.typ with
   | t when t = Sdl.Event.mouse_motion ->
       let* _ = Sdl.show_cursor true in
       ()
@@ -153,21 +157,21 @@ let handle_edit_ui_event (e : Sdl.event) window =
         let button = Sdl.Event.get e Sdl.Event.mouse_button_button in
         let tile_x = (x / scaled_tile_w ()) + edit_camera.x in
         let tile_y = (y / scaled_tile_h ()) + edit_camera.y in
-        set_global_cursor tile_x tile_y ;
+        set_global_cursor tile_x tile_y;
         match button with
         | 1 (* Left click *) ->
-            adjust_terrain_gaussian ~raise:true tile_x tile_y ;
+            adjust_terrain_gaussian ~raise:true tile_x tile_y;
             edit_updated := true
         | 3 (* Right click *) ->
-            adjust_terrain_gaussian ~raise:false tile_x tile_y ;
+            adjust_terrain_gaussian ~raise:false tile_x tile_y;
             edit_updated := true
         | _ ->
             ()
       )
   | t when t = Sdl.Event.mouse_wheel ->
       let dx, dy =
-        ( Sdl.Event.get e Sdl.Event.mouse_wheel_x
-        , Sdl.Event.get e Sdl.Event.mouse_wheel_y )
+        ( Sdl.Event.get e Sdl.Event.mouse_wheel_x,
+          Sdl.Event.get e Sdl.Event.mouse_wheel_y )
       in
       let dx, dy =
         let x =
@@ -185,14 +189,14 @@ let handle_edit_ui_event (e : Sdl.event) window =
       move_edit_camera dx (-dy)
       (* invert Y to match UI expectation *)
   | t when t = Sdl.Event.text_input ->
-      edit_handle_textinput e window ;
+      edit_handle_textinput e window;
       edit_handle_keycodes e window
   | t when t = Sdl.Event.key_down ->
       edit_handle_scancodes e window
   | _ ->
-      () ) ;
+      ());
   if !edit_updated then (
-    clear_globe_cache () ;
+    clear_globe_cache ();
     clear_opengl_globe_cache ()
   )
 

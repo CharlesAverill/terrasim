@@ -4,8 +4,7 @@ open Sdl
 open Utils
 open World.Grid
 
-let atlas_camera : camera = {x= 0; y= 0}
-
+let atlas_camera : camera = { x = 0; y = 0 }
 let move_atlas_camera dx = atlas_camera.x <- atlas_camera.x + dx
 
 (* Edge panning *)
