@@ -1,7 +1,7 @@
-open Worldgrid
+open Grid
 open Biomes
-open Utils
-open Logging
+open Utils.Standard_utils
+open Utils.Logging
 
 let max_land_height = 31
 

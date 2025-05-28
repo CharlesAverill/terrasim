@@ -1,8 +1,7 @@
 open Tsdl
-open Sdl
 open Tsdl_image
-open Logging
-open Utils
+open Utils.Standard_utils
+open Utils.Logging
 
 (* Convert string blob to a bigarray and use Sdl.rw_from_mem *)
 let rwops_of_blob (blob : string * string) =

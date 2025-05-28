@@ -1,6 +1,6 @@
 (library
  (name globe_render)
- (public_name TerraSim.native.globe_render)
+ (public_name terrasim.native.globe_render)
  (libraries ctypes ctypes.foreign)
  (foreign_stubs
   (language c)

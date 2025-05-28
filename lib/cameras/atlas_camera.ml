@@ -2,7 +2,7 @@ open Camera
 open Tsdl
 open Sdl
 open Utils
-open Worldgrid
+open World.Grid
 
 let atlas_camera : camera = {x= 0; y= 0}
 

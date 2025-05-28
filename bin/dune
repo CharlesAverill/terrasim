@@ -1,6 +1,12 @@
 (executable
  (public_name TerraSim)
  (name main)
- (libraries TerraSim tsdl)
+ (libraries
+  terrasim.utils
+  terrasim.rendering
+  terrasim.controls
+  terrasim.game_logic
+  terrasim.assets
+  tsdl)
  (ocamlopt_flags
   (:standard -O3)))

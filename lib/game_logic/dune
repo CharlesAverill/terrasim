@@ -1,0 +1,9 @@
+(library
+ (name game_logic)
+ (public_name terrasim.game_logic)
+ (libraries
+  tsdl
+  terrasim.rendering
+  terrasim.controls
+  terrasim.utils
+  terrasim.world))

@@ -1,0 +1,5 @@
+(library
+ (name utils)
+ (public_name terrasim.utils)
+ (libraries tgls tgls.tgl4 tsdl)
+ (modules globals logging opengl_utils sdl_utils standard_utils))

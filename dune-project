@@ -1,6 +1,6 @@
 (lang dune 3.9)
 
-(name TerraSim)
+(name terrasim)
 
 (generate_opam_files true)
 
@@ -16,7 +16,7 @@
 (documentation https://github.com/CharlesAverill/TerraSim)
 
 (package
- (name TerraSim)
+ (name terrasim)
  (synopsis "A SimEarth clone")
  (description "A SimEarth clone")
  (depends 

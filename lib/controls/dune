@@ -1,0 +1,10 @@
+(library
+ (name controls)
+ (public_name terrasim.controls)
+ (libraries
+  tsdl
+  terrasim.utils
+  terrasim.world
+  terrasim.assets
+  terrasim.cameras
+  terrasim.rendering))

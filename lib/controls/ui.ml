@@ -1,64 +1,70 @@
 open Tsdl
-open Sdl
-open Sdl.Event
-open Logging
-open Globals
-open Altitude
-open Camera
-open Edit_camera
-open Worldgrid
-open Biomes
+open Utils.Standard_utils
+open Utils.Logging
+open Utils.Globals
+open World.Altitude
+open Cameras.Camera
+open Cameras.Edit_camera
+open World.Grid
+open World.Biomes
 open Cursor
-open Utils
-open Graphics
-open Globe_data
+open Rendering.Graphics
+open Rendering.Globe_data
 
 let dragging_mouse = ref false
 
 let edit_handle_keycodes e window =
-  let* _ = show_cursor false in
-  let mods = get_mod_state () in
-  let shift = mods land Kmod.lshift <> 0 || mods land Kmod.rshift <> 0 in
-  let ctrl = mods land Kmod.lctrl <> 0 || mods land Kmod.rctrl <> 0 in
-  let alt = mods land Kmod.lalt <> 0 || mods land Kmod.ralt <> 0 in
-  let keycode = get e keyboard_keycode in
+  let* _ = Sdl.show_cursor false in
+  let mods = Sdl.get_mod_state () in
+  let shift =
+    mods land Sdl.Kmod.lshift <> 0 || mods land Sdl.Kmod.rshift <> 0
+  in
+  let ctrl = mods land Sdl.Kmod.lctrl <> 0 || mods land Sdl.Kmod.rctrl <> 0 in
+  let alt = mods land Sdl.Kmod.lalt <> 0 || mods land Sdl.Kmod.ralt <> 0 in
+  let keycode = Sdl.Event.get e Sdl.Event.keyboard_keycode in
   match (ctrl, shift, alt, keycode) with _ -> ()
 
 let edit_handle_scancodes e window =
-  let* _ = show_cursor false in
-  let mods = get_mod_state () in
-  let shift = mods land Kmod.lshift <> 0 || mods land Kmod.rshift <> 0 in
-  let ctrl = mods land Kmod.lctrl <> 0 || mods land Kmod.rctrl <> 0 in
-  let alt = mods land Kmod.lalt <> 0 || mods land Kmod.ralt <> 0 in
-  let scancode = get e keyboard_scancode in
+  let* _ = Sdl.show_cursor false in
+  let mods = Sdl.get_mod_state () in
+  let shift =
+    mods land Sdl.Kmod.lshift <> 0 || mods land Sdl.Kmod.rshift <> 0
+  in
+  let ctrl = mods land Sdl.Kmod.lctrl <> 0 || mods land Sdl.Kmod.rctrl <> 0 in
+  let alt = mods land Sdl.Kmod.lalt <> 0 || mods land Sdl.Kmod.ralt <> 0 in
+  let scancode = Sdl.Event.get e Sdl.Event.keyboard_scancode in
   match (ctrl, shift, alt, scancode) with
-  | _, _, _, x when x = Scancode.left ->
+  | _, _, _, x when x = Sdl.Scancode.left ->
       move_global_cursor (-1) 0 ; move_edit_camera (-1) 0
-  | _, _, _, x when x = Scancode.right ->
+  | _, _, _, x when x = Sdl.Scancode.right ->
       move_global_cursor 1 0 ; move_edit_camera 1 0
-  | _, _, _, x when x = Scancode.up ->
+  | _, _, _, x when x = Sdl.Scancode.up ->
       move_global_cursor 0 (-1) ; move_edit_camera 0 (-1)
-  | _, _, _, x when x = Scancode.down ->
+  | _, _, _, x when x = Sdl.Scancode.down ->
       move_global_cursor 0 1 ; move_edit_camera 0 1
   | _, _, _, _ ->
       ()
 
 let atlas_handle_scancodes e window =
-  let* _ = show_cursor false in
-  let mods = get_mod_state () in
-  let shift = mods land Kmod.lshift <> 0 || mods land Kmod.rshift <> 0 in
-  let ctrl = mods land Kmod.lctrl <> 0 || mods land Kmod.rctrl <> 0 in
-  let alt = mods land Kmod.lalt <> 0 || mods land Kmod.ralt <> 0 in
-  let scancode = get e keyboard_scancode in
+  let* _ = Sdl.show_cursor false in
+  let mods = Sdl.get_mod_state () in
+  let shift =
+    mods land Sdl.Kmod.lshift <> 0 || mods land Sdl.Kmod.rshift <> 0
+  in
+  let ctrl = mods land Sdl.Kmod.lctrl <> 0 || mods land Sdl.Kmod.rctrl <> 0 in
+  let alt = mods land Sdl.Kmod.lalt <> 0 || mods land Sdl.Kmod.ralt <> 0 in
+  let scancode = Sdl.Event.get e Sdl.Event.keyboard_scancode in
   match (ctrl, shift, alt, scancode) with _, _, _, _ -> ()
 
 let globe_handle_scancodes e window =
-  let* _ = show_cursor false in
-  let mods = get_mod_state () in
-  let shift = mods land Kmod.lshift <> 0 || mods land Kmod.rshift <> 0 in
-  let ctrl = mods land Kmod.lctrl <> 0 || mods land Kmod.rctrl <> 0 in
-  let alt = mods land Kmod.lalt <> 0 || mods land Kmod.ralt <> 0 in
-  let scancode = get e keyboard_scancode in
+  let* _ = Sdl.show_cursor false in
+  let mods = Sdl.get_mod_state () in
+  let shift =
+    mods land Sdl.Kmod.lshift <> 0 || mods land Sdl.Kmod.rshift <> 0
+  in
+  let ctrl = mods land Sdl.Kmod.lctrl <> 0 || mods land Sdl.Kmod.rctrl <> 0 in
+  let alt = mods land Sdl.Kmod.lalt <> 0 || mods land Sdl.Kmod.ralt <> 0 in
+  let scancode = Sdl.Event.get e Sdl.Event.keyboard_scancode in
   match (ctrl, shift, alt, scancode) with
   (* | _, _, _, x when x = Scancode.left ->
       rotation_lon := modf_wrap (!rotation_lon -. 15.) 360.
@@ -85,8 +91,8 @@ let toggle_camera_mode window =
       ()
 
 let edit_handle_textinput e window =
-  let* _ = show_cursor false in
-  let text = get e text_input_text in
+  let* _ = Sdl.show_cursor false in
+  let text = Sdl.Event.get e Sdl.Event.text_input_text in
   match text with
   | "+" ->
       zoom_in ()
@@ -98,13 +104,13 @@ let edit_handle_textinput e window =
       ()
 
 let globe_handle_textinput e window =
-  let* _ = show_cursor false in
-  let text = get e text_input_text in
+  let* _ = Sdl.show_cursor false in
+  let text = Sdl.Event.get e Sdl.Event.text_input_text in
   match text with "c" -> toggle_camera_mode window | _ -> ()
 
 let atlas_handle_textinput e window =
-  let* _ = show_cursor false in
-  let text = get e text_input_text in
+  let* _ = Sdl.show_cursor false in
+  let text = Sdl.Event.get e Sdl.Event.text_input_text in
   match text with "c" -> toggle_camera_mode window | _ -> ()
 
 let globe_handle_mousemotion e =
@@ -136,15 +142,15 @@ let globe_handle_mousebutton e =
 
 let handle_edit_ui_event (e : Sdl.event) window =
   let edit_updated = ref false in
-  ( match get e typ with
-  | t when t = mouse_motion ->
-      let* _ = show_cursor true in
+  ( match Sdl.Event.get e Sdl.Event.typ with
+  | t when t = Sdl.Event.mouse_motion ->
+      let* _ = Sdl.show_cursor true in
       ()
-  | t when t = mouse_button_down ->
+  | t when t = Sdl.Event.mouse_button_down ->
       let _, (x, y) = Sdl.get_mouse_state () in
       let _, (win_h, _) = get_edit_window_ui_height window in
       if y < win_h then (
-        let button = get e mouse_button_button in
+        let button = Sdl.Event.get e Sdl.Event.mouse_button_button in
         let tile_x = (x / scaled_tile_w ()) + edit_camera.x in
         let tile_y = (y / scaled_tile_h ()) + edit_camera.y in
         set_global_cursor tile_x tile_y ;
@@ -158,11 +164,17 @@ let handle_edit_ui_event (e : Sdl.event) window =
         | _ ->
             ()
       )
-  | t when t = mouse_wheel ->
-      let dx, dy = (get e mouse_wheel_x, get e mouse_wheel_y) in
+  | t when t = Sdl.Event.mouse_wheel ->
+      let dx, dy =
+        ( Sdl.Event.get e Sdl.Event.mouse_wheel_x
+        , Sdl.Event.get e Sdl.Event.mouse_wheel_y )
+      in
       let dx, dy =
         let x =
-          if get e mouse_wheel_direction = mouse_wheel_flipped then
+          if
+            Sdl.Event.get e Sdl.Event.mouse_wheel_direction
+            = Sdl.Event.mouse_wheel_flipped
+          then
             -1
           else
             1
@@ -172,10 +184,10 @@ let handle_edit_ui_event (e : Sdl.event) window =
       let dx, dy = (clamp dx (-1) 1, clamp dy (-1) 1) in
       move_edit_camera dx (-dy)
       (* invert Y to match UI expectation *)
-  | t when t = text_input ->
+  | t when t = Sdl.Event.text_input ->
       edit_handle_textinput e window ;
       edit_handle_keycodes e window
-  | t when t = key_down ->
+  | t when t = Sdl.Event.key_down ->
       edit_handle_scancodes e window
   | _ ->
       () ) ;
@@ -185,29 +197,29 @@ let handle_edit_ui_event (e : Sdl.event) window =
   )
 
 let handle_atlas_ui_event (e : Sdl.event) window =
-  match get e typ with
-  | t when t = mouse_motion ->
-      let* _ = show_cursor true in
+  match Sdl.Event.get e Sdl.Event.typ with
+  | t when t = Sdl.Event.mouse_motion ->
+      let* _ = Sdl.show_cursor true in
       ()
-  | t when t = mouse_button_down ->
+  | t when t = Sdl.Event.mouse_button_down ->
       ()
-  | t when t = text_input ->
+  | t when t = Sdl.Event.text_input ->
       atlas_handle_textinput e window
-  | t when t = key_down ->
+  | t when t = Sdl.Event.key_down ->
       atlas_handle_scancodes e window
   | _ ->
       ()
 
 let handle_globe_ui_event (e : Sdl.event) window =
-  match get e typ with
-  | t when t = mouse_motion ->
-      let* _ = show_cursor true in
+  match Sdl.Event.get e Sdl.Event.typ with
+  | t when t = Sdl.Event.mouse_motion ->
+      let* _ = Sdl.show_cursor true in
       globe_handle_mousemotion e
-  | t when t = mouse_button_down || t = mouse_button_up ->
+  | t when t = Sdl.Event.mouse_button_down || t = Sdl.Event.mouse_button_up ->
       globe_handle_mousebutton e
-  | t when t = text_input ->
+  | t when t = Sdl.Event.text_input ->
       globe_handle_textinput e window
-  | t when t = key_down ->
+  | t when t = Sdl.Event.key_down ->
       globe_handle_scancodes e window
   | _ ->
       ()

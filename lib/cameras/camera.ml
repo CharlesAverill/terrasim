@@ -1,8 +1,5 @@
-open Worldgrid
-open Tsdl
-open Sdl
-open Globals
-open Utils
+open World.Grid
+open Utils.Globals
 
 (* Screen-space coordinates *)
 type camera = {mutable x: int; mutable y: int}

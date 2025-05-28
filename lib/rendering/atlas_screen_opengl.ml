@@ -1,12 +1,11 @@
 open Tsdl
-open Sdl
 open Tgl4
-open Logging
-open Opengl_utils
-open Worldgrid
-open Altitude
-open Utils
-open Atlas_camera
+open Utils.Standard_utils
+open Utils.Logging
+open Utils.Opengl_utils
+open World.Grid
+open World.Altitude
+open Cameras.Atlas_camera
 open Gradients
 
 let quad_verts =
@@ -97,7 +96,8 @@ let setup_tile_buffers ~offsets ~colors =
   Gl.bind_vertex_array 0 ;
   vao
 
-let render_tiles ?(fbo : uint8 option = None) win sprogram vao num_instances =
+let render_tiles ?(fbo : Sdl.uint8 option = None) win sprogram vao num_instances
+    =
   Gl.bind_framebuffer Gl.framebuffer (match fbo with Some fb -> fb | None -> 0) ;
   Gl.viewport 0 0
     ( if fbo = None then

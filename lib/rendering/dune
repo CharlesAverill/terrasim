@@ -1,0 +1,17 @@
+(library
+ (name rendering)
+ (public_name terrasim.rendering)
+ (libraries
+  tgls
+  tgls.tgl4
+  tsdl
+  tsdl-ttf
+  terrasim.utils
+  terrasim.cameras
+  terrasim.assets
+  terrasim.simulation)
+ (preprocess
+  (pps ppx_blob ppx_unreachable))
+ (preprocessor_deps
+  (source_tree ../../assets)
+  (source_tree ../../shaders)))

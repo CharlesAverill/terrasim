@@ -1,8 +1,7 @@
 open Tsdl
-open Sdl
 open Tgl4
-open Logging
-open Opengl_utils
+open Utils.Logging
+open Utils.Opengl_utils
 open Globe_data
 
 (* Blob in your shaders *)

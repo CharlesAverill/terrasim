@@ -1,3 +1,3 @@
 (documentation
- (package TerraSim)
+ (package terrasim)
  (mld_files TerraSim))

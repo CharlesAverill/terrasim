@@ -1,0 +1,6 @@
+(library
+ (name world)
+ (public_name terrasim.world)
+ (libraries terrasim.assets terrasim.utils)
+ (preprocess
+  (pps ppx_unreachable)))

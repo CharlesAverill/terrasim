@@ -1,9 +1,8 @@
-open Utils
+open Utils.Standard_utils
+open Utils.Globals
 open Tsdl
-open Sdl
-open Globals
-open Worldgrid
-open Altitude
+open World.Grid
+open World.Altitude
 open Gradients
 open Graphics
 open Globe_data
@@ -16,7 +15,7 @@ let draw_starfield renderer =
     let* _ = Sdl.render_fill_rect renderer (Some rect) in
     ()
   in
-  let* width, height = get_renderer_output_size renderer in
+  let* width, height = Sdl.get_renderer_output_size renderer in
   for _ = 0 to 1000 do
     let brightness = 200 + Random.int 56 in
     let x = Random.int width in
@@ -49,12 +48,12 @@ let render_globe window =
   let key = (int_of_float lon_q, int_of_float lat_q) in
   match Hashtbl.find_opt globe_cache key with
   | Some cached_texture ->
-      let* win_w, win_h = get_renderer_output_size renderer in
+      let* win_w, win_h = Sdl.get_renderer_output_size renderer in
       let dst_rect = Sdl.Rect.create ~x:0 ~y:0 ~w:win_w ~h:win_h in
       let* _ = Sdl.render_copy ~dst:dst_rect renderer cached_texture in
       Sdl.render_present renderer
   | None ->
-      let* win_w, win_h = get_renderer_output_size renderer in
+      let* win_w, win_h = Sdl.get_renderer_output_size renderer in
       let* target_texture =
         Sdl.create_texture renderer Sdl.Pixel.format_rgba8888
           Sdl.Texture.access_target ~w:win_w ~h:win_h
@@ -65,7 +64,7 @@ let render_globe window =
       let center_y = win_h / 2 in
       let rot_lon = lon_q *. Float.pi /. 180.0 in
       let rot_lat = lat_q *. Float.pi /. 180.0 in
-      let* _ = set_render_draw_color renderer 0 0 0 255 in
+      let* _ = Sdl.set_render_draw_color renderer 0 0 0 255 in
       let* _ = Sdl.render_clear renderer in
       draw_starfield renderer ;
       let cos_lat = cos rot_lat in

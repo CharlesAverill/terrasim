@@ -1,14 +1,12 @@
-open Utils
+open Utils.Standard_utils
 open Tsdl
-open Sdl
-open Worldgrid
-open Atlas_camera
-open Altitude
+open World.Grid
+open World.Altitude
+open Cameras.Atlas_camera
 open Gradients
-open Ui
 
 let render_atlas window renderer =
-  let* win_w, win_h = get_renderer_output_size renderer in
+  let* win_w, win_h = Sdl.get_renderer_output_size renderer in
   let altitudes = grid.altitude in
   let biomes = grid.biome in
   let* _ = Sdl.set_render_draw_color renderer 0 0 0 255 in

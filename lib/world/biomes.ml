@@ -1,4 +1,4 @@
-open Sprites
+open Assets.Sprites
 open Utils
 
 type biome =
@@ -32,7 +32,7 @@ let blob_of_tile frame_count altitude = function
       biomes_jungle_sprite
   | Land Nothing ->
       List.nth land_sprites
-        (Utils.clamp altitude 0 (List.length land_sprites - 1))
+        (Utils.Standard_utils.clamp altitude 0 (List.length land_sprites - 1))
   | Land Swamp ->
       biomes_swamp_sprite
   | Ocean Shallow ->

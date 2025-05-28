@@ -2,7 +2,7 @@ open Camera
 open Tsdl
 open Sdl
 open Utils
-open Worldgrid
+open World.Grid
 
 type zoom = CloseZoom | NormalZoom | FarZoom
 
@@ -20,7 +20,7 @@ let clamp_camera_to_bounds () =
   (* let max_x = world_width - view_width () in *)
   let max_y = world_height - view_height () in
   (* edit_camera.x <- clamp edit_camera.x (-1) max_x ; *)
-  edit_camera.y <- clamp edit_camera.y (-1) (max_y + 1) ;
+  edit_camera.y <- Utils.Standard_utils.clamp edit_camera.y (-1) (max_y + 1) ;
   if edit_camera.x > world_width then
     edit_camera.x <- edit_camera.x - world_width ;
   if edit_camera.x + view_width () < 0 then

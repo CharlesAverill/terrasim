@@ -1,0 +1,4 @@
+(library
+ (name cameras)
+ (public_name terrasim.cameras)
+ (libraries tsdl terrasim.utils terrasim.world))

@@ -1,17 +1,16 @@
 open Tsdl
-open Sdl
-open Graphics
-open Ui
-open Logging
-open Camera
-open Edit_camera
-open Atlas_camera
-open Cursor
-open World_setup
-open Globe_data
-open Utils
+open Rendering.Graphics
+open Rendering.Globe_data
+open Controls.Ui
+open Controls.Cursor
+open Utils.Standard_utils
+open Utils.Logging
+open Cameras.Camera
+open Cameras.Edit_camera
+open Cameras.Atlas_camera
+open World.World_setup
 
-let frame_counter : uint8 ref = ref 64
+let frame_counter : Sdl.uint8 ref = ref 64
 
 let target_fps = 60
 
@@ -25,10 +24,10 @@ let gameloop_iter window event =
   frame_counter := !frame_counter + 1 ;
   (* Handle input events *)
   let loop_continue = ref true in
-  pump_events () ;
-  while poll_event (Some event) do
-    if Event.get event Event.typ = Event.key_down then
-      if Event.get event Event.keyboard_keycode = Sdl.K.escape then
+  Sdl.pump_events () ;
+  while Sdl.poll_event (Some event) do
+    if Sdl.Event.get event Sdl.Event.typ = Sdl.Event.key_down then
+      if Sdl.Event.get event Sdl.Event.keyboard_keycode = Sdl.K.escape then
         loop_continue := false ;
     match !current_camera_mode with
     | Some (Edit2D _) ->
@@ -41,13 +40,15 @@ let gameloop_iter window event =
         ()
   done ;
   (* Run simulation approx. once every other second *)
-  if !frame_counter mod (target_fps * 2) = 0 then Simulation.simulate () ;
+  if !frame_counter mod (target_fps * 2) = 0 then
+    Simulation.Simulator.simulate () ;
   (* Render *)
   ( match !current_camera_mode with
   | Some (Edit2D _) ->
       pan_edit_camera_if_needed window ;
       cursor_go_to_camera () ;
-      Edit_screen.render_edit window !frame_counter !real_fps
+      Rendering.Edit_screen.render_edit window !frame_counter !real_fps
+        (global_cursor.x, global_cursor.y)
       (* let vao = Opengl_tutorial.put_tri_on_gpu () in
       let sprogram = Opengl_tutorial.compile_shaders () in
       Opengl_tutorial.render_body window sprogram vao *)
@@ -55,7 +56,7 @@ let gameloop_iter window event =
       pan_atlas_camera_if_needed window ;
       cursor_go_to_camera () ;
       (* Atlas_screen.render_atlas window renderer *)
-      ignore (Atlas_screen_opengl.atlas_render window)
+      ignore (Rendering.Atlas_screen_opengl.atlas_render window)
   | Some Globe3D ->
       (* Spin globe *)
       if not !globe_pinned then (
@@ -71,7 +72,7 @@ let gameloop_iter window event =
         (* Decay lat rotation back to horizontal *)
         rotation_lat := !rotation_lat *. (1. -. (globe_spin_friction *. 0.5))
       ) ;
-      Globe_screen_opengl.globe_render window !frame_counter
+      Rendering.Globe_screen_opengl.globe_render window !frame_counter
       (* Globe_screen.render_globe window *)
   | None ->
       () ) ;
@@ -83,7 +84,7 @@ let gameloop_iter window event =
   !loop_continue
 
 let run_game_loop window =
-  let event = Event.create () in
+  let event = Sdl.Event.create () in
   let loop_continue = ref true in
   let hue = ref 0 in
   world_setup () ;

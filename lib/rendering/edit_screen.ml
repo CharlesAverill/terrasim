@@ -1,13 +1,12 @@
-open Utils
+open Utils.Standard_utils
+open Utils.Globals
+open Utils.Sdl_utils
 open Tsdl
-open Sdl
 open Tsdl_ttf
-open Globals
-open Edit_camera
-open Worldgrid
-open Biomes
-open Spriteloader
-open Ui
+open Cameras.Edit_camera
+open World.Grid
+open World.Biomes
+open Assets.Spriteloader
 open Graphics
 
 let animated_tile_update_factor = 8
@@ -37,8 +36,8 @@ let ui_bevel_dark_color = rgb_of_hex "CCCCCC"
 
 let black_color = rgb_of_hex "000000"
 
-let draw_edit_ui window renderer =
-  Cursor.draw_cursor window ;
+let draw_edit_ui window renderer cursor_pos =
+  Draw_cursor.draw_cursor window cursor_pos ;
   let win_w, (win_h, ui_h) = get_edit_window_ui_height window in
   let bevel_w = win_w / 100 in
   let ui_buffer = bevel_w / 3 in
@@ -99,13 +98,15 @@ let draw_edit_ui window renderer =
   let ptsize = 48 in
   let* font =
     Ttf.open_font_rw
-      (let* x = Spriteloader.rwops_of_blob Fonts._NewPortLand_npl_font in
+      (let* x =
+         Assets.Spriteloader.rwops_of_blob Assets.Fonts._NewPortLand_npl_font
+       in
        x )
       1 ptsize
   in
   let* text_surf =
     Ttf.render_text_blended font
-      (Printf.sprintf "Year: %d" !Simulation_info.sim_year)
+      (Printf.sprintf "Year: %d" !Simulation.Simulation_info.sim_year)
       (sdlcolor_of_tuple black_color)
   in
   let* text_texture = Sdl.create_texture_from_surface renderer text_surf in
@@ -117,7 +118,7 @@ let draw_edit_ui window renderer =
   let* _ = Sdl.render_copy ~dst:text_loc renderer text_texture in
   ()
 
-let render_edit window frame_counter fps =
+let render_edit window frame_counter fps cursor_pos =
   let renderer = get_global_renderer () in
   if !need_to_flush_edit_tile_cache then (
     Hashtbl.clear tile_texture_cache ;
@@ -161,6 +162,6 @@ let render_edit window frame_counter fps =
     done
   done ;
   (* 4. Draw UI on top *)
-  draw_edit_ui window renderer ;
+  draw_edit_ui window renderer cursor_pos ;
   (* 5. Show result *)
   Sdl.render_present renderer

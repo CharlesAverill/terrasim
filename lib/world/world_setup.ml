@@ -1,4 +1,4 @@
-open Worldgrid
+open Grid
 open Noise
 open Altitude
 open Biomes
