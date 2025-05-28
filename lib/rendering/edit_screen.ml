@@ -73,6 +73,6 @@ let render_edit window frame_counter fps =
     done
   done ;
   (* 4. Draw UI on top *)
-  render_ui window renderer ;
+  render_ui () ;
   (* 5. Show result *)
   Sdl.render_present renderer

@@ -15,7 +15,7 @@ open Globe_data
 
 let dragging_mouse = ref false
 
-let render_ui window (renderer : Sdl.renderer) = draw_cursor renderer
+let render_ui () = draw_cursor ()
 
 let edit_handle_keycodes e window =
   let* _ = show_cursor false in
@@ -116,13 +116,15 @@ let globe_handle_mousemotion e =
   | Some (lx, ly) when !globe_pinned ->
       let dx = float (x - lx) in
       let dy = float (y - ly) in
-      let mag = sqrt ((dx ** 2.) +. (dy ** 2.)) in
+      let mag =
+        0.5
+        (* sqrt ((dx ** 2.) +. (dy ** 2.)) in *)
+      in
       let dx, dy = (-.dx /. mag, -.dy /. mag) in
       (* rotation_lon := modf_wrap (!rotation_lon +. dx) 360. ;
       rotation_lat := !rotation_lat +. dy ; *)
-      velocity_lon :=
-        clamp (dx *. flick_globe_speed) (-.flick_globe_speed) flick_globe_speed ;
-      velocity_lat := dy *. flick_globe_speed ;
+      velocity_lon := clamp dx (-.flick_globe_speed) flick_globe_speed ;
+      velocity_lat := dy ;
       globe_last_mouse_pos := Some (x, y)
   | _ ->
       globe_last_mouse_pos := Some (x, y)

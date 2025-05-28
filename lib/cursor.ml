@@ -7,6 +7,7 @@ open Camera
 open Edit_camera
 open Globals
 open Worldgrid
+open Graphics
 
 (* World-space coordinates *)
 type cursor = {mutable x: int; mutable y: int}
@@ -21,9 +22,10 @@ let move_global_cursor dx dy =
   global_cursor.x <- global_cursor.x + dx ;
   global_cursor.y <- global_cursor.y + dy
 
-let draw_cursor renderer =
+let draw_cursor () =
   match !current_camera_mode with
   | Some (Edit2D _) ->
+      let renderer = get_global_renderer () in
       let dst_rect =
         Sdl.Rect.create
           ~x:((global_cursor.x - edit_camera.x) * scaled_tile_w ())
@@ -37,24 +39,6 @@ let draw_cursor renderer =
       in
       ()
   | Some Atlas2D ->
-      let* win_w, win_h = get_renderer_output_size renderer in
-      let scale_x = win_w / world_width in
-      let scale_y = win_h / world_height in
-      let w = 18 * scale_x in
-      let h = 14 * scale_y in
-      let dst_rect =
-        Sdl.Rect.create
-          ~x:(global_cursor.x - (w / 2))
-          ~y:(global_cursor.y - (h / 2))
-          ~w ~h
-      in
-      (* let* _ =
-        Sdl.render_copy renderer
-          (texture_of_blob renderer ui_atlascursor_sprite)
-          ~dst:dst_rect
-      in *)
-      let* _ = Sdl.set_render_draw_color renderer 255 0 255 255 in
-      let* _ = Sdl.render_draw_rect renderer (Some dst_rect) in
       ()
   | _ ->
       ()

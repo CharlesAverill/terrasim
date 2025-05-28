@@ -70,5 +70,5 @@ let render_atlas window renderer =
       () )
     rects_by_color ; *)
   (* 4. Draw UI on top *)
-  render_ui window renderer ;
+  render_ui () ;
   Sdl.render_present renderer
