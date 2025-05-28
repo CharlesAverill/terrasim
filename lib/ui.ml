@@ -62,14 +62,14 @@ let globe_handle_scancodes e window =
   let alt = mods land Kmod.lalt <> 0 || mods land Kmod.ralt <> 0 in
   let scancode = get e keyboard_scancode in
   match (ctrl, shift, alt, scancode) with
-  | _, _, _, x when x = Scancode.left ->
+  (* | _, _, _, x when x = Scancode.left ->
       rotation_lon := modf_wrap (!rotation_lon -. 15.) 360.
   | _, _, _, x when x = Scancode.right ->
       rotation_lon := modf_wrap (!rotation_lon +. 15.) 360.
   | _, _, _, x when x = Scancode.up ->
       rotation_lat := modf_wrap (!rotation_lat -. 15.) 360.
   | _, _, _, x when x = Scancode.down ->
-      rotation_lat := modf_wrap (!rotation_lat +. 15.) 360.
+      rotation_lat := modf_wrap (!rotation_lat +. 15.) 360. *)
   | _, _, _, _ ->
       ()
 

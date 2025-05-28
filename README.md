@@ -43,6 +43,5 @@ There are three views right now:
 
 | Input | Effect |
 |---|---|
-| Left | Rotate West |
-| Right | Rotate East |
+| Click and drag | Spin globe |
 | `c` | Switch to Edit view |
