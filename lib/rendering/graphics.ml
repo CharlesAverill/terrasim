@@ -160,7 +160,9 @@ let swap_render_mode window =
   Atlas_screen_opengl.sprogram := None ;
   (* Globe screen reset *)
   clear_globe_cache () ;
+  clear_opengl_globe_cache () ;
   Globe_screen_opengl.sprogram := None ;
+  Globe_screen_opengl.fbo_atlastex := None ;
   current_render_mode :=
     match !current_render_mode with
     | UninitRender ->

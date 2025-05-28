@@ -31,6 +31,10 @@ let globe_cache : (int * int, Sdl.texture) Hashtbl.t = Hashtbl.create 100
 
 let clear_globe_cache () = Hashtbl.reset globe_cache
 
+let need_to_flush_opengl_globe_cache = ref false
+
+let clear_opengl_globe_cache () = need_to_flush_opengl_globe_cache := true
+
 let need_to_flush_edit_tile_cache = ref false
 
 let clear_edit_cache () = need_to_flush_edit_tile_cache := true

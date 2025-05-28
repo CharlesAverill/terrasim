@@ -97,7 +97,18 @@ let setup_tile_buffers ~offsets ~colors =
   Gl.bind_vertex_array 0 ;
   vao
 
-let render_tiles win sprogram vao num_instances =
+let render_tiles ?(fbo : uint8 option = None) win sprogram vao num_instances =
+  Gl.bind_framebuffer Gl.framebuffer (match fbo with Some fb -> fb | None -> 0) ;
+  Gl.viewport 0 0
+    ( if fbo = None then
+        fst (Sdl.get_window_size win)
+      else
+        512 )
+    (* or desired tex size *)
+    ( if fbo = None then
+        snd (Sdl.get_window_size win)
+      else
+        512 ) ;
   Gl.clear_color 0.1 0.1 0.1 1. ;
   Gl.clear Gl.color_buffer_bit ;
   Gl.use_program sprogram ;
@@ -105,7 +116,34 @@ let render_tiles win sprogram vao num_instances =
   let u_scale = Gl.get_uniform_location sprogram "uScale" in
   Gl.uniform1f u_scale (1. /. 30.) ;
   Gl.draw_arrays_instanced Gl.triangles 0 6 num_instances ;
-  Sdl.gl_swap_window win
+  Gl.bind_framebuffer Gl.framebuffer 0 ;
+  if fbo = None then Sdl.gl_swap_window win
+
+let create_render_texture ~width ~height =
+  let tex = get_int (Gl.gen_textures 1) in
+  Gl.bind_texture Gl.texture_2d tex ;
+  let texture_data =
+    let data = bigarray_create Bigarray.int8_unsigned (height * width * 4) in
+    for i = 0 to (height * width) - 1 do
+      set_3d data i 255 255 0
+    done ;
+    data
+  in
+  Gl.tex_image2d Gl.texture_2d 0 Gl.rgba width height 0 Gl.rgba Gl.unsigned_byte
+    (`Data texture_data) ;
+  Gl.tex_parameteri Gl.texture_2d Gl.texture_min_filter Gl.linear ;
+  Gl.tex_parameteri Gl.texture_2d Gl.texture_mag_filter Gl.linear ;
+  Gl.bind_texture Gl.texture_2d 0 ;
+  let fbo = get_int (Gl.gen_framebuffers 1) in
+  Gl.bind_framebuffer Gl.framebuffer fbo ;
+  Gl.framebuffer_texture2d Gl.framebuffer Gl.color_attachment0 Gl.texture_2d tex
+    0 ;
+  (* Optionally check framebuffer completeness *)
+  let status = Gl.check_framebuffer_status Gl.framebuffer in
+  if status <> Gl.framebuffer_complete then
+    fatal rc_OpenGL "Framebuffer not complete: %d" status ;
+  Gl.bind_framebuffer Gl.framebuffer 0 ;
+  (fbo, tex)
 
 let make_tile_data () =
   let num_tiles = world_width * world_height in
@@ -140,7 +178,7 @@ let make_tile_data () =
 
 let sprogram = ref None
 
-let atlas_render win =
+let atlas_render ?(to_texture = false) win =
   let sprogram =
     match !sprogram with
     | None ->
@@ -152,4 +190,15 @@ let atlas_render win =
   in
   let offsets, colors = make_tile_data () in
   let vao = setup_tile_buffers ~offsets ~colors in
-  render_tiles win sprogram vao (Array.length offsets)
+  let fbo, tex =
+    if to_texture then
+      let x, y = create_render_texture ~width:512 ~height:512 in
+      (Some x, y)
+    else
+      (None, 0)
+  in
+  render_tiles ~fbo win sprogram vao (Array.length offsets) ;
+  if fbo = None then
+    None
+  else
+    Some (fbo, tex)

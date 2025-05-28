@@ -51,9 +51,9 @@ let gameloop_iter window event =
       pan_atlas_camera_if_needed window ;
       cursor_go_to_camera () ;
       (* Atlas_screen.render_atlas window renderer *)
-      Atlas_screen_opengl.atlas_render window
+      ignore (Atlas_screen_opengl.atlas_render window)
   | Some Globe3D ->
-      Globe_screen_opengl.globe_render window
+      Globe_screen_opengl.globe_render window !frame_counter
       (* Globe_screen.render_globe window *)
   | None ->
       () ) ;

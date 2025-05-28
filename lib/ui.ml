@@ -49,17 +49,7 @@ let atlas_handle_scancodes e window =
   let ctrl = mods land Kmod.lctrl <> 0 || mods land Kmod.rctrl <> 0 in
   let alt = mods land Kmod.lalt <> 0 || mods land Kmod.ralt <> 0 in
   let scancode = get e keyboard_scancode in
-  match (ctrl, shift, alt, scancode) with
-  (* | _, _, _, x when x = Scancode.left ->
-            rotation_lon := mod_wrap (!rotation_lon - 15) 360
-        | _, _, _, x when x = Scancode.right ->
-            rotation_lon := mod_wrap (!rotation_lon + 15) 360
-        | _, _, _, x when x = Scancode.up ->
-            rotation_lat := mod_wrap (!rotation_lat - 15) 360
-        | _, _, _, x when x = Scancode.down ->
-            rotation_lat := mod_wrap (!rotation_lat + 15) 360 *)
-  | _, _, _, _ ->
-      ()
+  match (ctrl, shift, alt, scancode) with _, _, _, _ -> ()
 
 let globe_handle_scancodes e window =
   let* _ = show_cursor false in
@@ -144,7 +134,10 @@ let handle_edit_ui_event (e : Sdl.event) window =
       edit_handle_scancodes e window
   | _ ->
       () ) ;
-  if !edit_updated then clear_globe_cache ()
+  if !edit_updated then (
+    clear_globe_cache () ;
+    clear_opengl_globe_cache ()
+  )
 
 let handle_atlas_ui_event (e : Sdl.event) window =
   match get e typ with
