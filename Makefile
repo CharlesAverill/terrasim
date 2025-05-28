@@ -16,10 +16,17 @@ SPRITE_DIR := assets/sprites
 SPRITE_OUTPUT := lib/assets/sprites.ml
 SPRITE_SCRIPT := assets/sprites/gen_sprites_file.py
 
+FONT_DIR := assets/fonts
+FONT_OUTPUT := lib/assets/fonts.ml
+FONT_SCRIPT := assets/fonts/gen_fonts_file.py
+
 $(SPRITE_OUTPUT): $(SPRITE_SCRIPT) $(wildcard $(SPRITE_DIR)/*)
 	$(PYTHON) $(SPRITE_SCRIPT) $(SPRITE_OUTPUT)
 
-build: fmt $(SPRITE_OUTPUT)
+$(FONT_OUTPUT): $(FONT_SCRIPT) $(wildcard $(FONT_DIR)/*)
+	$(PYTHON) $(FONT_SCRIPT) $(FONT_OUTPUT)
+
+build: fmt $(SPRITE_OUTPUT) $(FONT_OUTPUT)
 	$(OPAM_EXEC) $(DUNE) build --profile=release
 
 install:

@@ -30,6 +30,7 @@
   (tsdl (= 1.1.0))
   tgls
   tsdl-image
+  tsdl-ttf
   ppx_blob
   domainslib
   digestif

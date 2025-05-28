@@ -6,6 +6,7 @@
  (libraries
   tsdl
   tsdl-image
+  tsdl-ttf
   tgls
   tgls.tgl4
   domainslib

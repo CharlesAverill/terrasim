@@ -15,8 +15,6 @@ open Globe_data
 
 let dragging_mouse = ref false
 
-let render_ui () = draw_cursor ()
-
 let edit_handle_keycodes e window =
   let* _ = show_cursor false in
   let mods = get_mod_state () in
@@ -142,21 +140,38 @@ let handle_edit_ui_event (e : Sdl.event) window =
   | t when t = mouse_motion ->
       let* _ = show_cursor true in
       ()
-  | t when t = mouse_button_down -> (
+  | t when t = mouse_button_down ->
       let _, (x, y) = Sdl.get_mouse_state () in
-      let button = get e mouse_button_button in
-      let tile_x = (x / scaled_tile_w ()) + edit_camera.x in
-      let tile_y = (y / scaled_tile_h ()) + edit_camera.y in
-      set_global_cursor tile_x tile_y ;
-      match button with
-      | 1 (* Left click *) ->
-          adjust_terrain_gaussian ~raise:true tile_x tile_y ;
-          edit_updated := true
-      | 3 (* Right click *) ->
-          adjust_terrain_gaussian ~raise:false tile_x tile_y ;
-          edit_updated := true
-      | _ ->
-          () )
+      let _, (win_h, _) = get_edit_window_ui_height window in
+      if y < win_h then (
+        let button = get e mouse_button_button in
+        let tile_x = (x / scaled_tile_w ()) + edit_camera.x in
+        let tile_y = (y / scaled_tile_h ()) + edit_camera.y in
+        set_global_cursor tile_x tile_y ;
+        match button with
+        | 1 (* Left click *) ->
+            adjust_terrain_gaussian ~raise:true tile_x tile_y ;
+            edit_updated := true
+        | 3 (* Right click *) ->
+            adjust_terrain_gaussian ~raise:false tile_x tile_y ;
+            edit_updated := true
+        | _ ->
+            ()
+      )
+  | t when t = mouse_wheel ->
+      let dx, dy = (get e mouse_wheel_x, get e mouse_wheel_y) in
+      let dx, dy =
+        let x =
+          if get e mouse_wheel_direction = mouse_wheel_flipped then
+            -1
+          else
+            1
+        in
+        (x * dx, x * dy)
+      in
+      let dx, dy = (clamp dx (-1) 1, clamp dy (-1) 1) in
+      move_edit_camera dx (-dy)
+      (* invert Y to match UI expectation *)
   | t when t = text_input ->
       edit_handle_textinput e window ;
       edit_handle_keycodes e window

@@ -19,25 +19,26 @@ let set_global_cursor x y =
   global_cursor.y <- y
 
 let move_global_cursor dx dy =
-  global_cursor.x <- global_cursor.x + dx ;
-  global_cursor.y <- global_cursor.y + dy
+  set_global_cursor (global_cursor.x + dx) (global_cursor.y + dy)
 
-let draw_cursor () =
+let draw_cursor window =
   match !current_camera_mode with
   | Some (Edit2D _) ->
-      let renderer = get_global_renderer () in
-      let dst_rect =
-        Sdl.Rect.create
-          ~x:((global_cursor.x - edit_camera.x) * scaled_tile_w ())
-          ~y:((global_cursor.y - edit_camera.y) * scaled_tile_h ())
-          ~w:(scaled_tile_h ()) ~h:(scaled_tile_w ())
-      in
-      let* _ =
-        Sdl.render_copy renderer
-          (texture_of_blob renderer ui_cursor_sprite)
-          ~dst:dst_rect
-      in
-      ()
+      let y = (global_cursor.y - edit_camera.y) * scaled_tile_h () in
+      let _, (win_h, _) = get_edit_window_ui_height window in
+      if y < win_h then
+        let renderer = get_global_renderer () in
+        let dst_rect =
+          Sdl.Rect.create
+            ~x:((global_cursor.x - edit_camera.x) * scaled_tile_w ())
+            ~y ~w:(scaled_tile_h ()) ~h:(scaled_tile_w ())
+        in
+        let* _ =
+          Sdl.render_copy renderer
+            (texture_of_blob renderer ui_cursor_sprite)
+            ~dst:dst_rect
+        in
+        ()
   | Some Atlas2D ->
       ()
   | _ ->

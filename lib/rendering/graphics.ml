@@ -8,6 +8,7 @@ open Globe_data
 
 let init_sdl () =
   let* _ = init Init.(video + events) in
+  let* _ = Tsdl_ttf.Ttf.init () in
   ()
 
 let create_window ?(w : int = 1920) ?(h : int = 1080) (window_name : string) =

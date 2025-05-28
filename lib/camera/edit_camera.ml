@@ -12,7 +12,7 @@ let view_width () =
   match !zoom_level with NormalZoom -> 48 | CloseZoom -> 32 | FarZoom -> 63
 
 let view_height () =
-  match !zoom_level with NormalZoom -> 27 | CloseZoom -> 18 | FarZoom -> 36
+  match !zoom_level with NormalZoom -> 27 | CloseZoom -> 18 | FarZoom -> 37
 
 let edit_camera = {x= 0; y= 0}
 
@@ -49,17 +49,27 @@ let move_edit_camera dx dy =
   edit_camera.y <- edit_camera.y + dy ;
   clamp_camera_to_bounds ()
 
+let get_edit_window_ui_height window =
+  let win_w, win_h = Sdl.get_window_size window in
+  let wh = 0.85 in
+  ( win_w
+  , (int_of_float (float win_h *. wh), int_of_float (float win_h *. (1. -. wh)))
+  )
+
 (* Edge panning *)
 let pan_margin = 32
 
 let pan_edit_camera_if_needed window =
   let mouse_x, mouse_y = Sdl.get_mouse_state () |> snd in
-  let win_w, win_h = Sdl.get_window_size window in
+  let win_w, (win_h, ui_h) = get_edit_window_ui_height window in
   if mouse_x < pan_margin then
     move_edit_camera (-1) 0
   else if mouse_x > win_w - pan_margin then
     move_edit_camera 1 0 ;
-  if mouse_y < pan_margin then
-    move_edit_camera 0 (-1)
-  else if mouse_y > win_h - pan_margin then
+  if
+    (* win_h - pan_margin < mouse_y && mouse_y < win_h *)
+    mouse_y > win_h + ui_h - pan_margin
+  then
     move_edit_camera 0 1
+  else if mouse_y < pan_margin then
+    move_edit_camera 0 (-1)

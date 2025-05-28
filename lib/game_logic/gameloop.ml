@@ -40,6 +40,8 @@ let gameloop_iter window event =
     | None ->
         ()
   done ;
+  (* Run simulation approx. once every other second *)
+  if !frame_counter mod (target_fps * 2) = 0 then Simulation.simulate () ;
   (* Render *)
   ( match !current_camera_mode with
   | Some (Edit2D _) ->

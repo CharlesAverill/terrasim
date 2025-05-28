@@ -28,7 +28,7 @@
 
 # Life Simulation
 
-- [ ] Time system
+- [x] Time system
 - [ ] Define basic organism types (plant, herbivore, carnivore)
 - [ ] Implement Game-of-Life-like rules (birth, death, spread)
 - [ ] Handle organism rendering layer
