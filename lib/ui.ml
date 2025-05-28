@@ -11,6 +11,9 @@ open Biomes
 open Cursor
 open Utils
 open Graphics
+open Globe_data
+
+let dragging_mouse = ref false
 
 let render_ui window (renderer : Sdl.renderer) = draw_cursor renderer
 
@@ -60,13 +63,13 @@ let globe_handle_scancodes e window =
   let scancode = get e keyboard_scancode in
   match (ctrl, shift, alt, scancode) with
   | _, _, _, x when x = Scancode.left ->
-      rotation_lon := mod_wrap (!rotation_lon - 15) 360
+      rotation_lon := modf_wrap (!rotation_lon -. 15.) 360.
   | _, _, _, x when x = Scancode.right ->
-      rotation_lon := mod_wrap (!rotation_lon + 15) 360
+      rotation_lon := modf_wrap (!rotation_lon +. 15.) 360.
   | _, _, _, x when x = Scancode.up ->
-      rotation_lat := mod_wrap (!rotation_lat - 15) 360
+      rotation_lat := modf_wrap (!rotation_lat -. 15.) 360.
   | _, _, _, x when x = Scancode.down ->
-      rotation_lat := mod_wrap (!rotation_lat + 15) 360
+      rotation_lat := modf_wrap (!rotation_lat +. 15.) 360.
   | _, _, _, _ ->
       ()
 
@@ -105,6 +108,31 @@ let atlas_handle_textinput e window =
   let* _ = show_cursor false in
   let text = get e text_input_text in
   match text with "c" -> toggle_camera_mode window | _ -> ()
+
+let globe_handle_mousemotion e =
+  let x = Sdl.Event.get e Sdl.Event.mouse_motion_x in
+  let y = Sdl.Event.get e Sdl.Event.mouse_motion_y in
+  match !globe_last_mouse_pos with
+  | Some (lx, ly) when !globe_pinned ->
+      let dx = float (x - lx) in
+      let dy = float (y - ly) in
+      let mag = sqrt ((dx ** 2.) +. (dy ** 2.)) in
+      let dx, dy = (-.dx /. mag, -.dy /. mag) in
+      (* rotation_lon := modf_wrap (!rotation_lon +. dx) 360. ;
+      rotation_lat := !rotation_lat +. dy ; *)
+      velocity_lon :=
+        clamp (dx *. flick_globe_speed) (-.flick_globe_speed) flick_globe_speed ;
+      velocity_lat := dy *. flick_globe_speed ;
+      globe_last_mouse_pos := Some (x, y)
+  | _ ->
+      globe_last_mouse_pos := Some (x, y)
+
+let globe_handle_mousebutton e =
+  let down = Sdl.Event.get e Sdl.Event.mouse_button_state = Sdl.pressed in
+  if down then
+    globe_pinned := true
+  else
+    globe_pinned := false
 
 let handle_edit_ui_event (e : Sdl.event) window =
   let edit_updated = ref false in
@@ -157,9 +185,9 @@ let handle_globe_ui_event (e : Sdl.event) window =
   match get e typ with
   | t when t = mouse_motion ->
       let* _ = show_cursor true in
-      ()
-  | t when t = mouse_button_down ->
-      ()
+      globe_handle_mousemotion e
+  | t when t = mouse_button_down || t = mouse_button_up ->
+      globe_handle_mousebutton e
   | t when t = text_input ->
       globe_handle_textinput e window
   | t when t = key_down ->

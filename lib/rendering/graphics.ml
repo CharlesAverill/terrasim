@@ -4,6 +4,7 @@ open Sdl
 open Spriteloader
 open Utils
 open Globals
+open Globe_data
 
 let init_sdl () =
   let* _ = init Init.(video + events) in

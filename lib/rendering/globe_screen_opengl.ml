@@ -3,7 +3,7 @@ open Sdl
 open Tgl4
 open Logging
 open Opengl_utils
-open Globals
+open Globe_data
 
 (* Blob in your shaders *)
 let globe_vertex_shader_src = [%blob "shaders/globe.vert"]
@@ -130,9 +130,9 @@ let globe_render win frame_counter =
   let u_time = Gl.get_uniform_location sprogram "iTime" in
   Gl.uniform1i u_time frame_counter ;
   let u_time = Gl.get_uniform_location sprogram "iLat" in
-  Gl.uniform1i u_time !rotation_lat ;
+  Gl.uniform1f u_time !rotation_lat ;
   let u_time = Gl.get_uniform_location sprogram "iLon" in
-  Gl.uniform1i u_time !rotation_lon ;
+  Gl.uniform1f u_time !rotation_lon ;
   (* Bind atlas texture to iChannel0 = texture unit 0 *)
   Gl.active_texture Gl.texture0 ;
   Gl.bind_texture Gl.texture_2d atlas_texture ;

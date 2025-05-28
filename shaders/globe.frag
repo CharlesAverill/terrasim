@@ -7,8 +7,8 @@ out vec4 fragColor;
 uniform int iTime;
 uniform vec2 iResolution;   // Screen resolution
 uniform sampler2D iChannel0; // Input texture (tilemap/biome/etc.)
-uniform int iLat;  // latitude rotation in radians
-uniform int iLon;  // longitude rotation in radians
+uniform float iLat;  // latitude rotation in radians
+uniform float iLon;  // longitude rotation in radians
 
 // Rotation around the X axis
 mat3 xrot(float angle) {

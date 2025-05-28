@@ -6,6 +6,7 @@ open Worldgrid
 open Altitude
 open Gradients
 open Graphics
+open Globe_data
 
 let draw_starfield renderer =
   Random.init 42 ;
@@ -45,7 +46,7 @@ let render_globe window =
   let renderer = get_global_renderer () in
   let lon_q = !rotation_lon in
   let lat_q = !rotation_lat in
-  let key = (lon_q, lat_q) in
+  let key = (int_of_float lon_q, int_of_float lat_q) in
   match Hashtbl.find_opt globe_cache key with
   | Some cached_texture ->
       let* win_w, win_h = get_renderer_output_size renderer in
@@ -62,8 +63,8 @@ let render_globe window =
       let radius = int_of_float (float win_h /. 2.2) in
       let center_x = win_w / 2 in
       let center_y = win_h / 2 in
-      let rot_lon = float_of_int lon_q *. Float.pi /. 180.0 in
-      let rot_lat = float_of_int lat_q *. Float.pi /. 180.0 in
+      let rot_lon = lon_q *. Float.pi /. 180.0 in
+      let rot_lat = lat_q *. Float.pi /. 180.0 in
       let* _ = set_render_draw_color renderer 0 0 0 255 in
       let* _ = Sdl.render_clear renderer in
       draw_starfield renderer ;

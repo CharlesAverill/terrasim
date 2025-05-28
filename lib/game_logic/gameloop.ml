@@ -8,6 +8,8 @@ open Edit_camera
 open Atlas_camera
 open Cursor
 open World_setup
+open Globe_data
+open Utils
 
 let frame_counter : uint8 ref = ref 64
 
@@ -53,6 +55,20 @@ let gameloop_iter window event =
       (* Atlas_screen.render_atlas window renderer *)
       ignore (Atlas_screen_opengl.atlas_render window)
   | Some Globe3D ->
+      (* Spin globe *)
+      if not !globe_pinned then (
+        (* Apply velocity *)
+        rotation_lat := !rotation_lat +. !velocity_lat ;
+        rotation_lon := !rotation_lon +. !velocity_lon ;
+        (* Decay lat and lon velocity back to defaults *)
+        velocity_lat := !velocity_lat *. (1. -. globe_spin_friction) ;
+        velocity_lon :=
+          (!velocity_lon -. min_abs_velocity_lon)
+          *. (1. -. globe_spin_friction)
+          +. min_abs_velocity_lon ;
+        (* Decay lat rotation back to horizontal *)
+        rotation_lat := !rotation_lat *. (1. -. (globe_spin_friction *. 0.5))
+      ) ;
       Globe_screen_opengl.globe_render window !frame_counter
       (* Globe_screen.render_globe window *)
   | None ->
@@ -61,7 +77,7 @@ let gameloop_iter window event =
   let frame_time = Int32.sub (Sdl.get_ticks ()) frame_start in
   if frame_time < frame_delay then Sdl.delay (Int32.sub frame_delay frame_time) ;
   real_fps := 1000 / (1 + Int32.to_int frame_time) ;
-  _log Log_Info "FPS: %d" !real_fps ;
+  _log Log_Debug "FPS: %d" !real_fps ;
   !loop_continue
 
 let run_game_loop window =
