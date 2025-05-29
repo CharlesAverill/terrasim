@@ -1,6 +1,7 @@
 (** World grid logic *)
 
 open Biomes
+open Life.Lifeform
 
 let world_width = 128
 let world_height = 64
@@ -15,7 +16,7 @@ type world_grid = {
   air_current : unit array;
   rain : unit array;
   biome : biome_tile array;
-  life : unit array;
+  life : lifeform option array;
   civilization : unit array;
 }
 (** Collection of 1D array representations of the {!world_width}x{!world_height}
@@ -36,7 +37,7 @@ let grid : world_grid =
     air_current = Array.make size ();
     rain = Array.make size ();
     biome = Array.make size (Land Nothing);
-    life = Array.make size ();
+    life = Array.make size None;
     civilization = Array.make size ();
   }
 
@@ -61,7 +62,7 @@ type world_tile_attr_setter =
   | `Biome of biome_tile
   | `Civilization of unit
   | `Event of unit
-  | `Life of unit
+  | `Life of lifeform option
   | `Magma of unit
   | `Rain of unit
   | `WaterCurrent of unit

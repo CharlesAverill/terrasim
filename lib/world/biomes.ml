@@ -16,15 +16,12 @@ type biome =
 type ocean = Shallow | Regular | Deep
 type biome_tile = Land of biome | Ocean of ocean
 
-(** Number of sprites in a looping animated tile *)
-let sprites_per_animated_tile = 8
-
 (** Get the corresponding blob to a tile given altitude and biome, accounting
     for animation
-    @param frame_count Current frame count
+    @param animated_sprite_idx Which sprite of an animated sprite to get
     @param altitude Tile altitude
     @param biome Tile biome *)
-let blob_of_tile frame_count altitude = function
+let blob_of_tile animated_sprite_idx altitude = function
   | Land Arctic ->
       biomes_arctic_sprite
   | Land Boreal ->
@@ -43,8 +40,11 @@ let blob_of_tile frame_count altitude = function
   | Land Swamp ->
       biomes_swamp_sprite
   | Ocean Shallow ->
-      List.nth ocean_shallow_sprites (frame_count mod sprites_per_animated_tile)
+      List.nth ocean_shallow_sprites
+        (animated_sprite_idx mod List.length ocean_shallow_sprites)
   | Ocean Regular ->
-      List.nth ocean_regular_sprites (frame_count mod sprites_per_animated_tile)
+      List.nth ocean_regular_sprites
+        (animated_sprite_idx mod List.length ocean_shallow_sprites)
   | Ocean Deep ->
-      List.nth ocean_deep_sprites (frame_count mod sprites_per_animated_tile)
+      List.nth ocean_deep_sprites
+        (animated_sprite_idx mod List.length ocean_shallow_sprites)

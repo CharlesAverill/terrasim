@@ -8,6 +8,7 @@ open Tsdl_ttf
 open Cameras.Edit_camera
 open World.Grid
 open World.Biomes
+open World.Life.Lifeform
 open Assets.Assetloader
 open Graphics
 
@@ -37,6 +38,31 @@ let texture_of_tile (renderer : Sdl.renderer)
         texture_of_blob renderer (blob_of_tile frame_count altitude biome)
       in
       Hashtbl.add tile_texture_cache (biome, altitude, frame_count) tex;
+      tex
+
+(** Cache for lifeform textures *)
+let lifeform_texture_cache : (lifeform * int, Sdl.texture) Hashtbl.t =
+  Hashtbl.create 1024
+
+(** Look in cache for lifeform texture, otherwise render it
+
+    [(lifeform, sprite_index)] is the key to {!lifeform_texture_cache}
+    @param renderer Application window's SDL renderer
+    @param lf The lifeform
+    @param frame_count The current frame counter
+    @return An SDL texture containing the rendered lifeform *)
+let texture_of_lifeform (renderer : Sdl.renderer)
+    ((lf, frame_count) : lifeform * int) : Sdl.texture =
+  let frame_count = frame_count / (animated_tile_update_factor * 2) mod 2 in
+  match Hashtbl.find_opt lifeform_texture_cache (lf, frame_count) with
+  | Some tex ->
+      tex
+  | None ->
+      let tex =
+        texture_of_blob ~color_key:(Some lifeform_colorkey_rgb) renderer
+          (blob_of_lifeform frame_count lf)
+      in
+      Hashtbl.add lifeform_texture_cache (lf, frame_count) tex;
       tex
 
 let ui_bg_color = rgb_of_hex "DDDDDD"
@@ -142,10 +168,11 @@ let draw_edit_ui (window : Sdl.window) (renderer : Sdl.renderer)
 let render_edit_screen (window : Sdl.window) (frame_counter : int)
     (cursor_pos : int * int) =
   let renderer = get_global_renderer () in
-  if !need_to_flush_edit_tile_cache then (
+  if !need_to_flush_edit_caches then (
     Hashtbl.clear tile_texture_cache;
+    Hashtbl.clear lifeform_texture_cache;
     Hashtbl.clear blob_cache;
-    need_to_flush_edit_tile_cache := false
+    need_to_flush_edit_caches := false
   );
   set_render_color black_color renderer;
   let* _ = Sdl.render_clear renderer in
@@ -165,18 +192,29 @@ let render_edit_screen (window : Sdl.window) (frame_counter : int)
       let dst_rect =
         Sdl.Rect.create ~x:(dx * stw) ~y:(dy * sth) ~w:stw ~h:sth
       in
-      match get_grid_tile (gx, gy) [ `Altitude; `Biome ] with
+      match get_grid_tile (gx, gy) [ `Altitude; `Biome; `Life ] with
       | None ->
           set_render_color (0, 0, 0) renderer;
           let* _ = Sdl.render_fill_rect renderer (Some dst_rect) in
           ()
-      | Some [ `Altitude alt; `Biome b ] ->
+      | Some [ `Altitude alt; `Biome b; `Life lf ] -> (
+          (* Draw tile *)
           let* _ =
             Sdl.render_copy renderer
               (texture_of_tile renderer (b, alt, frame_counter))
               ~dst:dst_rect
           in
-          ()
+          (* Draw lifeform *)
+          match lf with
+          | None ->
+              ()
+          | Some lf ->
+              let* _ =
+                Sdl.render_copy renderer
+                  (texture_of_lifeform renderer (lf, frame_counter))
+                  ~dst:dst_rect
+              in
+              ())
       | _ ->
           [%unreachable]
     done

@@ -1,4 +1,4 @@
-(** Fonts - Auto-generated font blobs *)
+(** Auto-generated font blobs *)
 
 let _NewPortLand_npl_font : string * string =
   ( "assets/fonts/NewPortLand/npl.ttf",

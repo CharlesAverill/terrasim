@@ -43,6 +43,8 @@ def write_sprite_bindings():
     groups = defaultdict(list)
 
     for path in sorted(SPRITES_DIR.rglob("*.png")):
+        if "_zips" in str(path):
+            continue
         rel_path = path.as_posix()
         ident = f"{flatten_path(path.relative_to(SPRITES_DIR))}_sprite"
 
@@ -55,7 +57,7 @@ def write_sprite_bindings():
     merged_groups = build_parent_groups(groups)
 
     with open(OUTPUT_FILE, "w") as f:
-        f.write("(** Sprites - Auto-generated sprite blobs *)\n\n")
+        f.write("(** Auto-generated sprite blobs *)\n\n")
         for b in sorted(bindings):
             f.write(b + "\n")
 

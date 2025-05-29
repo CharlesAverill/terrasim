@@ -13,7 +13,7 @@ let scaled_tile_w () : int = int_of_float (float !tile_w *. !zoom_factor)
 let scaled_tile_h () : int = int_of_float (float !tile_h *. !zoom_factor)
 
 (** Whether the cache of tile textures needs to be flushed *)
-let need_to_flush_edit_tile_cache = ref false
+let need_to_flush_edit_caches = ref false
 
 (** Signals to flush the tile texture cache *)
-let clear_edit_cache () = need_to_flush_edit_tile_cache := true
+let clear_edit_cache () = need_to_flush_edit_caches := true

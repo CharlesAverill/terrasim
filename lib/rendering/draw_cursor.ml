@@ -1,3 +1,5 @@
+(** Logic for drawing cursors *)
+
 open Cameras.Camera
 open Cameras.Edit_camera
 open Graphics
@@ -7,7 +9,11 @@ open Tsdl
 open Assets.Assetloader
 open Assets.Sprites
 
-let draw_cursor (window : Sdl.window) (cursor_x, cursor_y) =
+(** Draw a cursor to any of the three screens
+    @param window Application's SDL window
+    @param cursor_x
+    @param cursor_y *)
+let draw_cursor (window : Sdl.window) ((cursor_x, cursor_y) : int * int) =
   match !current_camera_mode with
   | Some (Edit2D _) ->
       let y = (cursor_y - edit_camera.y) * scaled_tile_h () in
@@ -17,7 +23,7 @@ let draw_cursor (window : Sdl.window) (cursor_x, cursor_y) =
         let dst_rect =
           Sdl.Rect.create
             ~x:((cursor_x - edit_camera.x) * scaled_tile_w ())
-            ~y ~w:(scaled_tile_h ()) ~h:(scaled_tile_w ())
+            ~y ~w:(scaled_tile_w ()) ~h:(scaled_tile_h ())
         in
         let* _ =
           Sdl.render_copy renderer

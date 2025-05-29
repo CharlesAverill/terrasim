@@ -4,6 +4,38 @@ open Grid
 open Noise
 open Altitude
 open Biomes
+open Life.Lifeform
+open Assets.Sprites
+
+(** Generate a completely random lifeform *)
+let random_lifeform () : lifeform =
+  let spec_list =
+    [
+      Amoeba;
+      Amphibian;
+      Bacteria;
+      Bird;
+      Carnifern;
+      Crab;
+      Dinosaur;
+      Fish;
+      Insect;
+      Mammal;
+      Octopus;
+      Reptile;
+      Robot;
+      Starfish;
+      Trichordate;
+      Whale;
+    ]
+  in
+  let level_list = [ Early; Middle; Late; Final ] in
+  let variant = Random.int 4 in
+  {
+    species = List.nth spec_list (Random.int (List.length spec_list));
+    stage = List.nth level_list (Random.int (List.length level_list));
+    variant;
+  }
 
 (** Classify a tile between {!Biomes.Ocean} and {!Biomes.Land} based on altitude
     @param alt Altitude
@@ -49,7 +81,15 @@ let world_setup () =
           (* Oceans *)
           let biome = classify_ocean_tile alt in
           let _is_ocean = match biome with Ocean _ -> true | _ -> false in
-          set_grid_tile (x, y) [ `Altitude alt; `Biome biome ]
+          (* TEMPORARY - life generation *)
+          let lifeform =
+            match Random.int 100 with
+            | x when x < 5 ->
+                Some (random_lifeform ())
+            | _ ->
+                None
+          in
+          set_grid_tile (x, y) [ `Altitude alt; `Biome biome; `Life lifeform ]
       | _ ->
           [%unreachable]
     done
