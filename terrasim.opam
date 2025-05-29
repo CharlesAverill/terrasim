@@ -10,8 +10,7 @@ doc: "https://github.com/CharlesAverill/TerraSim"
 bug-reports: "https://github.com/CharlesAverill/TerraSim/issues"
 depends: [
   "ocaml" {= "5.1.1"}
-  "dune" {>= "3.9"}
-  "alcotest" {with-test}
+  "dune" {>= "3.9" & with-test}
   "ocamlformat" {with-test}
   "odoc" {with-doc}
   "md2mld" {with-doc}
@@ -20,7 +19,6 @@ depends: [
   "tsdl-image"
   "tsdl-ttf"
   "ppx_blob"
-  "domainslib"
   "ppx_unreachable"
   "zarith"
 ]

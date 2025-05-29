@@ -44,7 +44,7 @@ jobs:
       - name: Install Dependencies
         run: |
           opam pin tgls --dev-repo
-          opam install . --deps-only --with-test --with-doc
+          opam install . --deps-only --with-doc
           eval $(opam env)
       
       - name: Build Documentation

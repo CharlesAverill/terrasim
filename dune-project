@@ -21,8 +21,7 @@
  (description "A SimEarth clone")
  (depends 
   (ocaml (= 5.1.1)) 
-  dune
-  (alcotest :with-test)
+  (dune :with-test)
   (ocamlformat :with-test)
   (odoc :with-doc)
   (md2mld :with-doc)
@@ -31,7 +30,6 @@
   tsdl-image
   tsdl-ttf
   ppx_blob
-  domainslib
   ppx_unreachable
   zarith
  )
