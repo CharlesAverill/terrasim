@@ -23,7 +23,8 @@
   (ocaml (= 5.1.1)) 
   (dune :with-test)
   (ocamlformat :with-test)
-  (odoc (= 2.4.4 :with-doc))
+  (odoc 
+   (and (= 2.4.4) :with-doc))
   (md2mld :with-doc)
   (tsdl (= 1.1.0))
   tgls
