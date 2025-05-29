@@ -20,8 +20,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt update && sudo apt install
-          opam pin tgls --dev-repo
-          opam install tgls
+          opam pin tgls --dev-repo --no
           opam install . --deps-only --with-test --with-doc
           eval $(opam env)
 
@@ -46,8 +45,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt update && sudo apt install
-          opam pin tgls --dev-repo
-          opam install tgls
+          opam pin tgls --dev-repo --no
           opam install . --deps-only --with-doc
           eval $(opam env)
       

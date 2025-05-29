@@ -80,7 +80,7 @@ cleandocs:
 	rm -rf $(DOCS_PATH)
 	mkdir $(DOCS_PATH)
 
-docs: clean cleandocs
+docs: cleandocs
 	$(OPAM_EXEC) $(DUNE) build @doc
 	cp -rf _build/default/_doc/_html/* $(DOCS_PATH)
 	mv -f $(DOCS_PATH)/terrasim/outer_index.html $(DOCS_PATH)index.html
