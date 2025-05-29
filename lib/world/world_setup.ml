@@ -1,9 +1,14 @@
+(** World generation *)
+
 open Grid
 open Noise
 open Altitude
 open Biomes
 
-let classify_ocean_tile alt =
+(** Classify a tile between {!Biomes.Ocean} and {!Biomes.Land} based on altitude
+    @param alt Altitude
+    @return Biome tile distinguishing between land and ocean *)
+let classify_ocean_tile (alt : int) : biome_tile =
   if alt <= deep_ocean_theshold then
     Ocean Deep
   else if alt <= regular_ocean_theshold then
@@ -13,16 +18,21 @@ let classify_ocean_tile alt =
   else
     Land Nothing
 
+(** Compute a coefficient that scales down as [y] grows farther from the equator
+    @param y Latitude value
+    @return {m 1 - (2 \cdot \frac{\texttt{y}}{height - 1} - 1)^4 }*)
 let latitudinal_falloff (y : int) =
   let dy = (2. *. (float y /. float (world_height - 1))) -. 1. in
   1. -. (dy ** 4.)
 
+(** Procedurally generate world grid using {{!Noise.fbm}simplex noise} and FBM
+*)
 let world_setup () =
   Random.self_init ();
   let seed = Random.int (int_of_float (Float.pow 2. 20.)) in
   for x = 0 to world_width do
     for y = 0 to world_height do
-      match get_global_tile x y [] with
+      match get_grid_tile (x, y) [] with
       | None ->
           ()
       | Some [] ->
@@ -38,8 +48,8 @@ let world_setup () =
           in
           (* Oceans *)
           let biome = classify_ocean_tile alt in
-          let is_ocean = match biome with Ocean _ -> true | _ -> false in
-          set_global_tile x y [ `Altitude alt; `Biome biome ]
+          let _is_ocean = match biome with Ocean _ -> true | _ -> false in
+          set_grid_tile (x, y) [ `Altitude alt; `Biome biome ]
       | _ ->
           [%unreachable]
     done

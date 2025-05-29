@@ -1,4 +1,5 @@
-(* Auto-generated sprite blobs *)
+(** Sprites - Auto-generated sprite blobs *)
+
 let biomes_arctic_sprite : string * string = "assets/sprites/biomes/arctic.png", [%blob "assets/sprites/biomes/arctic.png"]
 let biomes_boreal_sprite : string * string = "assets/sprites/biomes/boreal.png", [%blob "assets/sprites/biomes/boreal.png"]
 let biomes_desert_sprite : string * string = "assets/sprites/biomes/desert.png", [%blob "assets/sprites/biomes/desert.png"]

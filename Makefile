@@ -27,7 +27,7 @@ $(FONT_OUTPUT): $(FONT_SCRIPT) $(wildcard $(FONT_DIR)/*)
 	$(PYTHON) $(FONT_SCRIPT) $(FONT_OUTPUT)
 
 build: fmt $(SPRITE_OUTPUT) $(FONT_OUTPUT)
-	$(OPAM_EXEC) $(DUNE) build --profile=release
+	$(OPAM_EXEC) $(DUNE) build
 
 install:
 	$(OPAM_EXEC) $(DUNE) install
@@ -62,6 +62,7 @@ run: build
 debug: build
 	$(OPAM_EXEC) ocamldebug _build/default/TerraSim/main.bc
 
+DOCS_SRC=docs_source/
 DOCS_PATH=docs/
 DOCS_NAME=terrasim
 DOCS_DESCR=A SimEarth clone
@@ -79,20 +80,18 @@ cleandocs:
 	rm -rf $(DOCS_PATH)
 	mkdir $(DOCS_PATH)
 
-docs: cleandocs build
+docs: clean cleandocs build
 	$(OPAM_EXEC) $(DUNE) build @doc
 	cp -rf _build/default/_doc/_html/* $(DOCS_PATH)
-	rm -f $(DOCS_PATH)index.html
-	mv $(DOCS_PATH)terrasim/TerraSim.html $(DOCS_PATH)index.html
-	mv $(DOCS_PATH)terrasim $(DOCS_PATH)module
+	mv -f $(DOCS_PATH)/terrasim/outer_index.html $(DOCS_PATH)index.html
+	rm -rf $(DOCS_PATH)odoc.support
+	cp -rf $(DOCS_SRC)odoc.support $(DOCS_PATH)odoc.support
 	
 	@echo "Preparing Index\n--------------"
 	# Header
-	sed -i 's/<title>.*<\/title>/<title>$(DOCS_INDEX_TITLE)<\/title>/g' $(DOCS_PATH)index.html
-	sed -i 's@</head>@$(DOCS_EMBED)\n</head>@g' $(DOCS_PATH)index.html
-	sed -i 's/..\/odoc.support/odoc.support/g' $(DOCS_PATH)index.html
-	# Body
-	sed -i "s@<nav class="odoc-nav">.*gbcamel</nav>@@g" $(DOCS_PATH)index.html
+	sed -i 's/<title>.*<\/title>/<title>$(DOCS_INDEX_TITLE)<\/title>/g' $(DOCS_PATH)terrasim/index.html
+	sed -i 's@</head>@$(DOCS_EMBED)\n</head>@g' $(DOCS_PATH)terrasim/index.html
+	# sed -i 's/..\/odoc.support/odoc.support/g' $(DOCS_PATH)terrasim/index.html
 
 push: cleandocs build
 	@read -p "Commit message: " input; \

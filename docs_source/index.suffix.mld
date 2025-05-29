@@ -1,0 +1,17 @@
+{1 Table of Contents}
+
+{t
+    | Module | Description |
+    | --- | --- |
+    | {!Assets} | Game assets and utilities for loading them |
+    | {!Cameras} | Camera movement logic |
+    | {!Controls} | UI and interactions |
+    | {!Game_logic} | Main game loop |
+    | {!Rendering} | Handling SDL and OpenGL, renderers for each game screen |
+    | {!Simulation} | Simulator logic |
+    | {!Utils} | Common utilities, global data |
+    | {!World} | World grid and its properties, procedural generation |
+}
+
+See {{:https://erratique.ch/software/tsdl}tsdl} and {{:https://erratique.ch/software/tgls}tgls}
+for functions and types with modules [Sdl] and [Tgl4], respectively.

@@ -1,3 +1,5 @@
+(** OpenGL program to draw the atlas screen *)
+
 open Tsdl
 open Tgl4
 open Utils.Standard_utils
@@ -8,49 +10,27 @@ open World.Altitude
 open Cameras.Atlas_camera
 open Gradients
 
+(** Triangle vertices that assemble to a quad to render onto *)
 let quad_verts =
   Bigarray.Array1.of_array Bigarray.float32 Bigarray.c_layout
     [| 0.; 0.; 1.; 0.; 1.; 1.; 0.; 0.; 1.; 1.; 0.; 1. |]
 
+(** The
+    {{:https://github.com/CharlesAverill/terrasim/blob/main/shaders/atlas.vert}
+     atlas vertex shader} *)
 let atlas_vertex_shader_src = [%blob "shaders/atlas.vert"]
+
+(** The
+    {{:https://github.com/CharlesAverill/terrasim/blob/main/shaders/atlas.frag}
+     atlas fragment shader} *)
 let atlas_fragment_shader_src = [%blob "shaders/atlas.frag"]
 
-let compile_shaders () =
-  (* Compile the vertex shader *)
-  let vshader = Gl.create_shader Gl.vertex_shader in
-  Gl.shader_source vshader atlas_vertex_shader_src;
-  Gl.compile_shader vshader;
-  (* Check if compiling shader errored *)
-  if get_int (Gl.get_shaderiv vshader Gl.compile_status) = Gl.false_ then (
-    let len = get_int (Gl.get_shaderiv vshader Gl.info_log_length) in
-    let log = get_string len (Gl.get_shader_info_log vshader len None) in
-    Gl.delete_shader vshader;
-    fatal rc_OpenGL "Failed to compile vertex shader: %s" log
-  );
-  (* Compile the fragment shader *)
-  let fshader = Gl.create_shader Gl.fragment_shader in
-  Gl.shader_source fshader atlas_fragment_shader_src;
-  Gl.compile_shader fshader;
-  if get_int (Gl.get_shaderiv fshader Gl.compile_status) = Gl.false_ then (
-    let len = get_int (Gl.get_shaderiv fshader Gl.info_log_length) in
-    let log = get_string len (Gl.get_shader_info_log fshader len None) in
-    Gl.delete_shader fshader;
-    fatal rc_OpenGL "Failed to compile fragment shader: %s" log
-  );
-  (* Combine vertex + fragment shaders into "shader program" and use it *)
-  let sprogram = Gl.create_program () in
-  Gl.attach_shader sprogram vshader;
-  Gl.attach_shader sprogram fshader;
-  Gl.link_program sprogram;
-  (* Check if linking shader program errored *)
-  if get_int (Gl.get_programiv sprogram Gl.link_status) = Gl.false_ then
-    fatal rc_OpenGL "Failed to link shader program";
-  (* Delete shader objects now that they're on the GPU *)
-  Gl.delete_shader vshader;
-  Gl.delete_shader fshader;
-  sprogram
-
-let setup_tile_buffers ~offsets ~colors =
+(** Set up tile buffers and return the VAO
+    @param offsets Array of [(x, y)] offsets for each tile
+    @param colors Array of [(r, g, b)] colors for each tile
+    @return VAO bound to tile buffer *)
+let setup_tile_buffers ~(offsets : (float * float) array)
+    ~(colors : (float * float * float) array) : int =
   let vao = get_int (Gl.gen_vertex_arrays 1) in
   Gl.bind_vertex_array vao;
   (* Vertex buffer for quad *)
@@ -95,18 +75,26 @@ let setup_tile_buffers ~offsets ~colors =
   Gl.bind_vertex_array 0;
   vao
 
-let render_tiles ?(fbo : Sdl.uint8 option = None) win sprogram vao num_instances
-    =
+(** Render tiles to the screen or a framebuffer
+    @param fbo
+      If set, render to this framebuffer rather than the screen (used by
+      {!Globe_screen_opengl.render_globe_screen})
+    @param window Application's SDL window
+    @param sprogram Shader program to use
+    @param vao Vertex array object to draw
+    @param num_instances Number of tiles to draw *)
+let render_tiles ?(fbo : Sdl.uint8 option = None) (window : Sdl.window)
+    (sprogram : int) (vao : int) (num_instances : int) =
   Gl.bind_framebuffer Gl.framebuffer
     (match fbo with Some fb -> fb | None -> 0);
   Gl.viewport 0 0
     (if fbo = None then
-       fst (Sdl.get_window_size win)
+       fst (Sdl.get_window_size window)
      else
        512)
     (* or desired tex size *)
     (if fbo = None then
-       snd (Sdl.get_window_size win)
+       snd (Sdl.get_window_size window)
      else
        512);
   Gl.clear_color 0.1 0.1 0.1 1.;
@@ -117,17 +105,19 @@ let render_tiles ?(fbo : Sdl.uint8 option = None) win sprogram vao num_instances
   Gl.uniform1f u_scale (1. /. 30.);
   Gl.draw_arrays_instanced Gl.triangles 0 6 num_instances;
   Gl.bind_framebuffer Gl.framebuffer 0;
-  if fbo = None then Sdl.gl_swap_window win
+  if fbo = None then Sdl.gl_swap_window window
 
-let create_render_texture ~width ~height =
+(** Create a framebuffer to render onto
+    @param width Width of framebuffer
+    @param height Height of framebuffer
+    @return
+      [(fbo, tex)] where [fbo] is the framebuffer and [tex] is the texture
+      object *)
+let create_render_texture ~(width : int) ~(height : int) : int * int =
   let tex = get_int (Gl.gen_textures 1) in
   Gl.bind_texture Gl.texture_2d tex;
   let texture_data =
-    let data = bigarray_create Bigarray.int8_unsigned (height * width * 4) in
-    for i = 0 to (height * width) - 1 do
-      set_3d data i 255 255 0
-    done;
-    data
+    bigarray_create Bigarray.int8_unsigned (height * width * 4)
   in
   Gl.tex_image2d Gl.texture_2d 0 Gl.rgba width height 0 Gl.rgba Gl.unsigned_byte
     (`Data texture_data);
@@ -145,7 +135,10 @@ let create_render_texture ~width ~height =
   Gl.bind_framebuffer Gl.framebuffer 0;
   (fbo, tex)
 
-let make_tile_data () =
+(** Iterate over the world grid to populate offset and color arrays for each
+    tile
+    @return [(offsets, colors)] *)
+let make_tile_data () : (float * float) array * (float * float * float) array =
   let num_tiles = world_width * world_height in
   let offsets = Array.make num_tiles (0.0, 0.0) in
   let colors = Array.make num_tiles (0.0, 0.0, 0.0) in
@@ -166,7 +159,7 @@ let make_tile_data () =
             interpolate_gradient ocean_gradient (clamp (float h /. 3.) 0. 1.)
       in
       let wx, wy = (!idx mod world_width, !idx / world_width) in
-      let wx = mod_wrap (wx + atlas_camera.x) world_width in
+      let wx = mod_posneg (wx + atlas_camera.x) world_width in
       (* Convert to NDC position of bottom-left corner of tile *)
       let ndc_x = -1.0 +. (float wx *. scale_x) in
       let ndc_y = -1.0 +. (float wy *. scale_y) in
@@ -176,13 +169,21 @@ let make_tile_data () =
     altitudes biomes;
   (offsets, colors)
 
+(** Shader program compiled for the current OpenGL context, or [None] *)
 let sprogram = ref None
 
-let atlas_render ?(to_texture = false) win =
+(** Render the atlas screen
+    @param to_texture Render to [window] if [false], otherwise to a new texture
+    @param window Application's SDL window
+    @return if [to_texture] then a texture else [None] *)
+let render_atlas_screen ?(to_texture : bool = false) (window : Sdl.window) :
+    int option =
   let sprogram =
     match !sprogram with
     | None ->
-        let x = compile_shaders () in
+        let x =
+          compile_shaders atlas_vertex_shader_src atlas_fragment_shader_src
+        in
         sprogram := Some x;
         x
     | Some x ->
@@ -197,8 +198,8 @@ let atlas_render ?(to_texture = false) win =
     else
       (None, 0)
   in
-  render_tiles ~fbo win sprogram vao (Array.length offsets);
+  render_tiles ~fbo window sprogram vao (Array.length offsets);
   if fbo = None then
     None
   else
-    Some (fbo, tex)
+    Some tex

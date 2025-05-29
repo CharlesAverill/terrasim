@@ -1,7 +1,7 @@
 (library
  (name assets)
  (public_name terrasim.assets)
- (libraries tsdl tsdl-image digestif terrasim.utils)
+ (libraries tsdl tsdl-image terrasim.utils)
  (preprocess
   (pps ppx_blob))
  (preprocessor_deps

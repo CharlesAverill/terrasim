@@ -1,0 +1,7 @@
+{0 Redirecting...}
+
+{%html:
+    <script>
+      window.location.href = "./terrasim/index.html";
+    </script>
+%}

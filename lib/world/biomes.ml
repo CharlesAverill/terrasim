@@ -1,3 +1,5 @@
+(** Logic handling world biomes *)
+
 open Assets.Sprites
 open Utils
 
@@ -14,8 +16,14 @@ type biome =
 type ocean = Shallow | Regular | Deep
 type biome_tile = Land of biome | Ocean of ocean
 
+(** Number of sprites in a looping animated tile *)
 let sprites_per_animated_tile = 8
 
+(** Get the corresponding blob to a tile given altitude and biome, accounting
+    for animation
+    @param frame_count Current frame count
+    @param altitude Tile altitude
+    @param biome Tile biome *)
 let blob_of_tile frame_count altitude = function
   | Land Arctic ->
       biomes_arctic_sprite
@@ -40,5 +48,3 @@ let blob_of_tile frame_count altitude = function
       List.nth ocean_regular_sprites (frame_count mod sprites_per_animated_tile)
   | Ocean Deep ->
       List.nth ocean_deep_sprites (frame_count mod sprites_per_animated_tile)
-
-let tile_sprite_w, tile_sprite_h = (16, 16)

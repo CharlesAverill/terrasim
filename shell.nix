@@ -10,6 +10,7 @@ pkgs.mkShell {
 	pkgs.linuxPackages_latest.perf
 	pkgs.flamegraph
 	pkgs.glxinfo
+	pkgs.gmp
   ];
 
   shellHook = ''

@@ -24,17 +24,16 @@
   dune
   (alcotest :with-test)
   (ocamlformat :with-test)
-  (ocaml-lsp-server :with-test)
-  (merlin :with-test)
   (odoc :with-doc)
+  (md2mld :with-doc)
   (tsdl (= 1.1.0))
   tgls
   tsdl-image
   tsdl-ttf
   ppx_blob
   domainslib
-  digestif
   ppx_unreachable
+  zarith
  )
 )
 

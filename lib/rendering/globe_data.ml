@@ -1,16 +1,31 @@
+(** Data for the globe screen *)
+
 open Tsdl
 open Sdl
 
+(** Latitudinal rotation position of globe in degrees *)
 let rotation_lat = ref 0.
+
+(** Longitudinal rotation position of globe in degrees *)
 let rotation_lon = ref 0.
-let velocity_lat = ref 0.0 (* Degrees per frame *)
+
+(** Latitudinal velocity of globe in degrees per frame *)
+let velocity_lat = ref 0.0
+
+(** Minimum longitudinal velocity of globe in degrees per frame *)
 let min_abs_velocity_lon = 0.25
-let velocity_lon = ref min_abs_velocity_lon (* Always moving east *)
-let flick_globe_speed = 16.
+
+(** Longitudinal velocity of globe in degrees per frame *)
+let velocity_lon = ref min_abs_velocity_lon
+
+(** Maximum globe spin speed in degrees per frame *)
+let max_globe_speed = 16.
+
+(** Decay of rotational velocity in degrees per frame per frame *)
 let globe_spin_friction = 0.0125
+
+(** Whether the globe is being held in place by the user *)
 let globe_pinned = ref false
+
+(** Last mouse recorded position of the mouse while pinning the globe *)
 let globe_last_mouse_pos : (int * int) option ref = ref None
-let globe_cache : (int * int, Sdl.texture) Hashtbl.t = Hashtbl.create 100
-let clear_globe_cache () = Hashtbl.reset globe_cache
-let need_to_flush_opengl_globe_cache = ref false
-let clear_opengl_globe_cache () = need_to_flush_opengl_globe_cache := true

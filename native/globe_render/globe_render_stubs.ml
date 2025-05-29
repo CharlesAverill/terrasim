@@ -11,10 +11,11 @@ let () = seal rgb_pixel
 
 let lib =
   Dl.dlopen
-    ~filename:"_build/default/native/globe_render/dllglobe_render_stubs.so"
+    ~filename:
+      "_build/default/native/render_globe_screen/dllrender_globe_screen_stubs.so"
     ~flags:Dl.[ RTLD_NOW; RTLD_GLOBAL ]
 
-let globe_render =
-  foreign ~from:lib "globe_render"
+let render_globe_screen =
+  foreign ~from:lib "render_globe_screen"
     (int @-> int @-> int @-> int @-> int @-> int @-> ptr int @-> int
    @-> ptr rgb_pixel @-> returning void)

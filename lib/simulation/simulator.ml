@@ -1,4 +1,7 @@
-open Simulation_info
+(** Simulation step logic *)
 
-(* Run one timestep of the simulation *)
-let simulate () = sim_year := !sim_year + 1
+open Simulation_info
+open Z
+
+(** Run one timestep of the simulation *)
+let simulate () = sim_year := !sim_year + one

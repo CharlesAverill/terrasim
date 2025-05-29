@@ -1,10 +1,10 @@
 # TerraSim
 
-![logo](./assets/logo/logo.png)
+![logo](https://github.com/CharlesAverill/terrasim/raw/main/assets/logo/logo.png)
 
 A SimEarth clone in OCaml using [tsdl](https://erratique.ch/software/tsdl) and [tgls](https://erratique.ch/software/tgls).
 
-See [roadmap.md](./roadmap.md) for progress
+See [roadmap.md](https://github.com/CharlesAverill/terrasim/blob/main/roadmap.md) for progress
 
 ## Building
 

@@ -1,3 +1,13 @@
 (documentation
- (package terrasim)
- (mld_files TerraSim))
+ (package terrasim))
+
+(rule
+ (target index.mld)
+ (deps index.suffix.mld ../README.md)
+ (action
+  (progn
+   (with-stdout-to
+    %{target}
+    (progn
+     (run md2mld %{dep:../README.md})
+     (cat %{dep:index.suffix.mld}))))))

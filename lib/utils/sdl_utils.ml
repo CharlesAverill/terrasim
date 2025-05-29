@@ -1,11 +1,25 @@
+(** Utilities for SDL *)
+
 open Tsdl
 open Standard_utils
+open Logging
 
-(* https://gist.github.com/Gumichan01/332c26f6197a432db91cc4327fcabb1c *)
-let render_draw_circle renderer x y radius =
-  let rec loop offsetx offsety d status =
+(** Let binding for SDL results *)
+let ( let* ) (r : 'a Sdl.result) (f : 'a -> 'b) : 'b =
+  match r with Ok x -> f x | Error (`Msg e) -> fatal rc_SDL "%s" e
+
+(** Draw a circle at center [(x, y)] with [radius]
+    https://gist.github.com/Gumichan01/332c26f6197a432db91cc4327fcabb1c
+
+    @param renderer SDL renderer to do draw
+    @param x
+    @param y
+    @param radius *)
+let render_draw_circle (renderer : Sdl.renderer) ((x, y) : int * int)
+    (radius : int) =
+  let rec loop offsetx offsety d =
     if offsety < offsetx then
-      status
+      ()
     else
       let draw_points : (int * int) list =
         [
@@ -19,33 +33,32 @@ let render_draw_circle renderer x y radius =
           (x - offsety, y - offsetx);
         ]
       in
-      let status =
-        List.fold_left
-          (fun acc (px, py) ->
-            match Sdl.render_draw_point renderer px py with
-            | Ok () ->
-                acc
-            | Error _ ->
-                -1)
-          status draw_points
-      in
-      if status < 0 then
-        status
-      else if d >= 2 * offsetx then
-        loop (offsetx + 1) offsety (d - (2 * offsetx) - 1) status
+      List.iter
+        (fun (px, py) ->
+          let* _ = Sdl.render_draw_point renderer px py in
+          ())
+        draw_points;
+      if d >= 2 * offsetx then
+        loop (offsetx + 1) offsety (d - (2 * offsetx) - 1)
       else if d < 2 * (radius - offsety) then
-        loop offsetx (offsety - 1) (d + (2 * offsety) - 1) status
+        loop offsetx (offsety - 1) (d + (2 * offsety) - 1)
       else
-        loop (offsetx + 1) (offsety - 1)
-          (d + (2 * (offsety - offsetx - 1)))
-          status
+        loop (offsetx + 1) (offsety - 1) (d + (2 * (offsety - offsetx - 1)))
   in
-  loop 0 radius (radius - 1) 0
+  loop 0 radius (radius - 1)
 
-let render_fill_circle renderer x y radius =
-  let rec loop offsetx offsety d status =
+(** Fill a circle at center [(x, y)] with [radius]
+    https://gist.github.com/Gumichan01/332c26f6197a432db91cc4327fcabb1c
+
+    @param renderer SDL renderer to do draw
+    @param x
+    @param y
+    @param radius *)
+let render_fill_circle (renderer : Sdl.renderer) ((x, y) : int * int)
+    (radius : int) =
+  let rec loop offsetx offsety d =
     if offsety < offsetx then
-      status
+      ()
     else
       let draw_lines =
         [
@@ -55,32 +68,29 @@ let render_fill_circle renderer x y radius =
           (x - offsety, y - offsetx, x + offsety, y - offsetx);
         ]
       in
-      let status =
-        List.fold_left
-          (fun acc (x1, y1, x2, y2) ->
-            match Sdl.render_draw_line renderer x1 y1 x2 y2 with
-            | Ok () ->
-                acc
-            | Error _ ->
-                -1)
-          status draw_lines
-      in
-      if status < 0 then
-        status
-      else if d >= 2 * offsetx then
-        loop (offsetx + 1) offsety (d - (2 * offsetx) - 1) status
+      List.iter
+        (fun (x1, y1, x2, y2) ->
+          let* _ = Sdl.render_draw_line renderer x1 y1 x2 y2 in
+          ())
+        draw_lines;
+      if d >= 2 * offsetx then
+        loop (offsetx + 1) offsety (d - (2 * offsetx) - 1)
       else if d < 2 * (radius - offsety) then
-        loop offsetx (offsety - 1) (d + (2 * offsety) - 1) status
+        loop offsetx (offsety - 1) (d + (2 * offsety) - 1)
       else
-        loop (offsetx + 1) (offsety - 1)
-          (d + (2 * (offsety - offsetx - 1)))
-          status
+        loop (offsetx + 1) (offsety - 1) (d + (2 * (offsety - offsetx - 1)))
   in
-  loop 0 radius (radius - 1) 0
+  loop 0 radius (radius - 1)
 
-let hex_to_int s = int_of_string ("0x" ^ s)
+let int_of_hex_string s =
+  int_of_string
+    (if String.starts_with ~prefix:"0x" s then
+       s
+     else
+       "0x" ^ s)
 
-let rgb_of_hex (hex : string) =
+(** Get RGB values of a hex code color string *)
+let rgb_of_hex (hex : string) : int * int * int =
   let hex = String.uppercase_ascii hex in
   let hex =
     if String.length hex = 7 && hex.[0] = '#' then
@@ -88,15 +98,22 @@ let rgb_of_hex (hex : string) =
     else if String.length hex = 6 then
       hex
     else
-      failwith "Invalid hex code"
+      fatal rc_Error "Invalid hex code"
   in
-  let r = hex_to_int (String.sub hex 0 2) in
-  let g = hex_to_int (String.sub hex 2 2) in
-  let b = hex_to_int (String.sub hex 4 2) in
+  let r = int_of_hex_string (String.sub hex 0 2) in
+  let g = int_of_hex_string (String.sub hex 2 2) in
+  let b = int_of_hex_string (String.sub hex 4 2) in
   (r, g, b)
 
-let set_render_color (r, g, b) renderer =
+(** Set the renderer draw color
+    @param r
+    @param g
+    @param b
+    @param renderer The renderer to set the color of *)
+let set_render_color ((r, g, b) : int * int * int) (renderer : Sdl.renderer) =
   let* _ = Sdl.set_render_draw_color renderer r g b 255 in
   ()
 
-let sdlcolor_of_tuple (r, g, b) = Sdl.Color.create ~r ~g ~b ~a:255
+(** Get an SDL Color object from RGB values *)
+let sdlcolor_of_tuple ((r, g, b) : int * int * int) : Sdl.color =
+  Sdl.Color.create ~r ~g ~b ~a:255

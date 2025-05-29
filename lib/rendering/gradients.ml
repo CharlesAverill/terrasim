@@ -1,7 +1,11 @@
-type gradient = string * (float * (int * int * int)) array
+(** Logic for interpolating colors on a gradient *)
 
-(* Seaborn-inspired gradient: from blue to green to brown to white *)
-let seaborn_gradient =
+type gradient = string * (float * (int * int * int)) array
+(** Name, array of (threshold in {m [0, 1]} and [(r, g, b)] at that threshold)
+*)
+
+(** Blue to green to brown to white *)
+let seaborn_gradient : gradient =
   ( "seaborn",
     [|
       (0.0, (0, 0, 128));
@@ -16,7 +20,8 @@ let seaborn_gradient =
       (* Snow white *);
     |] )
 
-let mars_gradient =
+(** Reds and browns *)
+let mars_gradient : gradient =
   ( "mars",
     [|
       (0.0, (101, 67, 33)) (* Dark brown - low elevation *);
@@ -26,7 +31,8 @@ let mars_gradient =
       (1.0, (222, 184, 135)) (* Burlywood - light brown *);
     |] )
 
-let bgr_gradient =
+(** Blue to green to red *)
+let bgr_gradient : gradient =
   ( "bgr",
     [|
       (0.0, (0, 0, 255)) (* Deep blue - lowest point *);
@@ -34,7 +40,8 @@ let bgr_gradient =
       (1.0, (255, 0, 0)) (* Red - highest point *);
     |] )
 
-let height_gradient =
+(** Dark brown to white *)
+let height_gradient : gradient =
   ( "height",
     [|
       (0.0, (74, 55, 25));
@@ -42,10 +49,11 @@ let height_gradient =
       (0.3, (136, 110, 88));
       (0.5, (157, 137, 119));
       (0.75, (178, 164, 150));
-      (1.0, (192, 192, 192)) (* Gray - high *);
+      (1.0, (192, 192, 192));
     |] )
 
-let ocean_gradient =
+(** Dark blue to light blue *)
+let ocean_gradient : gradient =
   ( "ocean",
     [|
       (0.0, (13, 65, 225));
@@ -54,10 +62,15 @@ let ocean_gradient =
       (1., (7, 200, 249));
     |] )
 
+(** A cache for gradient results *)
 let gradient_cache : (string * int, int * int * int) Hashtbl.t =
   Hashtbl.create 512
 
-let interpolate_gradient (gradient : gradient) (v : float) =
+(** Get a color on [gradient] at [v]
+    @param gradient The gradient to sample from
+    @param v Position on gradient in {m [0, 1]} to sample at
+    @return The gradient sample in RGB *)
+let interpolate_gradient (gradient : gradient) (v : float) : int * int * int =
   let quantize v = int_of_float (v *. 1000.) in
   let key = (fst gradient, quantize v) in
   match Hashtbl.find_opt gradient_cache key with

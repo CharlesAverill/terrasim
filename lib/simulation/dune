@@ -1,3 +1,4 @@
 (library
  (name simulation)
- (public_name terrasim.simulation))
+ (public_name terrasim.simulation)
+ (libraries zarith))

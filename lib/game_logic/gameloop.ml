@@ -1,7 +1,11 @@
+(** The entrypoint and main game loop *)
+
 open Tsdl
 open Rendering.Graphics
 open Rendering.Globe_data
-open Controls.Ui
+open Controls.Edit_controls
+open Controls.Atlas_controls
+open Controls.Globe_controls
 open Controls.Cursor
 open Utils.Standard_utils
 open Utils.Logging
@@ -10,12 +14,22 @@ open Cameras.Edit_camera
 open Cameras.Atlas_camera
 open World.World_setup
 
-let frame_counter : Sdl.uint8 ref = ref 64
+(** Number of frames that have passed *)
+let frame_counter = ref 64
+
 let target_fps = 60
 let real_fps = ref 0
 let frame_delay = Int32.of_int (1000 / target_fps) (* in milliseconds *)
 
-let gameloop_iter window event =
+(** One iteration of the main gameloop. Stages:
+    - Input event handling
+    - Simulation
+    - Rendering
+    - Delay to maintain {!target_fps}
+
+    @param window The application's SDL window
+    @param event An SDl event object *)
+let gameloop_iter (window : Sdl.window) (event : Sdl.event) : bool =
   (* Compute target framerate *)
   let frame_start = Sdl.get_ticks () in
   frame_counter := !frame_counter + 1;
@@ -42,18 +56,15 @@ let gameloop_iter window event =
   (* Render *)
   (match !current_camera_mode with
   | Some (Edit2D _) ->
+      (* These need to run every frame, regardless of whether there is an input event *)
       pan_edit_camera_if_needed window;
-      cursor_go_to_camera ();
-      Rendering.Edit_screen.render_edit window !frame_counter !real_fps
+      cursor_go_to_mouse ();
+      Rendering.Edit_screen.render_edit_screen window !frame_counter
         (global_cursor.x, global_cursor.y)
-      (* let vao = Opengl_tutorial.put_tri_on_gpu () in
-      let sprogram = Opengl_tutorial.compile_shaders () in
-      Opengl_tutorial.render_body window sprogram vao *)
   | Some Atlas2D ->
+      (* These need to run every frame, regardless of whether there is an input event *)
       pan_atlas_camera_if_needed window;
-      cursor_go_to_camera ();
-      (* Atlas_screen.render_atlas window renderer *)
-      ignore (Rendering.Atlas_screen_opengl.atlas_render window)
+      ignore (Rendering.Atlas_screen_opengl.render_atlas_screen window)
   | Some Globe3D ->
       (* Spin globe *)
       if not !globe_pinned then (
@@ -69,8 +80,7 @@ let gameloop_iter window event =
         (* Decay lat rotation back to horizontal *)
         rotation_lat := !rotation_lat *. (1. -. (globe_spin_friction *. 0.5))
       );
-      Rendering.Globe_screen_opengl.globe_render window !frame_counter
-      (* Globe_screen.render_globe window *)
+      Rendering.Globe_screen_opengl.render_globe_screen window !frame_counter
   | None ->
       ());
   (* Delay for ideal framerate *)
@@ -80,10 +90,12 @@ let gameloop_iter window event =
   _log Log_Debug "FPS: %d" !real_fps;
   !loop_continue
 
-let run_game_loop window =
+(** Game entrypoint, call {!World.World_setup.world_setup} and then loop over
+    {!gameloop_iter}
+    @param window The application's SDL window *)
+let run_game_loop (window : Sdl.window) : unit =
   let event = Sdl.Event.create () in
   let loop_continue = ref true in
-  let hue = ref 0 in
   world_setup ();
   current_camera_mode := Some (Edit2D edit_camera);
   (* Initializes the global renderer state *)

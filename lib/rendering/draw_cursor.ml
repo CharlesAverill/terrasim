@@ -2,16 +2,16 @@ open Cameras.Camera
 open Cameras.Edit_camera
 open Graphics
 open Utils.Globals
-open Utils.Standard_utils
+open Utils.Sdl_utils
 open Tsdl
-open Assets.Spriteloader
+open Assets.Assetloader
 open Assets.Sprites
 
-let draw_cursor window (cursor_x, cursor_y) =
+let draw_cursor (window : Sdl.window) (cursor_x, cursor_y) =
   match !current_camera_mode with
   | Some (Edit2D _) ->
       let y = (cursor_y - edit_camera.y) * scaled_tile_h () in
-      let _, (win_h, _) = get_edit_window_ui_height window in
+      let _, (win_h, _) = get_edit_window_ui_w_h window in
       if y < win_h then
         let renderer = get_global_renderer () in
         let dst_rect =

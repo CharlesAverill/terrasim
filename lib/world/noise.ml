@@ -1,3 +1,9 @@
+(** Simplex noise implementation
+
+    Largely pulled from
+    {{:http://alaska-kamtchatka.blogspot.com/2012/01/perlins-simplex-noise.html}Matias
+     Giovanni's implementation}, modified to support tiling (kinda) *)
+
 let patterns = [| 0o25; 0o70; 0o62; 0o54; 0o15; 0o23; 0o07; 0o52 |]
 let btst n b = (n lsr b) land 1
 let bmix i j k b = patterns.((btst i b lsl 2) lor (btst j b lsl 1) lor btst k b)
@@ -128,9 +134,23 @@ let contrast f power =
   else
     1.0 -. (0.5 *. ((2. *. (1.0 -. f)) ** power))
 
+(** Noise generator entrypoint -
+    {:https://en.wikipedia.org/wiki/Fractional_Brownian_motion}
+    @param seed Random seed
+    @param octaves Layers of noise to combine
+    @param persistence Not sure what this one does
+    @param lacunarity
+      Something to do with the granularity of the generated noise
+    @param mag_scale Magnitude of generated noise
+    @param contrast_power Kind of like magnitude but for contrast
+    @param tile_x_width Enables tiling if set to width one tile
+    @param x_scale Horizontal scale of noise
+    @param y_scale Vertical scale of noise
+    @param xyz Tuple of coordinates on noise surface
+    @return Noise value *)
 let fbm ?(seed = 0) ?(octaves = 5) ?(persistence = 0.5) ?(lacunarity = 2.0)
     ?(mag_scale = 1.) ?(contrast_power = 1.) ?(tile_x_width = None)
-    ?(x_scale = 1.) ?(y_scale = 1.) (x, y, z) =
+    ?(x_scale = 1.) ?(y_scale = 1.) ((x, y, z) : float * float * float) =
   let f = ref 0.0 in
   let amp = ref 1.0 in
   let freq = ref 1.0 in
@@ -155,19 +175,3 @@ let fbm ?(seed = 0) ?(octaves = 5) ?(persistence = 0.5) ?(lacunarity = 2.0)
       x
   in
   contrast x contrast_power
-
-let clampb n =
-  n
-  lor ((255 - n) asr (Sys.word_size - 2))
-  land lnot (n asr (Sys.word_size - 2))
-  land 255
-
-let rescale f = clampb (int (0.5 +. ldexp (f +. 1.) 7))
-
-(* let () =
-  for x = 0 to 100 do
-    for y = 0 to 100 do
-      Printf.printf "%f %f %f\n" (float x) (float y)
-        (fbm ~mag_scale:5. (float x, float y, 0.))
-    done
-  done *)

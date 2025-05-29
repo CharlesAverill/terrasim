@@ -55,7 +55,7 @@ def write_sprite_bindings():
     merged_groups = build_parent_groups(groups)
 
     with open(OUTPUT_FILE, "w") as f:
-        f.write("(* Auto-generated font blobs *)\n")
+        f.write("(** Fonts - Auto-generated font blobs *)\n\n")
         for b in sorted(bindings):
             f.write(b + "\n")
 

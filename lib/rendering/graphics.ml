@@ -1,17 +1,26 @@
+(** Handles graphics initialization and swapping between SDL and OpenGL *)
+
 open Utils.Logging
-open Utils.Standard_utils
+open Utils.Sdl_utils
+open Utils.Globals
 open Tsdl
-open Assets.Spriteloader
+open Assets.Assetloader
 open Utils
-open Globals
 open Globe_data
 
+(** Initialize SDL and SDL-ttf *)
 let init_sdl () =
   let* _ = Sdl.init Sdl.Init.(video + events) in
   let* _ = Tsdl_ttf.Ttf.init () in
   ()
 
-let create_window ?(w : int = 1920) ?(h : int = 1080) (window_name : string) =
+(** Create an SDL window
+    @param w Width
+    @param h Height
+    @param window_name Title of window
+    @return SDL window object for application *)
+let create_window ?(w : int = 1920) ?(h : int = 1080) (window_name : string) :
+    Sdl.window =
   let* w =
     Sdl.create_window ~w ~h window_name
       (let open Sdl.Window in
@@ -20,7 +29,9 @@ let create_window ?(w : int = 1920) ?(h : int = 1080) (window_name : string) =
   Sdl.set_window_minimum_size w ~w:1280 ~h:720;
   w
 
-let create_renderer window =
+(** @param window The application's SDL window
+    @return New SDL renderer object for [window] *)
+let create_renderer (window : Sdl.window) : Sdl.renderer =
   match
     Sdl.create_renderer
       ~flags:
@@ -40,72 +51,53 @@ let create_renderer window =
   | Ok r ->
       r
 
-let get_opengl_context window =
+(** @param window Application's SDL window
+    @return OpenGL context for [window] *)
+let get_opengl_context (window : Sdl.window) : Sdl.gl_context =
   let* ctx = Sdl.gl_create_context window in
   ctx
 
-let set_window_icon window blob =
+(** @param window Application's SDL window
+    @param blob Image blob *)
+let set_window_icon (window : Sdl.window) blob =
   Sdl.set_window_icon window (surface_of_blob blob)
 
-let get_window_surf (w : Sdl.window) =
-  let* s = Sdl.get_window_surface w in
-  s
-
-let get_color ?(format : Sdl.Pixel.format_enum = Sdl.Pixel.format_rgba8888)
-    ?(a : int = 255) r g b =
-  let* f = Sdl.alloc_format format in
-  let x = Sdl.map_rgba f r g b a in
-  Sdl.free_format f;
-  x
-
-let hsv_to_rgb h s v =
-  let h = float h /. 60.0 in
-  let c = float v *. float s /. 255.0 /. 255.0 in
-  let x = c *. (1.0 -. abs_float (mod_float h 2.0 -. 1.0)) in
-  let r, g, b =
-    match int_of_float h mod 6 with
-    | 0 ->
-        (c, x, 0.0)
-    | 1 ->
-        (x, c, 0.0)
-    | 2 ->
-        (0.0, c, x)
-    | 3 ->
-        (0.0, x, c)
-    | 4 ->
-        (x, 0.0, c)
-    | _ ->
-        (c, 0.0, x)
-  in
-  let m = (float v /. 255.0) -. c in
-  let scale x = int_of_float ((x +. m) *. 255.0) in
-  (scale r, scale g, scale b)
-
+(** Status of current rendering setup *)
 type render_mode =
-  | UninitRender
-  | SdlRender of Sdl.renderer
-  | GlRender of Sdl.gl_context
+  | UninitRender  (** Uninitialized rendering *)
+  | SdlRender of Sdl.renderer  (** SDL rendering *)
+  | GlRender of Sdl.gl_context  (** OpenGL rendering *)
 
+(** Current rendering setup status *)
 let current_render_mode = ref UninitRender
 
-let use_sdl ?(gl_ctx = None) window =
+(** Start up SDL rendering
+    @param gl_ctx Optional OpenGL context to delete
+    @param window Application's SDL window
+    @return SDL renderer *)
+let use_sdl ?(gl_ctx = None) (window : Sdl.window) : Sdl.renderer =
   (match gl_ctx with None -> () | Some x -> Sdl.gl_delete_context x);
   create_renderer window
 
-let use_opengl window renderer =
+(** Start up OpenGL rendering
+    @param window Application's SDL window
+    @param renderer SDL renderer to destroy
+    @return OpenGL context *)
+let use_opengl (window : Sdl.window) (renderer : Sdl.renderer) : Sdl.gl_context
+    =
   Sdl.destroy_renderer renderer;
   get_opengl_context window
 
-let swap_render_mode window =
+(** Swap between SDL <-> OpenGL rendering
+    @param window Application's SDL window *)
+let swap_render_mode (window : Sdl.window) =
   (* Edit screen reset *)
   clear_edit_cache ();
   (* Atlas screen reset *)
   Atlas_screen_opengl.sprogram := None;
   (* Globe screen reset *)
-  clear_globe_cache ();
-  clear_opengl_globe_cache ();
   Globe_screen_opengl.sprogram := None;
-  Globe_screen_opengl.fbo_atlastex := None;
+  Globe_screen_opengl.atlastex := None;
   current_render_mode :=
     match !current_render_mode with
     | UninitRender ->
@@ -115,14 +107,18 @@ let swap_render_mode window =
     | GlRender g ->
         SdlRender (use_sdl ~gl_ctx:(Some g) window)
 
-let get_global_renderer () =
+(** Get the current global SDL renderer, or error if not in SDL render mode
+    @return Current SDL renderer *)
+let get_global_renderer () : Sdl.renderer =
   match !current_render_mode with
   | SdlRender r ->
       r
   | _ ->
       fatal rc_Error "Tried to get SDL renderer when not in SDL mode"
 
-let get_global_gl_ctx () =
+(** Get the current global OpenGL context, or error if not in OpenGL render mode
+    @return Current OpenGL context *)
+let get_global_gl_ctx () : Sdl.gl_context =
   match !current_render_mode with
   | GlRender g ->
       g

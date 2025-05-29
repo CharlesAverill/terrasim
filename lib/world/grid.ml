@@ -1,33 +1,9 @@
+(** World grid logic *)
+
 open Biomes
-open Utils
 
 let world_width = 128
 let world_height = 64
-
-type world_tile_attr_getters =
-  [ `Altitude
-  | `Event
-  | `Magma
-  | `WaterTemp
-  | `AirTemp
-  | `AirCurrent
-  | `Rain
-  | `Biome
-  | `Life
-  | `Civilization ]
-
-type world_tile_attr_setters =
-  [ `AirCurrent of unit
-  | `AirTemp of unit
-  | `Altitude of int
-  | `Biome of biome_tile
-  | `Civilization of unit
-  | `Event of unit
-  | `Life of unit
-  | `Magma of unit
-  | `Rain of unit
-  | `WaterCurrent of unit
-  | `WaterTemp of unit ]
 
 type world_grid = {
   altitude : int array;
@@ -42,7 +18,12 @@ type world_grid = {
   life : unit array;
   civilization : unit array;
 }
+(** Collection of 1D array representations of the {!world_width}x{!world_height}
+    world grid
 
+    Note: [unit array] denotes an unimplemented feature *)
+
+(** World grid object *)
 let grid : world_grid =
   let size = world_height * world_width in
   {
@@ -59,7 +40,39 @@ let grid : world_grid =
     civilization = Array.make size ();
   }
 
-let get_grid_attr i = function
+type world_tile_attr_getter =
+  [ `Altitude
+  | `Event
+  | `Magma
+  | `WaterTemp
+  | `WaterCurrent
+  | `AirTemp
+  | `AirCurrent
+  | `Rain
+  | `Biome
+  | `Life
+  | `Civilization ]
+(** Denoting getters for world tile attributes *)
+
+type world_tile_attr_setter =
+  [ `AirCurrent of unit
+  | `AirTemp of unit
+  | `Altitude of int
+  | `Biome of biome_tile
+  | `Civilization of unit
+  | `Event of unit
+  | `Life of unit
+  | `Magma of unit
+  | `Rain of unit
+  | `WaterCurrent of unit
+  | `WaterTemp of unit ]
+(** Denoting setters for world tile attributes *)
+
+(** Get a grid attribute
+    @param i Index into 1D array denoted by [attr]
+    @param attr Attribute getter *)
+let get_grid_attr (i : int) : world_tile_attr_getter -> world_tile_attr_setter =
+  function
   | `Altitude ->
       `Altitude grid.altitude.(i)
   | `Event ->
@@ -83,7 +96,10 @@ let get_grid_attr i = function
   | `Civilization ->
       `Civilization grid.civilization.(i)
 
-let set_grid_attr i = function
+(** Set a grid attribute
+    @param i Index into 1D array denoted by [attr]
+    @param attr Attribute setter *)
+let set_grid_attr (i : int) : world_tile_attr_setter -> unit = function
   | `Altitude x ->
       grid.altitude.(i) <- x
   | `Event x ->
@@ -107,7 +123,17 @@ let set_grid_attr i = function
   | `Civilization x ->
       grid.civilization.(i) <- x
 
-let get_global_tile ?(wrap_x = true) x y fields =
+(** Get a list of tile attributes for a world tile
+    @param wrap_x Whether to wrap if [x] is out of bounds
+    @param x x position of tile
+    @param y y position of tile
+    @param fields List denoting which attributes to get
+    @return
+      [None] if there is no tile at [(x, y)], otherwise a list of retrieved
+      fields for the tile *)
+let get_grid_tile ?(wrap_x : bool = true) ((x, y) : int * int)
+    (fields : world_tile_attr_getter list) : world_tile_attr_setter list option
+    =
   let x =
     if wrap_x then
       ((x mod world_width) + world_width) mod world_width
@@ -119,7 +145,14 @@ let get_global_tile ?(wrap_x = true) x y fields =
   else
     Some (List.map (get_grid_attr ((y * world_width) + x)) fields)
 
-let set_global_tile ?(wrap_x = true) x y fields =
+(** Set tile attributes for a world tile, or do nothing if there is no tile at
+    [(x, y)]
+    @param wrap_x Whether to wrap if [x] is out of bounds
+    @param x x position of tile
+    @param y y position of tile
+    @param fields List denoting which attributes to set *)
+let set_grid_tile ?(wrap_x : bool = true) ((x, y) : int * int)
+    (fields : world_tile_attr_setter list) =
   let x =
     if wrap_x then
       ((x mod world_width) + world_width) mod world_width
@@ -130,10 +163,3 @@ let set_global_tile ?(wrap_x = true) x y fields =
     ()
   else
     List.iter (set_grid_attr ((y * world_width) + x)) fields
-
-let set_biome x y b =
-  match get_global_tile x y [ `Biome ] with
-  | None ->
-      ()
-  | Some _ ->
-      set_global_tile x y [ `Biome b ]
