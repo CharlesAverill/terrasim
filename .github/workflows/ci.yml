@@ -21,7 +21,8 @@ jobs:
         run: |
           sudo apt update && sudo apt install
           opam pin tgls --dev-repo
-          opam install . --deps-only --with-test
+          opam install tgls
+          opam install . --deps-only --with-test --with-doc
           eval $(opam env)
 
       - name: Build Project
@@ -46,6 +47,7 @@ jobs:
         run: |
           sudo apt update && sudo apt install
           opam pin tgls --dev-repo
+          opam install tgls
           opam install . --deps-only --with-doc
           eval $(opam env)
       
