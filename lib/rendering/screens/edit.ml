@@ -3,15 +3,17 @@
 open Utils.Standard_utils
 open Utils.Globals
 open Utils.Sdl_utils
+open Utils.Colors
 open Tsdl
 open Cameras.Edit_camera
 open World.Grid
 open World.Biomes
 open World.Life.Lifeform
 open Assets.Assetloader
-open Graphics
 open Text
-open Ui_button
+open Button
+open Popup
+open Graphics
 
 (** How many frames it takes to draw the next frame of an animated tile *)
 let animated_tile_update_factor = 8
@@ -66,14 +68,11 @@ let texture_of_lifeform (renderer : Sdl.renderer)
       Hashtbl.add lifeform_texture_cache (lf, frame_count) tex;
       tex
 
-let ui_bg_color = rgb_of_hex "DDDDDD"
-let ui_bevel_light_color = rgb_of_hex "EEEEEE"
-let ui_bevel_dark_color = rgb_of_hex "CCCCCC"
-let black_color = rgb_of_hex "000000"
+(** Identifiers for {!edit_screen_buttons} *)
+type edit_button = Volcano | Asteroid | Examine
 
-type edit_button = Volcano | Asteroid
-
-let edit_screen_buttons =
+(** List of buttons to be drawn on the edit screen *)
+let edit_screen_buttons : edit_button ui_button list ref =
   ref
     [
       {
@@ -88,14 +87,52 @@ let edit_screen_buttons =
         texture_blob = Assets.Sprites.events_meteor1_sprite;
         initialized = false;
       };
+      {
+        identifier = Examine;
+        bounding_box = Sdl.Rect.create ~x:0 ~y:0 ~w:0 ~h:0;
+        texture_blob = Assets.Sprites.ui_examine_icon_sprite;
+        initialized = false;
+      };
     ]
 
+(** Edit screen's main UI popup *)
+let edit_ui_popup : popup ref =
+  ref
+    { bounding_box = Sdl.Rect.create ~x:0 ~y:0 ~w:0 ~h:0; initialized = false }
+
+(** Popup for examining a tile *)
+let examine_popup : popup ref =
+  ref
+    { bounding_box = Sdl.Rect.create ~x:0 ~y:0 ~w:0 ~h:0; initialized = false }
+
+let examine_popup_open = ref false
+
+let examine_popup_data : ((int * int) * int * biome_tile * lifeform option) ref
+    =
+  ref ((0, 0), 0, Land Nothing, None)
+
+let open_examine_popup ((tile_x, tile_y) : int * int) (alt : int)
+    (biome : biome_tile) (lf : lifeform option) =
+  examine_popup_open := true;
+  pause_everything_for_popup := true;
+  examine_popup_data := ((tile_x, tile_y), alt, biome, lf)
+
+let close_examine_popup () =
+  examine_popup_open := false;
+  pause_everything_for_popup := false
+
+(** Index into {!edit_screen_buttons} of selected edit screen button *)
 let selected_edit_screen_button = ref 0
 
+(** Initialize the edit screen buttons' positions and sizes
+    @param pos Function from [(row, col)] to [(x, y)]
+    @param w Function from [col] to [w]
+    @param h Function from [col] to [h]
+    @param base_col The first column of the edit screen to render in *)
 let init_edit_screen_buttons (pos : int -> int -> int * int) (w : int -> int)
-    (h : int -> int) base_col =
+    (h : int -> int) (base_col : int) =
   List.iteri
-    (fun i b ->
+    (fun i (b : edit_button ui_button) ->
       let x, y = pos 0 (base_col + i) in
       Sdl.Rect.set_x b.bounding_box x;
       Sdl.Rect.set_y b.bounding_box y;
@@ -110,74 +147,30 @@ let init_edit_screen_buttons (pos : int -> int -> int * int) (w : int -> int)
     @param cursor_pos Screen-space position of cursor *)
 let draw_edit_ui (window : Sdl.window) (renderer : Sdl.renderer)
     (cursor_pos : int * int) =
+  (* Draw the cursor *)
   Draw_cursor.draw_cursor window cursor_pos;
   let win_w, (win_h, ui_h) = get_edit_window_ui_w_h window in
-  let bevel_w = win_w / 100 in
-  let ui_buffer = bevel_w / 3 in
-  (* Draw bg *)
-  let ui_bg_rect = Sdl.Rect.create ~x:0 ~y:win_h ~w:win_w ~h:ui_h in
-  set_render_color ui_bg_color renderer;
-  let* _ = Sdl.render_fill_rect renderer (Some ui_bg_rect) in
-  (* Draw bevels *)
-  let light_bevel_verts =
-    List.map
-      (fun (x, y) ->
-        let x, y = (float x, float y) in
-        Sdl.Vertex.create ~position:(Sdl.Fpoint.create ~x ~y)
-          ~color:(sdlcolor_of_tuple ui_bevel_light_color)
-          ~tex_coord:(Sdl.Fpoint.create ~x:0. ~y:0.))
-      [
-        (* Left edge *)
-        (0, win_h);
-        (0, win_h + ui_h);
-        (bevel_w, win_h + ui_h - bevel_w);
-        (0, win_h);
-        (bevel_w, win_h);
-        (bevel_w, win_h + ui_h - bevel_w);
-        (* Top edge*)
-        (0, win_h);
-        (win_w, win_h);
-        (win_w - bevel_w, win_h + bevel_w);
-        (0, win_h);
-        (0, win_h + bevel_w);
-        (win_w - bevel_w, win_h + bevel_w);
-      ]
+  (* Initialize and draw the main UI popup *)
+  if not !edit_ui_popup.initialized then
+    edit_ui_popup :=
+      {
+        bounding_box = Sdl.Rect.create ~x:0 ~y:win_h ~w:win_w ~h:ui_h;
+        initialized = true;
+      };
+  let bevel_w, ui_buffer, ((ui_area_x, ui_area_y), (ui_area_w, ui_area_h)) =
+    draw_popup renderer !edit_ui_popup
   in
-  let dark_bevel_verts =
-    List.map
-      (fun (x, y) ->
-        let x, y = (float x, float y) in
-        Sdl.Vertex.create ~position:(Sdl.Fpoint.create ~x ~y)
-          ~color:(sdlcolor_of_tuple ui_bevel_dark_color)
-          ~tex_coord:(Sdl.Fpoint.create ~x:0. ~y:0.))
-      [
-        (* Right edge *)
-        (win_w, win_h);
-        (win_w, win_h + ui_h);
-        (win_w - bevel_w, win_h + ui_h - bevel_w);
-        (win_w, win_h);
-        (win_w - bevel_w, win_h + bevel_w);
-        (win_w - bevel_w, win_h + ui_h - bevel_w);
-        (* Bottom edge*)
-        (0, win_h + ui_h);
-        (win_w, win_h + ui_h);
-        (win_w, win_h + ui_h - bevel_w);
-        (0, win_h + ui_h);
-        (bevel_w, win_h + ui_h - bevel_w);
-        (win_w, win_h + ui_h - bevel_w);
-      ]
+  let ui_area_h =
+    ui_area_h - ui_buffer
+    (* take off an extra ui_buffer to handle two rows *)
   in
-  let* _ =
-    Sdl.render_geometry renderer (light_bevel_verts @ dark_bevel_verts)
-  in
-  let ui_area_h = ui_h - ((2 * bevel_w) + (3 * ui_buffer)) in
-  (* First column*)
+  (* First column *)
   let n_columns = 8 in
   let fit = (win_w / n_columns, ui_area_h / 2) in
   let pos row col =
     let w, h = fit in
-    ( bevel_w + ui_buffer + ((w + ui_buffer) * col),
-      win_h + bevel_w + ui_buffer + (row * (h + ui_buffer)) )
+    ( ui_area_x + ui_buffer + ((w + ui_buffer) * col),
+      ui_area_y + ui_buffer + (row * (h + ui_buffer)) )
   in
   (* Planet name *)
   let _ = render_text ~fit renderer (pos 0 0) "Test Planet" in
@@ -186,12 +179,12 @@ let draw_edit_ui (window : Sdl.window) (renderer : Sdl.renderer)
     render_text ~fit renderer (pos 1 0) "Year: %2d"
       (Simulation.Simulation_info.get_sim_year ())
   in
-  (* UI Buttons *)
+  (* Remaining columns - UI Buttons *)
   (if any_buttons_uninit !edit_screen_buttons then
      let pos row col =
        let w, h = fit in
-       ( bevel_w + ui_buffer + (((w / 2) + ui_buffer) * (col + 1)),
-         win_h + bevel_w + ui_buffer )
+       ( ui_area_x + ui_buffer + (((w / 2) + ui_buffer) * (col + 1)),
+         ui_area_y + ui_buffer )
      in
      init_edit_screen_buttons pos
        (fun _ -> ui_area_h + ui_buffer)
@@ -199,9 +192,26 @@ let draw_edit_ui (window : Sdl.window) (renderer : Sdl.renderer)
        1);
   render_buttons renderer !edit_screen_buttons;
   (* Selected button highlight *)
-  set_render_color (rgb_of_hex "FFDE64") renderer;
+  set_render_color select_highlight_color renderer;
   draw_rect_outer_thickness renderer
-    (List.nth !edit_screen_buttons !selected_edit_screen_button).bounding_box 3
+    (List.nth !edit_screen_buttons !selected_edit_screen_button).bounding_box 3;
+  (* Draw examine popup *)
+  if !examine_popup_open then (
+    (if not !examine_popup.initialized then
+       let popup_buffer = (scaled_tile_w (), scaled_tile_h ()) in
+       let examine_w = scaled_tile_w () * 10 in
+       examine_popup :=
+         {
+           bounding_box =
+             Sdl.Rect.create
+               ~x:(win_w - examine_w - fst popup_buffer)
+               ~y:(snd popup_buffer) ~w:examine_w
+               ~h:(win_h - (2 * snd popup_buffer));
+           initialized = true;
+         });
+    let _ = draw_popup ~bevel_w:(Some bevel_w) renderer !examine_popup in
+    ()
+  )
 
 (** Render the edit screen
     @param window Application's SDL window
@@ -214,6 +224,7 @@ let render_edit_screen (window : Sdl.window) (frame_counter : int)
     clear_texture_cache tile_texture_cache;
     clear_texture_cache lifeform_texture_cache;
     clear_texture_cache blob_cache;
+    clear_text_cache ();
     need_to_flush_edit_caches := false
   );
   set_render_color black_color renderer;

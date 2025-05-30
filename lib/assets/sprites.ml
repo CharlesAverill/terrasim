@@ -628,6 +628,7 @@ let ui_events_plague_sprite : string * string = "assets/sprites/ui/events/plague
 let ui_events_tidal_wave_sprite : string * string = "assets/sprites/ui/events/tidal_wave.png", [%blob "assets/sprites/ui/events/tidal_wave.png"]
 let ui_events_tornado_sprite : string * string = "assets/sprites/ui/events/tornado.png", [%blob "assets/sprites/ui/events/tornado.png"]
 let ui_events_volcano_sprite : string * string = "assets/sprites/ui/events/volcano.png", [%blob "assets/sprites/ui/events/volcano.png"]
+let ui_examine_icon_sprite : string * string = "assets/sprites/ui/examine_icon.png", [%blob "assets/sprites/ui/examine_icon.png"]
 
 (* Grouped sprite lists *)
 let biomes_sprites : (string * string) list = [biomes_arctic_sprite; biomes_boreal_sprite; biomes_desert_sprite; biomes_forest_sprite; biomes_grass_sprite; biomes_jungle_sprite; biomes_nothing_sprite; biomes_swamp_sprite]
@@ -928,5 +929,5 @@ let ocean_sprites : (string * string) list = [ocean_deep_00_sprite; ocean_deep_0
 let ocean_deep_sprites : (string * string) list = [ocean_deep_00_sprite; ocean_deep_01_sprite; ocean_deep_02_sprite; ocean_deep_03_sprite; ocean_deep_04_sprite; ocean_deep_05_sprite; ocean_deep_06_sprite; ocean_deep_07_sprite]
 let ocean_regular_sprites : (string * string) list = [ocean_regular_00_sprite; ocean_regular_01_sprite; ocean_regular_02_sprite; ocean_regular_03_sprite; ocean_regular_04_sprite; ocean_regular_05_sprite; ocean_regular_06_sprite; ocean_regular_07_sprite]
 let ocean_shallow_sprites : (string * string) list = [ocean_shallow_00_sprite; ocean_shallow_01_sprite; ocean_shallow_02_sprite; ocean_shallow_03_sprite; ocean_shallow_04_sprite; ocean_shallow_05_sprite; ocean_shallow_06_sprite; ocean_shallow_07_sprite]
-let ui_sprites : (string * string) list = [ui_atlascursor_sprite; ui_cursor_sprite; ui_events_earthquake_sprite; ui_events_fire_sprite; ui_events_meteor_sprite; ui_events_nuke_sprite; ui_events_plague_sprite; ui_events_tidal_wave_sprite; ui_events_tornado_sprite; ui_events_volcano_sprite]
+let ui_sprites : (string * string) list = [ui_atlascursor_sprite; ui_cursor_sprite; ui_examine_icon_sprite; ui_events_earthquake_sprite; ui_events_fire_sprite; ui_events_meteor_sprite; ui_events_nuke_sprite; ui_events_plague_sprite; ui_events_tidal_wave_sprite; ui_events_tornado_sprite; ui_events_volcano_sprite]
 let ui_events_sprites : (string * string) list = [ui_events_earthquake_sprite; ui_events_fire_sprite; ui_events_meteor_sprite; ui_events_nuke_sprite; ui_events_plague_sprite; ui_events_tidal_wave_sprite; ui_events_tornado_sprite; ui_events_volcano_sprite]

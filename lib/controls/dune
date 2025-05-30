@@ -7,4 +7,6 @@
   terrasim.world
   terrasim.assets
   terrasim.cameras
-  terrasim.rendering))
+  terrasim.rendering)
+ (preprocess
+  (pps ppx_blob ppx_unreachable)))

@@ -99,10 +99,10 @@ let swap_render_mode (window : Sdl.window) =
   (* Edit screen reset *)
   clear_edit_cache ();
   (* Atlas screen reset *)
-  Atlas_screen_opengl.sprogram := None;
+  Atlas.sprogram := None;
   (* Globe screen reset *)
-  Globe_screen_opengl.sprogram := None;
-  Globe_screen_opengl.atlastex := None;
+  Globe.sprogram := None;
+  Globe.atlastex := None;
   current_render_mode :=
     match !current_render_mode with
     | UninitRender ->

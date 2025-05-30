@@ -13,8 +13,44 @@ type biome =
   | Nothing
   | Swamp
 
-type ocean = Shallow | Regular | Deep
-type biome_tile = Land of biome | Ocean of ocean
+(** Get the string representation of a {!biome} *)
+let string_of_biome = function
+  | Arctic ->
+      "Arctic"
+  | Boreal ->
+      "Boreal"
+  | Desert ->
+      "Desert"
+  | Forest ->
+      "Forest"
+  | Grass ->
+      "Grass"
+  | Jungle ->
+      "Jungle"
+  | Nothing ->
+      "Nothing"
+  | Swamp ->
+      "Swamp"
+
+type ocean_depth = Shallow | Regular | Deep
+
+(** Get the string representation of an {!ocean_depth} *)
+let string_of_ocean_depth = function
+  | Shallow ->
+      "Shallow"
+  | Regular ->
+      "Regular"
+  | Deep ->
+      "Deep"
+
+type biome_tile = Land of biome | Ocean of ocean_depth
+
+(** Get the string representation of a {!biome_tile} *)
+let string_of_biome_tile = function
+  | Land l ->
+      string_of_biome l
+  | Ocean d ->
+      string_of_ocean_depth d ^ " ocean"
 
 (** Get the corresponding blob to a tile given altitude and biome, accounting
     for animation

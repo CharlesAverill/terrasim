@@ -3,7 +3,7 @@
 open Tsdl
 open Utils.Sdl_utils
 open Utils.Standard_utils
-open Common_controls
+open Common
 open Rendering.Globe_data
 
 (** Handle text input on the globe screen
@@ -47,7 +47,7 @@ let globe_handle_mousebutton (e : Sdl.event) =
 (** Handle input event on the globe screen
     @param e Input event to handle
     @param window The application's SDL window *)
-let handle_globe_ui_event (e : Sdl.event) (window : Sdl.window) =
+let handle_ui_event (e : Sdl.event) (window : Sdl.window) =
   match Sdl.Event.get e Sdl.Event.typ with
   | t when t = Sdl.Event.mouse_motion ->
       let* _ = Sdl.show_cursor true in

@@ -6,10 +6,14 @@ open Utils.Sdl_utils
 open Utils.Globals
 open Cursor
 open Cameras.Edit_camera
-open Common_controls
+open Common
+open World.Biomes
+open World.Grid
 open World.Altitude
-open Rendering.Edit_screen
-open Rendering.Ui_button
+open Rendering.Edit
+open Rendering.Button
+open Rendering.Popup
+open World.Life.Lifeform
 
 (** Handle scancode input on the edit screen
     @param e Scancode event to handle
@@ -57,38 +61,69 @@ let edit_handle_textinput (e : Sdl.event) (window : Sdl.window) =
   | _ ->
       ()
 
-let left_click_action = ref (List.nth !edit_screen_buttons 0).identifier
+(** The identifier of the currently-selected edit screen button *)
+let left_click_action () =
+  (List.nth !edit_screen_buttons !selected_edit_screen_button).identifier
+
+(** Handle mouse click input on the edit screen
+    @param e Mouse click input event
+    @param window The application's SDL window *)
+let edit_handle_mouseclick (e : Sdl.event) (window : Sdl.window) =
+  let _, (x, y) = Sdl.get_mouse_state () in
+  if !examine_popup_open then (
+    if not (point_inside_popup (x, y) !examine_popup) then
+      close_examine_popup ()
+  ) else if not (point_inside_popup (x, y) !edit_ui_popup) then (
+    let tile_x = (x / scaled_tile_w ()) + edit_camera.x in
+    let tile_y = (y / scaled_tile_h ()) + edit_camera.y in
+    global_cursor.x <- tile_x;
+    global_cursor.y <- tile_y;
+    match left_click_action () with
+    | Volcano ->
+        adjust_terrain_gaussian ~raise:true tile_x tile_y
+    | Asteroid ->
+        adjust_terrain_gaussian ~raise:false tile_x tile_y
+    | Examine -> (
+        match get_grid_tile_all (tile_x, tile_y) with
+        | None ->
+            ()
+        | Some
+            [
+              `Altitude alt;
+              `Event event;
+              `Magma magma;
+              `WaterTemp w_temp;
+              `WaterCurrent w_curr;
+              `AirTemp a_temp;
+              `AirCurrent a_cur;
+              `Rain rain;
+              `Biome biome;
+              `Life lf;
+              `Civilization civ;
+            ] ->
+            open_examine_popup (tile_x, tile_y) alt biome lf
+        | _ ->
+            [%unreachable])
+  ) else
+    (* UI interaction *)
+      match
+        List.find_index (point_inside_button (x, y)) !edit_screen_buttons
+      with
+    | Some idx ->
+        selected_edit_screen_button := idx
+    | _ ->
+        ()
 
 (** Handle input event on the edit screen
     @param e Event to handle
     @param window The application's SDL window *)
-let handle_edit_ui_event (e : Sdl.event) (window : Sdl.window) =
+let handle_ui_event (e : Sdl.event) (window : Sdl.window) =
   match Sdl.Event.get e Sdl.Event.typ with
   | t when t = Sdl.Event.mouse_motion ->
       let* _ = Sdl.show_cursor true in
       ()
-  | t when t = Sdl.Event.mouse_button_down -> (
-      let _, (x, y) = Sdl.get_mouse_state () in
-      let _, (win_h, _) = get_edit_window_ui_w_h window in
-      if y < win_h then (
-        (* Altitude changes *)
-        let tile_x = (x / scaled_tile_w ()) + edit_camera.x in
-        let tile_y = (y / scaled_tile_h ()) + edit_camera.y in
-        global_cursor.x <- tile_x;
-        global_cursor.y <- tile_y;
-        match !left_click_action with
-        | Volcano ->
-            adjust_terrain_gaussian ~raise:true tile_x tile_y
-        | Asteroid ->
-            adjust_terrain_gaussian ~raise:false tile_x tile_y
-      ) else
-        (* UI interaction *)
-          match List.find_index (inside_button (x, y)) !edit_screen_buttons with
-        | Some idx ->
-            selected_edit_screen_button := idx;
-            left_click_action := (List.nth !edit_screen_buttons idx).identifier
-        | _ ->
-            ())
+  | t when t = Sdl.Event.mouse_button_down ->
+      edit_handle_mouseclick e window
   (* Scroll around map *)
   | t when t = Sdl.Event.mouse_wheel ->
       let dx, dy =

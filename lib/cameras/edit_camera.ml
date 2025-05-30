@@ -76,16 +76,19 @@ let get_edit_window_ui_w_h (window : Sdl.window) : int * (int * int) =
 let pan_margin = 32
 
 (** Pan the edit camera if the mouse is within {!pan_margin} of the screen's
-    edge
-    @param window Application's SDL window*)
-let pan_edit_camera_if_needed (window : Sdl.window) =
-  let mouse_x, mouse_y = Sdl.get_mouse_state () |> snd in
-  let win_w, (win_h, ui_h) = get_edit_window_ui_w_h window in
-  if mouse_x < pan_margin then
-    move_edit_camera (-1) 0
-  else if mouse_x > win_w - pan_margin then
-    move_edit_camera 1 0;
-  if mouse_y > win_h + ui_h - pan_margin then
-    move_edit_camera 0 1
-  else if mouse_y < pan_margin then
-    move_edit_camera 0 (-1)
+    edge and the game is not paused for a popup
+    @param window Application's SDL window
+    @param paused_for_popup *)
+let pan_edit_camera_if_needed (window : Sdl.window) (paused_for_popup : bool) =
+  if not paused_for_popup then (
+    let mouse_x, mouse_y = Sdl.get_mouse_state () |> snd in
+    let win_w, (win_h, ui_h) = get_edit_window_ui_w_h window in
+    if mouse_x < pan_margin then
+      move_edit_camera (-1) 0
+    else if mouse_x > win_w - pan_margin then
+      move_edit_camera 1 0;
+    if mouse_y > win_h + ui_h - pan_margin then
+      move_edit_camera 0 1
+    else if mouse_y < pan_margin then
+      move_edit_camera 0 (-1)
+  )

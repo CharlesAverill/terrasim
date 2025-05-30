@@ -58,7 +58,7 @@ let error_orange = ansi_bold ^ ansi_orange
 (** ANSI encoding for bold yellow text *)
 let error_yellow = ansi_bold ^ ansi_yellow
 
-(** Gets the string representation of a {!log_type}*)
+(** Get the string representation of a {!log_type}*)
 let string_of_log = function
   | Log_Debug ->
       ansi_bold ^ "[DEBUG]"

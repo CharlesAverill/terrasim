@@ -3,9 +3,6 @@
 open Tsdl
 open Rendering.Graphics
 open Rendering.Globe_data
-open Controls.Edit_controls
-open Controls.Atlas_controls
-open Controls.Globe_controls
 open Controls.Cursor
 open Utils.Standard_utils
 open Utils.Logging
@@ -42,29 +39,33 @@ let gameloop_iter (window : Sdl.window) (event : Sdl.event) : bool =
         loop_continue := false;
     match !current_camera_mode with
     | Some (Edit2D _) ->
-        handle_edit_ui_event event window
+        Controls.Edit.handle_ui_event event window
     | Some Atlas2D ->
-        handle_atlas_ui_event event window
+        Controls.Atlas.handle_ui_event event window
     | Some Globe3D ->
-        handle_globe_ui_event event window
+        Controls.Globe.handle_ui_event event window
     | None ->
         ()
   done;
   (* Run simulation approx. once every other second *)
-  if !frame_counter mod (target_fps * 2) = 0 then
+  if
+    (not !Rendering.Popup.pause_everything_for_popup)
+    && !frame_counter mod (target_fps * 2) = 0
+  then
     Simulation.Simulator.simulate ();
   (* Render *)
   (match !current_camera_mode with
   | Some (Edit2D _) ->
       (* These need to run every frame, regardless of whether there is an input event *)
-      pan_edit_camera_if_needed window;
+      pan_edit_camera_if_needed window
+        !Rendering.Popup.pause_everything_for_popup;
       cursor_go_to_mouse ();
-      Rendering.Edit_screen.render_edit_screen window !frame_counter
+      Rendering.Edit.render_edit_screen window !frame_counter
         (global_cursor.x, global_cursor.y)
   | Some Atlas2D ->
       (* These need to run every frame, regardless of whether there is an input event *)
       pan_atlas_camera_if_needed window;
-      ignore (Rendering.Atlas_screen_opengl.render_atlas_screen window)
+      ignore (Rendering.Atlas.render_atlas_screen window)
   | Some Globe3D ->
       (* Spin globe *)
       if not !globe_pinned then (
@@ -80,7 +81,7 @@ let gameloop_iter (window : Sdl.window) (event : Sdl.event) : bool =
         (* Decay lat rotation back to horizontal *)
         rotation_lat := !rotation_lat *. (1. -. (globe_spin_friction *. 0.5))
       );
-      Rendering.Globe_screen_opengl.render_globe_screen window !frame_counter
+      Rendering.Globe.render_globe_screen window !frame_counter
   | None ->
       ());
   (* Delay for ideal framerate *)

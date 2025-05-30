@@ -75,9 +75,6 @@ let string_of_lifeform (lf : lifeform) : string =
     (string_of_species lf.species)
     (string_of_class lf.life_class)
 
-(** Lifeform sprite transparency color *)
-let lifeform_colorkey_rgb = rgb_of_hex "20C8F8"
-
 (** Get the sprite blob for a lifeform
     @param frame_count The current frame counter
     @param lf The lifeform to retrieve a sprite blob for
@@ -99,6 +96,11 @@ let blob_of_lifeform (frame_count : int) (lf : lifeform) =
        l)
     frame_count
 
+(** Determine the class of life that a lifeform can evolve into
+    @param lf The lifeform
+    @return
+      [None] if the lifeform cannot evolve, otherwise its potential next class
+*)
 let evolution_step (lf : lifeform) : life_class option =
   match lf.life_class with
   | Prokaryote when lf.species >= 8 ->

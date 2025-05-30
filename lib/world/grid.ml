@@ -3,8 +3,7 @@
 open Biomes
 open Life.Lifeform
 
-let world_width = 128
-let world_height = 64
+let world_width, world_height = (128, 64)
 
 type world_grid = {
   altitude : int array;
@@ -145,6 +144,42 @@ let get_grid_tile ?(wrap_x : bool = true) ((x, y) : int * int)
     None
   else
     Some (List.map (get_grid_attr ((y * world_width) + x)) fields)
+
+(** Get all attributes of a grid tile
+
+    @param wrap_x Whether to wrap if [x] is out of bounds
+    @param x x position of tile
+    @param y y position of tile
+    @return
+      [None] if there is no tile at [(x, y)], otherwise a list of all fields for
+      the tile *)
+let get_grid_tile_all ?(wrap_x : bool = true) ((x, y) : int * int) :
+    world_tile_attr_setter list option =
+  let x =
+    if wrap_x then
+      ((x mod world_width) + world_width) mod world_width
+    else
+      x
+  in
+  if x < 0 || y < 0 || x >= world_width || y >= world_height then
+    None
+  else
+    Some
+      (List.map
+         (get_grid_attr ((y * world_width) + x))
+         [
+           `Altitude;
+           `Event;
+           `Magma;
+           `WaterTemp;
+           `WaterCurrent;
+           `AirTemp;
+           `AirCurrent;
+           `Rain;
+           `Biome;
+           `Life;
+           `Civilization;
+         ])
 
 (** Set tile attributes for a world tile, or do nothing if there is no tile at
     [(x, y)]

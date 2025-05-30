@@ -2,7 +2,7 @@
 
 open Tsdl
 open Utils.Sdl_utils
-open Common_controls
+open Common
 
 (** Handle text input on the atlas screen
     @param e Text input event to handle
@@ -20,7 +20,7 @@ let atlas_handle_textinput (e : Sdl.event) (window : Sdl.window) =
 (** Handle input event on the atlas screen
     @param e Input event to handle
     @param window The application's SDL window *)
-let handle_atlas_ui_event (e : Sdl.event) (window : Sdl.window) =
+let handle_ui_event (e : Sdl.event) (window : Sdl.window) =
   match Sdl.Event.get e Sdl.Event.typ with
   | t when t = Sdl.Event.mouse_motion ->
       let* _ = Sdl.show_cursor true in

@@ -93,9 +93,7 @@ let render_globe_screen (window : Sdl.window) (frame_counter : int) =
     | Some a ->
         a
     | None -> (
-        match
-          Atlas_screen_opengl.render_atlas_screen ~to_texture:true window
-        with
+        match Atlas.render_atlas_screen ~to_texture:true window with
         | None ->
             fatal rc_OpenGL
               "Globe renderer didn't get FBO and atlas texture from atlas \

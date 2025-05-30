@@ -79,7 +79,7 @@ let setup_tile_buffers ~(offsets : (float * float) array)
 (** Render tiles to the screen or a framebuffer
     @param fbo
       If set, render to this framebuffer rather than the screen (used by
-      {!Globe_screen_opengl.render_globe_screen})
+      {!Globe.render_globe_screen})
     @param window Application's SDL window
     @param sprogram Shader program to use
     @param vao Vertex array object to draw

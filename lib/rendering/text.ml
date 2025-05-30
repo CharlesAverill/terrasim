@@ -2,13 +2,18 @@
 
 open Tsdl
 open Tsdl_ttf
+open Assets.Assetloader
 open Assets.Fonts
 open Utils.Sdl_utils
+open Utils.Colors
 
-type font = CourierPrime | Jacquard12 | NewPortLand
+(** Font families included in build *)
+type font_family = CourierPrime | Jacquard12 | NewPortLand
+
 type text_style = Regular | Bold | Italic | BoldItalic
 
-let font_blob_of_font_style f s =
+(** Get a font's {!asset_blob} given its family and style *)
+let font_blob_of_font_style (f : font_family) (s : text_style) : asset_blob =
   match f with
   | NewPortLand ->
       _NewPortLand_npl_font
@@ -25,17 +30,44 @@ let font_blob_of_font_style f s =
   | Jacquard12 ->
       _Jacquard12_Jacquard12_Regular_font
 
-let black_color = rgb_of_hex "000000"
-
+(** A cache for rendered string textures *)
 let text_cache :
-    ( font * text_style * int * (int * int * int) * string,
+    ( font_family * text_style * int * (int * int * int) * string,
       Sdl.texture * Ttf.font )
     Hashtbl.t =
   Hashtbl.create 100
 
-let render_text ?(font_family : font = NewPortLand)
+(** Clear {!text_cache} and destroy its textures *)
+let clear_text_cache () =
+  Seq.iter
+    (fun k ->
+      let t, f = Hashtbl.find text_cache k in
+      Sdl.destroy_texture t)
+    (Hashtbl.to_seq_keys text_cache);
+  Hashtbl.clear text_cache
+
+(** Render a formatted string to the screen
+
+    @param font_family
+    @param style
+    @param ptsize Point size of text to render
+    @param color Color of text to render
+    @param fit
+      If set, defines a bounding box that [ptsize] will be scaled up to match
+    @param draw_bounding_box
+      For debugging, indicates to draw a red bounding box around the rendered
+      texture
+    @param renderer Application's SDL renderer
+    @param x
+    @param y
+    @param fmt Format string
+    @param ... Format string arguments
+    @return
+      The height and width of the rendered texture, clipping invisiblie padding
+      caused by a font's ascent and descent *)
+let render_text ?(font_family : font_family = NewPortLand)
     ?(style : text_style = Regular) ?(ptsize : int = 48)
-    ?(color : int * int * int = black_color) ?(fit : (int * int) option)
+    ?(color : int * int * int = color_black) ?(fit : (int * int) option)
     ?(draw_bounding_box : bool = false) (renderer : Sdl.renderer)
     ((x, y) : int * int) fmt =
   let real_font_size font s =
