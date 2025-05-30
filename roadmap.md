@@ -29,9 +29,9 @@
 # Life Simulation
 
 - [x] Time system
-- [ ] Define basic organism types (plant, herbivore, carnivore)
+- [x] Define basic organism types
 - [ ] Implement Game-of-Life-like rules (birth, death, spread)
-- [ ] Handle organism rendering layer
+- [x] Handle organism rendering layer
 - [ ] Add a tool to "plant" organisms on tiles
 
 # Atmosphere and Climate

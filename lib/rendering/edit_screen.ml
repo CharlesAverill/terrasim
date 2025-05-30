@@ -4,13 +4,14 @@ open Utils.Standard_utils
 open Utils.Globals
 open Utils.Sdl_utils
 open Tsdl
-open Tsdl_ttf
 open Cameras.Edit_camera
 open World.Grid
 open World.Biomes
 open World.Life.Lifeform
 open Assets.Assetloader
 open Graphics
+open Text
+open Ui_button
 
 (** How many frames it takes to draw the next frame of an animated tile *)
 let animated_tile_update_factor = 8
@@ -70,6 +71,39 @@ let ui_bevel_light_color = rgb_of_hex "EEEEEE"
 let ui_bevel_dark_color = rgb_of_hex "CCCCCC"
 let black_color = rgb_of_hex "000000"
 
+type edit_button = Volcano | Asteroid
+
+let edit_screen_buttons =
+  ref
+    [
+      {
+        identifier = Volcano;
+        bounding_box = Sdl.Rect.create ~x:0 ~y:0 ~w:0 ~h:0;
+        texture_blob = Assets.Sprites.events_volcano2_sprite;
+        initialized = false;
+      };
+      {
+        identifier = Asteroid;
+        bounding_box = Sdl.Rect.create ~x:0 ~y:0 ~w:0 ~h:0;
+        texture_blob = Assets.Sprites.events_meteor1_sprite;
+        initialized = false;
+      };
+    ]
+
+let selected_edit_screen_button = ref 0
+
+let init_edit_screen_buttons (pos : int -> int -> int * int) (w : int -> int)
+    (h : int -> int) base_col =
+  List.iteri
+    (fun i b ->
+      let x, y = pos 0 (base_col + i) in
+      Sdl.Rect.set_x b.bounding_box x;
+      Sdl.Rect.set_y b.bounding_box y;
+      Sdl.Rect.set_w b.bounding_box (w i);
+      Sdl.Rect.set_h b.bounding_box (h i);
+      b.initialized <- true)
+    !edit_screen_buttons
+
 (** Draw the edit screen UI
     @param window Application's SDL window
     @param renderer Application window's SDL renderer
@@ -84,7 +118,6 @@ let draw_edit_ui (window : Sdl.window) (renderer : Sdl.renderer)
   let ui_bg_rect = Sdl.Rect.create ~x:0 ~y:win_h ~w:win_w ~h:ui_h in
   set_render_color ui_bg_color renderer;
   let* _ = Sdl.render_fill_rect renderer (Some ui_bg_rect) in
-  ();
   (* Draw bevels *)
   let light_bevel_verts =
     List.map
@@ -137,29 +170,38 @@ let draw_edit_ui (window : Sdl.window) (renderer : Sdl.renderer)
   let* _ =
     Sdl.render_geometry renderer (light_bevel_verts @ dark_bevel_verts)
   in
-  (* Load font *)
-  let ptsize = 48 in
-  let* font =
-    Ttf.open_font_rw
-      (let x =
-         Assets.Assetloader.rwops_of_blob Assets.Fonts._NewPortLand_npl_font
-       in
-       x)
-      1 ptsize
+  let ui_area_h = ui_h - ((2 * bevel_w) + (3 * ui_buffer)) in
+  (* First column*)
+  let n_columns = 8 in
+  let fit = (win_w / n_columns, ui_area_h / 2) in
+  let pos row col =
+    let w, h = fit in
+    ( bevel_w + ui_buffer + ((w + ui_buffer) * col),
+      win_h + bevel_w + ui_buffer + (row * (h + ui_buffer)) )
   in
-  let* text_surf =
-    Ttf.render_text_blended font
-      (Printf.sprintf "Year: %d" (Simulation.Simulation_info.get_sim_year ()))
-      (sdlcolor_of_tuple black_color)
+  (* Planet name *)
+  let _ = render_text ~fit renderer (pos 0 0) "Test Planet" in
+  (* Year *)
+  let _ =
+    render_text ~fit renderer (pos 1 0) "Year: %2d"
+      (Simulation.Simulation_info.get_sim_year ())
   in
-  let* text_texture = Sdl.create_texture_from_surface renderer text_surf in
-  let* _, _, (text_w, text_h) = Sdl.query_texture text_texture in
-  let text_loc =
-    Sdl.Rect.create ~x:(bevel_w + ui_buffer) ~y:(win_h + bevel_w) ~w:text_w
-      ~h:text_h
-  in
-  let* _ = Sdl.render_copy ~dst:text_loc renderer text_texture in
-  ()
+  (* UI Buttons *)
+  (if any_buttons_uninit !edit_screen_buttons then
+     let pos row col =
+       let w, h = fit in
+       ( bevel_w + ui_buffer + (((w / 2) + ui_buffer) * (col + 1)),
+         win_h + bevel_w + ui_buffer )
+     in
+     init_edit_screen_buttons pos
+       (fun _ -> ui_area_h + ui_buffer)
+       (fun _ -> ui_area_h + ui_buffer)
+       1);
+  render_buttons renderer !edit_screen_buttons;
+  (* Selected button highlight *)
+  set_render_color (rgb_of_hex "FFDE64") renderer;
+  draw_rect_outer_thickness renderer
+    (List.nth !edit_screen_buttons !selected_edit_screen_button).bounding_box 3
 
 (** Render the edit screen
     @param window Application's SDL window
@@ -169,9 +211,9 @@ let render_edit_screen (window : Sdl.window) (frame_counter : int)
     (cursor_pos : int * int) =
   let renderer = get_global_renderer () in
   if !need_to_flush_edit_caches then (
-    Hashtbl.clear tile_texture_cache;
-    Hashtbl.clear lifeform_texture_cache;
-    Hashtbl.clear blob_cache;
+    clear_texture_cache tile_texture_cache;
+    clear_texture_cache lifeform_texture_cache;
+    clear_texture_cache blob_cache;
     need_to_flush_edit_caches := false
   );
   set_render_color black_color renderer;

@@ -41,7 +41,7 @@ let rec surface_of_blob ?(color_key : (int * int * int) option = None)
           surf)
   | Error (`Msg e) ->
       _log Log_Error "Failed to load %s, trying again" (fst blob);
-      surface_of_blob blob
+      surface_of_blob ~color_key blob
 
 (** A cache for sprite blobs *)
 let blob_cache : (string, Sdl.texture) Hashtbl.t = Hashtbl.create 100

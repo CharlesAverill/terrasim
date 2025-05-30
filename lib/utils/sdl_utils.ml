@@ -117,3 +117,24 @@ let set_render_color ((r, g, b) : int * int * int) (renderer : Sdl.renderer) =
 (** Get an SDL Color object from RGB values *)
 let sdlcolor_of_tuple ((r, g, b) : int * int * int) : Sdl.color =
   Sdl.Color.create ~r ~g ~b ~a:255
+
+let clear_texture_cache (table : ('a, Sdl.texture) Hashtbl.t) =
+  Seq.iter
+    (fun x -> Sdl.destroy_texture (Hashtbl.find table x))
+    (Hashtbl.to_seq_keys table);
+  Hashtbl.clear table
+
+let draw_rect_outer_thickness (renderer : Sdl.renderer) (base_rect : Sdl.rect)
+    (thickness : int) =
+  for i = 0 to thickness do
+    let* _ =
+      Sdl.render_draw_rect renderer
+        (Some
+           (Sdl.Rect.create
+              ~x:(Sdl.Rect.x base_rect - i)
+              ~y:(Sdl.Rect.y base_rect - i)
+              ~w:(Sdl.Rect.w base_rect + (2 * i))
+              ~h:(Sdl.Rect.h base_rect + (2 * i))))
+    in
+    ()
+  done

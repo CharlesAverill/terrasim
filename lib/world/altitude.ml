@@ -17,16 +17,18 @@ let regular_ocean_theshold = int_of_float (0.35 *. float max_land_height)
 (** Altitude threshold for classifying shallow oceans *)
 let shallow_ocean_theshold = int_of_float (0.5 *. float max_land_height)
 
-(** Map biome tile to integer height *)
-let ocean_height : biome_tile -> int option = function
-  | Ocean Deep ->
-      Some 0
-  | Ocean Regular ->
-      Some 1
-  | Ocean Shallow ->
-      Some 2
-  | _ ->
-      None
+(** Classify a tile between {!Biomes.Ocean} and {!Biomes.Land} based on altitude
+    @param alt Altitude
+    @return Biome tile distinguishing between land and ocean *)
+let classify_ocean_tile (alt : int) : biome_tile =
+  if alt <= deep_ocean_theshold then
+    Ocean Deep
+  else if alt <= regular_ocean_theshold then
+    Ocean Regular
+  else if alt <= shallow_ocean_theshold then
+    Ocean Shallow
+  else
+    Land Nothing
 
 (** Change the altitude of a tile
     @param x x position of tile

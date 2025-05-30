@@ -7,6 +7,7 @@ open Utils.Logging
 open Utils.Opengl_utils
 open World.Grid
 open World.Altitude
+open World.Biomes
 open Cameras.Atlas_camera
 open Gradients
 
@@ -152,11 +153,14 @@ let make_tile_data () : (float * float) array * (float * float * float) array =
     (fun alt biome ->
       let norm_alt = clamp (float alt /. float max_land_height) 0.0 1.0 in
       let r, g, b =
-        match ocean_height biome with
-        | None ->
+        match biome with
+        | Land x when x <> Arctic ->
             interpolate_gradient height_gradient norm_alt
-        | Some h ->
-            interpolate_gradient ocean_gradient (clamp (float h /. 3.) 0. 1.)
+        | Ocean _ | Land Arctic ->
+            interpolate_gradient ocean_gradient
+              (clamp (float alt) 0. (float shallow_ocean_theshold))
+        | _ ->
+            [%unreachable]
       in
       let wx, wy = (!idx mod world_width, !idx / world_width) in
       let wx = mod_posneg (wx + atlas_camera.x) world_width in

@@ -9,46 +9,31 @@ open Assets.Sprites
 
 (** Generate a completely random lifeform *)
 let random_lifeform () : lifeform =
-  let spec_list =
+  let class_list =
     [
-      Amoeba;
+      Eukaryote;
       Amphibian;
-      Bacteria;
-      Bird;
+      Prokaryote;
+      Avian;
       Carnifern;
-      Crab;
+      Arthropod;
       Dinosaur;
       Fish;
       Insect;
       Mammal;
-      Octopus;
+      Mollusk;
       Reptile;
       Robot;
-      Starfish;
+      Radiate;
       Trichordate;
-      Whale;
+      Cetacean;
     ]
   in
-  let level_list = [ Early; Middle; Late; Final ] in
-  let variant = Random.int 4 in
+  let species = Random.int 16 in
   {
-    species = List.nth spec_list (Random.int (List.length spec_list));
-    stage = List.nth level_list (Random.int (List.length level_list));
-    variant;
+    life_class = List.nth class_list (Random.int (List.length class_list));
+    species;
   }
-
-(** Classify a tile between {!Biomes.Ocean} and {!Biomes.Land} based on altitude
-    @param alt Altitude
-    @return Biome tile distinguishing between land and ocean *)
-let classify_ocean_tile (alt : int) : biome_tile =
-  if alt <= deep_ocean_theshold then
-    Ocean Deep
-  else if alt <= regular_ocean_theshold then
-    Ocean Regular
-  else if alt <= shallow_ocean_theshold then
-    Ocean Shallow
-  else
-    Land Nothing
 
 (** Compute a coefficient that scales down as [y] grows farther from the equator
     @param y Latitude value
@@ -81,6 +66,14 @@ let world_setup () =
           (* Oceans *)
           let biome = classify_ocean_tile alt in
           let _is_ocean = match biome with Ocean _ -> true | _ -> false in
+          (* Ice caps *)
+          let biome =
+            if y < world_height / 20 || y > world_height - (world_height / 20)
+            then
+              Land Arctic
+            else
+              biome
+          in
           (* TEMPORARY - life generation *)
           let lifeform =
             match Random.int 100 with

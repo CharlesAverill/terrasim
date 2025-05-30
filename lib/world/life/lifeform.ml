@@ -1,51 +1,48 @@
-(** Logic for handling the available species of life and their properties *)
+(** Logic for handling the available classes of life and their properties *)
 
 open Assets.Sprites
 open Assets.Assetloader
 open Utils.Sdl_utils
 open Utils.Logging
 
-(** Life species *)
-type species =
-  | Amoeba
+(** Class of life *)
+type life_class =
+  | Eukaryote
   | Amphibian
-  | Bacteria
-  | Bird
+  | Prokaryote
+  | Avian
   | Carnifern
-  | Crab
+  | Arthropod
   | Dinosaur
   | Fish
   | Insect
   | Mammal
-  | Octopus
+  | Mollusk
   | Reptile
   | Robot
-  | Starfish
+  | Radiate
   | Trichordate
-  | Whale
+  | Cetacean
 
-(** Evolution stage for a species *)
-type stage = Early | Middle | Late | Final
+type species = int
+(** Class variant selector *)
 
-type variant = int
-(** Visual species variant selector *)
-
-type lifeform = { species : species; stage : stage; variant : variant }
+type lifeform = { life_class : life_class; species : species }
 (** Describes a single lifeform entity *)
 
-(** Get the string representation of a species *)
-let string_of_species : species -> string = function
-  | Amoeba ->
+(** Get the string representation of a class *)
+let string_of_class : life_class -> string = function
+  | Eukaryote ->
       "Amoeba"
   | Amphibian ->
       "Amphibian"
-  | Bacteria ->
+  | Prokaryote ->
       "Bacteria"
-  | Bird ->
+  | Avian ->
       "Bird"
   | Carnifern ->
       "Carnifern"
-  | Crab ->
+  | Arthropod ->
       "Crab"
   | Dinosaur ->
       "Dinosaur"
@@ -55,39 +52,28 @@ let string_of_species : species -> string = function
       "Insect"
   | Mammal ->
       "Mammal"
-  | Octopus ->
+  | Mollusk ->
       "Octopus"
   | Reptile ->
       "Reptile"
   | Robot ->
       "Robot"
-  | Starfish ->
+  | Radiate ->
       "Starfish"
   | Trichordate ->
       "Trichordate"
-  | Whale ->
+  | Cetacean ->
       "Whale"
 
-(** Get the string representation of an evolution stage *)
-let string_of_stage : stage -> string = function
-  | Early ->
-      "Early"
-  | Middle ->
-      "Middle"
-  | Late ->
-      "Late"
-  | Final ->
-      "Final"
-
 (** Get the string representation of a species variant (for debugging) *)
-let string_of_variant (v : variant) : string = Printf.sprintf "variant%d" (v + 1)
+let string_of_species (v : species) : string =
+  Printf.sprintf "species_%d" (v + 1)
 
 (** Get the string representation of a lifeform (for debugging) *)
 let string_of_lifeform (lf : lifeform) : string =
-  Printf.sprintf "{%s - %s - %s}"
+  Printf.sprintf "{%s - %s}"
     (string_of_species lf.species)
-    (string_of_stage lf.stage)
-    (string_of_variant lf.variant)
+    (string_of_class lf.life_class)
 
 (** Lifeform sprite transparency color *)
 let lifeform_colorkey_rgb = rgb_of_hex "20C8F8"
@@ -104,11 +90,7 @@ let blob_of_lifeform (frame_count : int) (lf : lifeform) =
     (let l =
        find_matching_sprites lifeforms_sprites
          (List.map (Printf.sprintf "/%s/")
-            [
-              string_of_species lf.species;
-              string_of_stage lf.stage;
-              string_of_variant lf.variant;
-            ])
+            [ string_of_species lf.species; string_of_class lf.life_class ])
      in
      if List.length l != expected_anim_frames then
        fatal rc_Error "Found %d sprites for %s, expected %d" (List.length l)
@@ -116,3 +98,40 @@ let blob_of_lifeform (frame_count : int) (lf : lifeform) =
      else
        l)
     frame_count
+
+let evolution_step (lf : lifeform) : life_class option =
+  match lf.life_class with
+  | Prokaryote when lf.species >= 8 ->
+      Some Eukaryote
+  | Eukaryote when lf.species >= 12 ->
+      Some Radiate
+  | Radiate when lf.species < 8 ->
+      Some Arthropod
+  | Radiate when lf.species < 12 ->
+      Some Trichordate
+  | Arthropod when lf.species < 4 ->
+      Some Mollusk
+  | Arthropod when lf.species < 12 ->
+      Some Insect
+  | Mollusk when 4 <= lf.species && lf.species < 12 ->
+      Some Fish
+  | Fish when lf.species < 8 ->
+      Some Amphibian
+  | Fish when lf.species < 12 ->
+      Some Trichordate
+  | Cetacean when lf.species >= 12 ->
+      Some Mammal
+  | Amphibian when lf.species < 8 ->
+      Some Reptile
+  | Reptile when lf.species < 8 ->
+      Some Dinosaur
+  | Reptile when lf.species < 12 ->
+      Some Mammal
+  | Dinosaur when lf.species < 4 ->
+      Some Avian
+  | Dinosaur when lf.species < 8 ->
+      Some Mammal
+  | Mammal when 4 <= lf.species && lf.species < 12 ->
+      Some Cetacean
+  | _ ->
+      None

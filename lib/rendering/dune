@@ -6,6 +6,7 @@
   tgls.tgl4
   tsdl
   tsdl-ttf
+  tsdl-image
   terrasim.utils
   terrasim.cameras
   terrasim.assets

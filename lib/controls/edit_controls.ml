@@ -8,6 +8,8 @@ open Cursor
 open Cameras.Edit_camera
 open Common_controls
 open World.Altitude
+open Rendering.Edit_screen
+open Rendering.Ui_button
 
 (** Handle scancode input on the edit screen
     @param e Scancode event to handle
@@ -55,6 +57,8 @@ let edit_handle_textinput (e : Sdl.event) (window : Sdl.window) =
   | _ ->
       ()
 
+let left_click_action = ref (List.nth !edit_screen_buttons 0).identifier
+
 (** Handle input event on the edit screen
     @param e Event to handle
     @param window The application's SDL window *)
@@ -63,24 +67,28 @@ let handle_edit_ui_event (e : Sdl.event) (window : Sdl.window) =
   | t when t = Sdl.Event.mouse_motion ->
       let* _ = Sdl.show_cursor true in
       ()
-  (* Altitude changes *)
-  | t when t = Sdl.Event.mouse_button_down ->
+  | t when t = Sdl.Event.mouse_button_down -> (
       let _, (x, y) = Sdl.get_mouse_state () in
       let _, (win_h, _) = get_edit_window_ui_w_h window in
       if y < win_h then (
-        let button = Sdl.Event.get e Sdl.Event.mouse_button_button in
+        (* Altitude changes *)
         let tile_x = (x / scaled_tile_w ()) + edit_camera.x in
         let tile_y = (y / scaled_tile_h ()) + edit_camera.y in
         global_cursor.x <- tile_x;
         global_cursor.y <- tile_y;
-        match button with
-        | x when x = Sdl.Button.left ->
+        match !left_click_action with
+        | Volcano ->
             adjust_terrain_gaussian ~raise:true tile_x tile_y
-        | x when x = Sdl.Button.right ->
+        | Asteroid ->
             adjust_terrain_gaussian ~raise:false tile_x tile_y
+      ) else
+        (* UI interaction *)
+          match List.find_index (inside_button (x, y)) !edit_screen_buttons with
+        | Some idx ->
+            selected_edit_screen_button := idx;
+            left_click_action := (List.nth !edit_screen_buttons idx).identifier
         | _ ->
-            ()
-      )
+            ())
   (* Scroll around map *)
   | t when t = Sdl.Event.mouse_wheel ->
       let dx, dy =

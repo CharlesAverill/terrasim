@@ -1,5 +1,7 @@
 (** Logic for interpolating colors on a gradient *)
 
+open World.Altitude
+
 type gradient = string * (float * (int * int * int)) array
 (** Name, array of (threshold in {m [0, 1]} and [(r, g, b)] at that threshold)
 *)
@@ -57,9 +59,9 @@ let ocean_gradient : gradient =
   ( "ocean",
     [|
       (0.0, (13, 65, 225));
-      (1. /. 3., (10, 133, 237));
-      (2. /. 3., (7, 200, 249));
-      (1., (7, 200, 249));
+      (float deep_ocean_theshold, (10, 133, 237));
+      (float regular_ocean_theshold, (7, 200, 249));
+      (float shallow_ocean_theshold, (7, 200, 249));
     |] )
 
 (** A cache for gradient results *)

@@ -11,6 +11,11 @@ open Globe_data
 (** Initialize SDL and SDL-ttf *)
 let init_sdl () =
   let* _ = Sdl.init Sdl.Init.(video + events) in
+  let _ =
+    Tsdl_image.Image.init
+      (let open Tsdl_image.Image.Init in
+       png)
+  in
   let* _ = Tsdl_ttf.Ttf.init () in
   ()
 
