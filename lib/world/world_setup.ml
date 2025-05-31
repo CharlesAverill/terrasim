@@ -9,7 +9,7 @@ open Assets.Sprites
 open Utils.Standard_utils
 
 (** Generate a completely random lifeform *)
-let random_lifeform () : lifeform =
+let random_lifeform (is_land : bool) : lifeform =
   let class_list =
     [
       Eukaryote;
@@ -30,9 +30,17 @@ let random_lifeform () : lifeform =
       Cetacean;
     ]
   in
+  let get_class () =
+    List.nth class_list (Random.int (List.length class_list))
+  in
   let species = Random.int 16 in
   {
-    life_class = List.nth class_list (Random.int (List.length class_list));
+    life_class =
+      (let x = ref (get_class ()) in
+       while is_land != is_land_class !x do
+         x := get_class ()
+       done;
+       !x);
     species;
   }
 
@@ -72,15 +80,14 @@ let world_setup () =
 
           (* Step 1: Land mask using low-frequency noise + falloff *)
           let land_noise =
-            2.
-            *. (1. -. dist_from_eq y)
+            (1. -. dist_from_eq y)
             *. fbm_2d ~octaves:5 ~scale_xy:(0.5, 0.5) ~contrast:2. ~base_ampl:2.
                  (x, y)
                  (world_width, world_height)
           in
           (* "Erode" land noise near poles with another layer of noise to prevent big flat edges *)
           let land_mask =
-            land_noise
+            (2. *. land_noise)
             -. dist_from_eq y
                *. fbm_2d ~octaves:2 (x, y) (world_width, world_height)
           in
@@ -91,9 +98,14 @@ let world_setup () =
 
           (* Step 3: If land, get terrain elevation using higher frequency *)
           let alt =
+            (* Mix in land noise for consistency *)
+            let land_noise_fac = 0.5 in
             let elev =
+              (* (land_noise_fac *. land_noise)
+              +. (1. -. land_noise_fac)
+                 *.  *)
               fbm_2d ~octaves:6 ~scale_xy:(0.5, 0.5) ~contrast:2. ~base_ampl:2.
-                ~base_freq:2. (x, y)
+                ~lacunarity:2.5 (x, y)
                 (world_width, world_height)
             in
             if is_land then
@@ -102,11 +114,10 @@ let world_setup () =
               + shallow_ocean_theshold
             else
               int_of_float
-                (0.5
+                (2.
                 *. (1. -. dist_from_eq y)
                 *. float shallow_ocean_theshold
                 *. elev)
-              + (shallow_ocean_theshold / 2)
           in
           let alt = clamp alt 0 max_land_height in
 
@@ -123,8 +134,8 @@ let world_setup () =
 
           (* Step 5: Random life generation on land *)
           let lifeform =
-            if is_land && Random.int 100 < 5 then
-              Some (random_lifeform ())
+            if Random.int 100 < 5 then
+              Some (random_lifeform is_land)
             else
               None
           in

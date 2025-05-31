@@ -137,3 +137,11 @@ let evolution_step (lf : lifeform) : life_class option =
       Some Cetacean
   | _ ->
       None
+
+(** Whether a life class can be found on land [true] or in the ocean [false] *)
+let is_land_class = function
+  | Mammal | Dinosaur | Reptile | Avian | Carnifern | Insect | Robot | Amphibian
+    ->
+      true
+  | _ ->
+      false
