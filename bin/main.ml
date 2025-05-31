@@ -24,11 +24,26 @@ let test_noise () =
     if not !rendered then (
       for ty = 0 to world_height do
         for tx = 0 to world_width do
+          let dist_from_eq =
+            abs_float
+              (float (ty - (world_height / 2)) /. float (world_height / 2))
+          in
           let noise_value =
-            fbm_2d ~contrast:3. ~scale_xy:(0.75, 1.) ~base_ampl:2. (tx, ty)
+            fbm_2d ~octaves:5 ~scale_xy:(0.5, 0.5) ~contrast:2. ~base_ampl:2.
+              (tx, ty)
               (world_width, world_height)
           in
-          let v = int_of_float (255. *. noise_value) in
+          let noise_value =
+            noise_value
+            -. dist_from_eq
+               *. fbm_2d ~octaves:2 (tx, ty) (world_width, world_height)
+          in
+          let v =
+            if noise_value < 0.35 then
+              0
+            else
+              255
+          in
           set_render_color (v, v, v) renderer;
 
           let rect =

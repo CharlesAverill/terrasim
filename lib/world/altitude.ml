@@ -25,10 +25,8 @@ let classify_ocean_tile (alt : int) : biome_tile =
     Ocean Deep
   else if alt <= regular_ocean_theshold then
     Ocean Regular
-  else if alt <= shallow_ocean_theshold then
-    Ocean Shallow
   else
-    Land Nothing
+    Ocean Shallow
 
 (** Change the altitude of a tile
     @param x x position of tile
@@ -40,15 +38,21 @@ let change_altitude (x : int) (y : int) (delta : int) =
       ()
   | Some [ `Altitude alt ] ->
       let new_alt = clamp (alt + delta) 0 max_land_height in
-      set_grid_tile (x, y) [ `Altitude new_alt ];
-      if new_alt < deep_ocean_theshold then
+      let biome =
+        if new_alt < shallow_ocean_theshold then
+          classify_ocean_tile new_alt
+        else
+          Land Nothing
+      in
+      set_grid_tile (x, y) [ `Altitude new_alt; `Biome biome ]
+      (* if new_alt < deep_ocean_theshold then
         set_grid_tile (x, y) [ `Biome (Ocean Deep) ]
       else if new_alt < regular_ocean_theshold then
         set_grid_tile (x, y) [ `Biome (Ocean Regular) ]
       else if new_alt < shallow_ocean_theshold then
         set_grid_tile (x, y) [ `Biome (Ocean Shallow) ]
       else
-        set_grid_tile (x, y) [ `Biome (Land Nothing) ]
+        set_grid_tile (x, y) [ `Biome (Land Nothing) ] *)
   | _ ->
       [%unreachable]
 
@@ -98,8 +102,10 @@ let adjust_terrain_gaussian ?(raise = true) (x : int) (y : int) =
       in
       match get_grid_tile (tx, ty) [ `Altitude ] with
       | Some [ `Altitude alt ] ->
-          if alt <= center_alt then change_altitude tx ty delta
-      | _ ->
+          change_altitude tx ty delta
+      | None ->
           ()
+      | _ ->
+          [%unreachable]
     done
   done

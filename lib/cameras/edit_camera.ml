@@ -21,7 +21,7 @@ let view_height () : int =
   match !zoom_level with NormalZoom -> 27 | CloseZoom -> 18 | FarZoom -> 37
 
 (** Edit screen camera position *)
-let edit_camera = { x = 0; y = 0 }
+let edit_camera = { x = world_width / 2; y = world_height / 2 }
 
 (** Ensure camera stays within bounds of world grid *)
 let clamp_camera_to_bounds () =
