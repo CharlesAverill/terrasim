@@ -40,28 +40,26 @@ let random_lifeform () : lifeform =
     @return {m 1 - (2 \cdot \frac{\texttt{y}}{height - 1} - 1)^4 }*)
 let latitudinal_falloff (y : int) =
   let dy = (2. *. (float y /. float (world_height - 1))) -. 1. in
-  1. -. (dy ** 4.)
+  1. -. (dy ** 8.)
 
 (** Procedurally generate world grid using {{!Noise.fbm}simplex noise} and FBM
 *)
 let world_setup () =
   Random.self_init ();
   let seed = Random.int (int_of_float (Float.pow 2. 20.)) in
+  init_noise_gen ~seed:(Some seed) ();
   for x = 0 to world_width do
     for y = 0 to world_height do
       match get_grid_tile (x, y) [] with
       | None ->
           ()
       | Some [] ->
-          let world_scale = 0.3 in
           (* Altitude *)
           let alt =
             int_of_float
               (latitudinal_falloff y *. float max_land_height
-              *. fbm ~seed ~mag_scale:7. ~x_scale:world_scale
-                   ~y_scale:(world_scale /. 7.) ~octaves:3
-                   ~tile_x_width:(Some world_width)
-                   (float x, float y, 0.))
+              *. fbm_2d ~contrast:1.5 ~scale_xy:(0.55, 0.55) ~base_ampl:2. (x, y)
+                   (world_width, world_height))
           in
           (* Oceans *)
           let biome = classify_ocean_tile alt in
@@ -86,4 +84,5 @@ let world_setup () =
       | _ ->
           [%unreachable]
     done
-  done
+  done;
+  shut_down_noise_gen ()

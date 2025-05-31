@@ -38,6 +38,5 @@ build: [
 ]
 dev-repo: "git+https://github.com/CharlesAverill/TerraSim.git"
 pin-depends: [
-  [ "ppx_unreachable.1.0" "git+https://github.com/CharlesAverill/ppx_unreachable#main" ]
   [ "tgls.~dev" "git+https://github.com/dbuenzli/tgls#master" ]
 ]

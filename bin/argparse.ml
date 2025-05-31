@@ -1,12 +1,12 @@
-type arguments = { num_arg : int }
+type arguments = { test_noise : bool }
 
 let parse_arguments () =
-  let num_arg = ref 0 in
+  let test_noise = ref false in
   let speclist =
-    [ ("-n", Arg.Int (fun n -> num_arg := n), "Just a number!") ]
+    [ ("--test-noise", Arg.Set test_noise, "Test terrasim's noise generator") ]
   in
-  let usage_msg = "Usage: $PROJECT_NAME -n NUM_ARG" in
+  let usage_msg = "Usage: terrasim [--test-noise]" in
   Arg.parse speclist
     (fun n -> print_endline ("Anonymous argument: " ^ n))
     usage_msg;
-  { num_arg = !num_arg }
+  { test_noise = !test_noise }

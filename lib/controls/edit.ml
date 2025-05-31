@@ -58,6 +58,8 @@ let edit_handle_textinput (e : Sdl.event) (window : Sdl.window) =
       zoom_out ()
   | x when x = swap_camera_key ->
       toggle_camera_mode window
+  | x when x = hide_ui_key ->
+      Rendering.Edit_screen_data.toggle_edit_ui_popup ()
   | _ ->
       ()
 
@@ -101,7 +103,9 @@ let edit_handle_mouseclick (e : Sdl.event) (window : Sdl.window) =
               `Life lf;
               `Civilization civ;
             ] ->
-            open_examine_popup (tile_x, tile_y) alt biome lf
+            open_examine_popup
+              (mod_posneg tile_x world_width, mod_posneg tile_y world_height)
+              alt biome lf
         | _ ->
             [%unreachable])
   ) else

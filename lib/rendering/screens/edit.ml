@@ -141,15 +141,17 @@ let init_edit_screen_buttons (pos : int -> int -> int * int) (w : int -> int)
       b.initialized <- true)
     !edit_screen_buttons
 
+let ui_bevel_w = ref 0
+
 (** Draw the edit screen UI
     @param window Application's SDL window
     @param renderer Application window's SDL renderer
     @param cursor_pos Screen-space position of cursor *)
 let draw_edit_ui (window : Sdl.window) (renderer : Sdl.renderer)
     (cursor_pos : int * int) =
-  (* Draw the cursor *)
-  Draw_cursor.draw_cursor window cursor_pos;
-  let win_w, (win_h, ui_h) = get_edit_window_ui_w_h window in
+  let win_w, (win_h, ui_h) =
+    get_edit_window_ui_w_h window !Edit_screen_data.edit_ui_popup_open
+  in
   (* Initialize and draw the main UI popup *)
   if not !edit_ui_popup.initialized then
     edit_ui_popup :=
@@ -160,15 +162,16 @@ let draw_edit_ui (window : Sdl.window) (renderer : Sdl.renderer)
   let bevel_w, ui_buffer, ((ui_area_x, ui_area_y), (ui_area_w, ui_area_h)) =
     draw_popup renderer !edit_ui_popup
   in
+  ui_bevel_w := bevel_w;
   let ui_area_h =
     ui_area_h - ui_buffer
     (* take off an extra ui_buffer to handle two rows *)
   in
   (* First column *)
   let n_columns = 8 in
-  let fit = (win_w / n_columns, ui_area_h / 2) in
+  let fit = ((win_w / n_columns, ui_area_h / 2), true) in
   let pos row col =
-    let w, h = fit in
+    let w, h = fst fit in
     ( ui_area_x + ui_buffer + ((w + ui_buffer) * col),
       ui_area_y + ui_buffer + (row * (h + ui_buffer)) )
   in
@@ -182,7 +185,7 @@ let draw_edit_ui (window : Sdl.window) (renderer : Sdl.renderer)
   (* Remaining columns - UI Buttons *)
   (if any_buttons_uninit !edit_screen_buttons then
      let pos row col =
-       let w, h = fit in
+       let w, h = fst fit in
        ( ui_area_x + ui_buffer + (((w / 2) + ui_buffer) * (col + 1)),
          ui_area_y + ui_buffer )
      in
@@ -194,7 +197,12 @@ let draw_edit_ui (window : Sdl.window) (renderer : Sdl.renderer)
   (* Selected button highlight *)
   set_render_color select_highlight_color renderer;
   draw_rect_outer_thickness renderer
-    (List.nth !edit_screen_buttons !selected_edit_screen_button).bounding_box 3;
+    (List.nth !edit_screen_buttons !selected_edit_screen_button).bounding_box 3
+
+let draw_popups window renderer =
+  let win_w, (win_h, ui_h) =
+    get_edit_window_ui_w_h window !Edit_screen_data.edit_ui_popup_open
+  in
   (* Draw examine popup *)
   if !examine_popup_open then (
     (if not !examine_popup.initialized then
@@ -209,7 +217,28 @@ let draw_edit_ui (window : Sdl.window) (renderer : Sdl.renderer)
                ~h:(win_h - (2 * snd popup_buffer));
            initialized = true;
          });
-    let _ = draw_popup ~bevel_w:(Some bevel_w) renderer !examine_popup in
+    (* Draw popup *)
+    let _, ui_buffer, ((x, y), (ui_w, ui_h)) =
+      draw_popup ~bevel_w:(Some !ui_bevel_w) renderer !examine_popup
+    in
+    (* Draw examine info *)
+    let (tx, ty), alt, biome, lf = !examine_popup_data in
+    (* Draw position *)
+    let pos_w, pos_h =
+      render_text
+        ~fit:((ui_w, ui_h), false)
+        renderer
+        (x + ui_buffer, y + ui_buffer)
+        "(%d, %d)" tx ty
+    in
+    (* Draw altitude *)
+    let alt_w, alt_h =
+      render_text
+        ~fit:((ui_w, ui_h), false)
+        renderer
+        (x + ui_buffer, y + ui_buffer + pos_h + ui_buffer)
+        "Altitude: %d" alt
+    in
     ()
   )
 
@@ -230,7 +259,9 @@ let render_edit_screen (window : Sdl.window) (frame_counter : int)
   set_render_color black_color renderer;
   let* _ = Sdl.render_clear renderer in
   (* 1. Get window size in pixels *)
-  let window_w, (window_h, _) = get_edit_window_ui_w_h window in
+  let window_w, (window_h, _) =
+    get_edit_window_ui_w_h window !Edit_screen_data.edit_ui_popup_open
+  in
   tile_w := window_w / view_width ();
   tile_h := window_h / view_height ();
   (* 2. Determine number of tiles to draw (view width/height) *)
@@ -273,6 +304,9 @@ let render_edit_screen (window : Sdl.window) (frame_counter : int)
     done
   done;
   (* 4. Draw UI on top *)
-  draw_edit_ui window renderer cursor_pos;
+  Draw_cursor.draw_cursor window cursor_pos;
+  if !Edit_screen_data.edit_ui_popup_open then
+    draw_edit_ui window renderer cursor_pos;
+  draw_popups window renderer;
   (* 5. Show result *)
   Sdl.render_present renderer

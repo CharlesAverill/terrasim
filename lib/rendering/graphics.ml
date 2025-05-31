@@ -20,18 +20,26 @@ let init_sdl () =
   ()
 
 (** Create an SDL window
-    @param w Width
-    @param h Height
+    @param w
+    @param h
+    @param min_w
+    @param min_h
+    @param fullscreen_win Whether window should be fullscreen
     @param window_name Title of window
     @return SDL window object for application *)
-let create_window ?(w : int = 1920) ?(h : int = 1080) (window_name : string) :
-    Sdl.window =
+let create_window ?(w : int = 1920) ?(h : int = 1080) ?(min_w : int = 1280)
+    ?(min_h : int = 720) ?(fullscreen_win : bool = true) (window_name : string)
+    : Sdl.window =
   let* w =
     Sdl.create_window ~w ~h window_name
       (let open Sdl.Window in
-       opengl + fullscreen_desktop)
+       List.fold_left ( + ) opengl
+         (if fullscreen_win then
+            [ fullscreen_desktop ]
+          else
+            []))
   in
-  Sdl.set_window_minimum_size w ~w:1280 ~h:720;
+  Sdl.set_window_minimum_size w ~w:min_w ~h:min_h;
   w
 
 (** @param window The application's SDL window

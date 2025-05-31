@@ -12,7 +12,7 @@ let max_land_height = 31
 let deep_ocean_theshold = int_of_float (0.25 *. float max_land_height)
 
 (** Altitude threshold for classifying regular oceans *)
-let regular_ocean_theshold = int_of_float (0.35 *. float max_land_height)
+let regular_ocean_theshold = int_of_float (0.45 *. float max_land_height)
 
 (** Altitude threshold for classifying shallow oceans *)
 let shallow_ocean_theshold = int_of_float (0.5 *. float max_land_height)
@@ -69,12 +69,20 @@ let gaussian ~(x : int) ~(y : int) ~(cx : int) ~(cy : int) ~(sigma : float) :
 
 (** Adjust the altitude around a tile at [(x, y)] according to a
     {{!gaussian}gaussian distribution}
+
     @param raise If true, then raise, else lower altitude
     @param x
     @param y *)
 let adjust_terrain_gaussian ?(raise = true) (x : int) (y : int) =
+  let center_alt =
+    match get_grid_tile (x, y) [ `Altitude ] with
+    | Some [ `Altitude alt ] ->
+        alt
+    | _ ->
+        [%unreachable]
+  in
   let volcano_radius = 6 in
-  let volcano_peak_height = 10. in
+  let volcano_peak_height = 4. in
   let volcano_sigma = float volcano_radius /. 2. in
   for dy = -volcano_radius to volcano_radius do
     for dx = -volcano_radius to volcano_radius do
@@ -88,6 +96,10 @@ let adjust_terrain_gaussian ?(raise = true) (x : int) (y : int) =
            -1)
         * int_of_float (influence *. volcano_peak_height)
       in
-      change_altitude tx ty delta
+      match get_grid_tile (tx, ty) [ `Altitude ] with
+      | Some [ `Altitude alt ] ->
+          if alt <= center_alt then change_altitude tx ty delta
+      | _ ->
+          ()
     done
   done

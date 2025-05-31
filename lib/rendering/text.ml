@@ -6,6 +6,7 @@ open Assets.Assetloader
 open Assets.Fonts
 open Utils.Sdl_utils
 open Utils.Colors
+open Utils.Logging
 
 (** Font families included in build *)
 type font_family = CourierPrime | Jacquard12 | NewPortLand
@@ -46,6 +47,35 @@ let clear_text_cache () =
     (Hashtbl.to_seq_keys text_cache);
   Hashtbl.clear text_cache
 
+let real_font_size font s =
+  let above_padding = Ttf.font_line_skip font - Ttf.font_ascent font - 2 in
+  let below_padding = -1 - Ttf.font_descent font in
+  let* w, h = Ttf.size_text font s in
+  (w, h - above_padding - below_padding)
+
+let rec search_for_biggest open_font_with_size text_to_render (max_w, max_h) lo
+    hi best =
+  if lo > hi then
+    best
+  else
+    let mid = (lo + hi) / 2 in
+    match open_font_with_size mid with
+    | Error _ ->
+        search_for_biggest open_font_with_size text_to_render (max_w, max_h) lo
+          (mid - 1) best
+    | Ok f -> (
+        match real_font_size f text_to_render with
+        | w, h ->
+            if w <= max_w && h <= max_h then
+              search_for_biggest open_font_with_size text_to_render
+                (max_w, max_h) (mid + 1) hi
+                (Some (f, mid))
+            else (
+              Ttf.close_font f;
+              search_for_biggest open_font_with_size text_to_render
+                (max_w, max_h) lo (mid - 1) best
+            ))
+
 (** Render a formatted string to the screen
 
     @param font_family
@@ -53,7 +83,9 @@ let clear_text_cache () =
     @param ptsize Point size of text to render
     @param color Color of text to render
     @param fit
-      If set, defines a bounding box that [ptsize] will be scaled up to match
+      A bounding box, and whether the text should be scaled up to fit to the
+      bounding box ([true]) or whether the text should be scaled down to fit to
+      the bounding box ([false]) in the case that it is too large
     @param draw_bounding_box
       For debugging, indicates to draw a red bounding box around the rendered
       texture
@@ -67,15 +99,9 @@ let clear_text_cache () =
       caused by a font's ascent and descent *)
 let render_text ?(font_family : font_family = NewPortLand)
     ?(style : text_style = Regular) ?(ptsize : int = 48)
-    ?(color : int * int * int = color_black) ?(fit : (int * int) option)
-    ?(draw_bounding_box : bool = false) (renderer : Sdl.renderer)
-    ((x, y) : int * int) fmt =
-  let real_font_size font s =
-    let above_padding = Ttf.font_line_skip font - Ttf.font_ascent font - 2 in
-    let below_padding = -1 - Ttf.font_descent font in
-    let* w, h = Ttf.size_text font s in
-    (w, h - above_padding - below_padding)
-  in
+    ?(color : int * int * int = color_black)
+    ?(fit : ((int * int) * bool) option) ?(draw_bounding_box : bool = false)
+    (renderer : Sdl.renderer) ((x, y) : int * int) fmt =
   Printf.ksprintf
     (fun text_to_render ->
       let text_texture, font =
@@ -92,35 +118,40 @@ let render_text ?(font_family : font_family = NewPortLand)
             in
 
             (* Binary search for largest size that fits *)
-            let* font, final_size =
+            let font, final_size =
               match fit with
               | None ->
                   let* f = open_font_with_size ptsize in
-                  Ok (f, ptsize)
-              | Some (max_w, max_h) -> (
-                  let rec search lo hi best =
-                    if lo > hi then
-                      best
-                    else
-                      let mid = (lo + hi) / 2 in
-                      match open_font_with_size mid with
-                      | Error _ ->
-                          search lo (mid - 1) best
-                      | Ok f -> (
-                          match real_font_size f text_to_render with
-                          | w, h ->
-                              if w <= max_w && h <= max_h then
-                                search (mid + 1) hi (Some (f, mid))
-                              else (
-                                Ttf.close_font f;
-                                search lo (mid - 1) best
-                              ))
-                  in
-                  match search 4 256 None with
-                  | Some res ->
-                      Ok res
-                  | None ->
-                      Error (`Msg "No fitting font size found"))
+                  (f, ptsize)
+              | Some ((max_w, max_h), scale_up) ->
+                  if scale_up then
+                    match
+                      search_for_biggest open_font_with_size text_to_render
+                        (max_w, max_h) 4 256 None
+                    with
+                    | None ->
+                        fatal rc_Error
+                          "Failed to find fitting font for string: %s"
+                          text_to_render
+                    | Some x ->
+                        x
+                  else
+                    let ptsize = ref ptsize in
+                    let font =
+                      ref
+                        (let* x = open_font_with_size !ptsize in
+                         x)
+                    in
+                    while
+                      let w, h = real_font_size !font text_to_render in
+                      w > max_w || h > max_h
+                    do
+                      ptsize := !ptsize - 1;
+                      font :=
+                        let* x = open_font_with_size !ptsize in
+                        x
+                    done;
+                    (!font, !ptsize)
             in
 
             let* text_surf =

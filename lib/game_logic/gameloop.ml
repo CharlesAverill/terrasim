@@ -58,7 +58,8 @@ let gameloop_iter (window : Sdl.window) (event : Sdl.event) : bool =
   | Some (Edit2D _) ->
       (* These need to run every frame, regardless of whether there is an input event *)
       pan_edit_camera_if_needed window
-        !Rendering.Popup.pause_everything_for_popup;
+        !Rendering.Popup.pause_everything_for_popup
+        !Rendering.Edit_screen_data.edit_ui_popup_open;
       cursor_go_to_mouse ();
       Rendering.Edit.render_edit_screen window !frame_counter
         (global_cursor.x, global_cursor.y)

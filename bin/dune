@@ -7,6 +7,7 @@
   terrasim.controls
   terrasim.game_logic
   terrasim.assets
+  terrasim.native.simplex_noise
   tsdl)
  (ocamlopt_flags
   (:standard -O3)))

@@ -1,0 +1,19 @@
+(library
+ (name native)
+ (public_name terrasim.native)
+ (modules))
+
+(include_subdirs unqualified)
+
+(library
+ (name simplex_noise)
+ (public_name terrasim.native.simplex_noise)
+ (modules simplex_noise)
+ (libraries ctypes ctypes.foreign)
+ (foreign_stubs
+  (language c)
+  (flags
+   (:standard -O3))
+  (names open-simplex-noise))
+ (c_library_flags
+  (-W -Wall -Wextra -O3)))

@@ -88,22 +88,21 @@ let render_tiles ?(fbo : Sdl.uint8 option = None) (window : Sdl.window)
     (sprogram : int) (vao : int) (num_instances : int) =
   Gl.bind_framebuffer Gl.framebuffer
     (match fbo with Some fb -> fb | None -> 0);
-  Gl.viewport 0 0
-    (if fbo = None then
-       fst (Sdl.get_window_size window)
-     else
-       512)
-    (* or desired tex size *)
-    (if fbo = None then
-       snd (Sdl.get_window_size window)
-     else
-       512);
-  Gl.clear_color 0.1 0.1 0.1 1.;
+  let w, h =
+    if fbo = None then
+      Sdl.get_window_size window
+    else
+      (512, 512)
+  in
+  Gl.viewport 0 0 w h;
+  Gl.clear_color 0. 0. 0. 1.;
   Gl.clear Gl.color_buffer_bit;
   Gl.use_program sprogram;
   Gl.bind_vertex_array vao;
-  let u_scale = Gl.get_uniform_location sprogram "uScale" in
-  Gl.uniform1f u_scale (1. /. 30.);
+  let u_scale_x = Gl.get_uniform_location sprogram "uScaleX" in
+  Gl.uniform1f u_scale_x (2. /. float world_width);
+  let u_scale_y = Gl.get_uniform_location sprogram "uScaleY" in
+  Gl.uniform1f u_scale_y (2. /. float world_height);
   Gl.draw_arrays_instanced Gl.triangles 0 6 num_instances;
   Gl.bind_framebuffer Gl.framebuffer 0;
   if fbo = None then Sdl.gl_swap_window window
@@ -139,7 +138,8 @@ let create_render_texture ~(width : int) ~(height : int) : int * int =
 (** Iterate over the world grid to populate offset and color arrays for each
     tile
     @return [(offsets, colors)] *)
-let make_tile_data () : (float * float) array * (float * float * float) array =
+let make_tile_data ?(use_atlas_camera : bool = true) () :
+    (float * float) array * (float * float * float) array =
   let num_tiles = world_width * world_height in
   let offsets = Array.make num_tiles (0.0, 0.0) in
   let colors = Array.make num_tiles (0.0, 0.0, 0.0) in
@@ -163,7 +163,16 @@ let make_tile_data () : (float * float) array * (float * float * float) array =
             [%unreachable]
       in
       let wx, wy = (!idx mod world_width, !idx / world_width) in
-      let wx = mod_posneg (wx + atlas_camera.x) world_width in
+      let wx =
+        mod_posneg
+          (wx
+          +
+          if use_atlas_camera then
+            atlas_camera.x
+          else
+            0)
+          world_width
+      in
       (* Convert to NDC position of bottom-left corner of tile *)
       let ndc_x = -1.0 +. (float wx *. scale_x) in
       let ndc_y = -1.0 +. (float wy *. scale_y) in
@@ -193,7 +202,7 @@ let render_atlas_screen ?(to_texture : bool = false) (window : Sdl.window) :
     | Some x ->
         x
   in
-  let offsets, colors = make_tile_data () in
+  let offsets, colors = make_tile_data ~use_atlas_camera:(not to_texture) () in
   let vao = setup_tile_buffers ~offsets ~colors in
   let fbo, tex =
     if to_texture then

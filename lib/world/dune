@@ -3,6 +3,6 @@
 (library
  (name world)
  (public_name terrasim.world)
- (libraries terrasim.assets terrasim.utils)
+ (libraries terrasim.assets terrasim.utils terrasim.native.simplex_noise)
  (preprocess
   (pps ppx_unreachable)))

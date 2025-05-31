@@ -3,7 +3,7 @@
 open Biomes
 open Life.Lifeform
 
-let world_width, world_height = (128, 64)
+let world_width, world_height = (256, 128)
 
 type world_grid = {
   altitude : int array;

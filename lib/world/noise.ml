@@ -1,177 +1,94 @@
-(** Simplex noise implementation
+(** Simplex noise generator and FBM
 
-    Largely pulled from
-    {{:http://alaska-kamtchatka.blogspot.com/2012/01/perlins-simplex-noise.html}Matias
-     Giovanni's implementation}, modified to support tiling (kinda) *)
+    https://github.com/smcameron/open-simplex-noise-in-c *)
 
-let patterns = [| 0o25; 0o70; 0o62; 0o54; 0o15; 0o23; 0o07; 0o52 |]
-let btst n b = (n lsr b) land 1
-let bmix i j k b = patterns.((btst i b lsl 2) lor (btst j b lsl 1) lor btst k b)
+open Simplex_noise
+open Utils.Standard_utils
 
-let shuffle ?(seed = 0) (i, j, k) =
-  let i, j, k = (i + seed, j + seed, k + seed) in
-  bmix i j k 0 + bmix j k i 1 + bmix k i j 2 + bmix i j k 3 + bmix j k i 4
-  + bmix k i j 5 + bmix i j k 6 + bmix j k i 7
+let ctx = ref (Ctypes.addr (Ctypes.make osn_context))
+let shut_down_noise_gen () = destroy_osn_context !ctx
 
-let magnitude ?(mag_scale = 1.) h (x, y, z) =
-  let p, q, r =
-    match h land 7 with
-    | 0 ->
-        (z, x, y)
-    | 1 ->
-        (x, y, 0.)
-    | 2 ->
-        (y, z, 0.)
-    | 3 ->
-        (z, x, 0.)
-    | 4 ->
-        (z, x, y)
-    | 5 ->
-        (x, 0., z)
-    | 6 ->
-        (y, 0., x)
-    | 7 ->
-        (z, 0., y)
-    | _ ->
-        assert false
-  in
-  match (h lsr 3) land 7 with
-  | 0 ->
-      mag_scale *. (-.p -. q +. r)
-  | 1 ->
-      mag_scale *. (+.p -. q -. r)
-  | 2 ->
-      mag_scale *. (-.p +. q -. r)
-  | 3 ->
-      mag_scale *. (+.p +. q +. r)
-  | 4 ->
-      mag_scale *. (+.p +. q -. r)
-  | 5 ->
-      mag_scale *. (-.p +. q +. r)
-  | 6 ->
-      mag_scale *. (+.p -. q +. r)
-  | 7 ->
-      mag_scale *. (-.p -. q -. r)
-  | _ ->
-      assert false
-
-let simplices =
-  [|
-    [| (0, 0, 0); (1, 0, 0); (1, 1, 0); (1, 1, 1) |];
-    [| (0, 0, 0); (1, 0, 0); (1, 0, 1); (1, 1, 1) |];
-    [| (0, 0, 0); (0, 1, 0); (1, 1, 0); (1, 1, 1) |];
-    [| (0, 0, 0); (0, 1, 0); (0, 1, 1); (1, 1, 1) |];
-    [| (0, 0, 0); (0, 0, 1); (1, 0, 1); (1, 1, 1) |];
-    [| (0, 0, 0); (0, 0, 1); (0, 1, 1); (1, 1, 1) |];
-  |]
-
-let permindex (u, v, w) =
-  if u >= w then
-    if u >= v then
-      if v >= w then
-        0
-      else
-        1
-    else
-      2
-  else if v >= w then
-    3
-  else if u >= v then
-    4
-  else
-    5
-
-let int x =
-  if x < 0. then
-    pred (truncate x)
-  else
-    truncate x
-
-let skew (x, y, z) =
-  let s = (x +. y +. z) /. 3. in
-  let i = int (x +. s) and j = int (y +. s) and k = int (z +. s) in
-  (i, j, k)
-
-let unskew (x, y, z) (i, j, k) =
-  let s = float (i + j + k) /. 6. in
-  let u = x -. float i +. s
-  and v = y -. float j +. s
-  and w = z -. float k +. s in
-  (u, v, w)
-
-let norm2 (x, y, z) = (x *. x) +. (y *. y) +. (z *. z)
-let addi3 (i, j, k) (i', j', k') = (i + i', j + j', k + k')
-
-let noise ?(seed = 0) ?(mag_scale = 1.) ?(tile_x_width = None) ?(x_scale = 1.)
-    ?(y_scale = 1.) (x, y, z) =
-  let x, y, z =
-    match tile_x_width with
+let init_noise_gen ?(seed : int option = None) () =
+  let seed =
+    match seed with
+    | Some x ->
+        x
     | None ->
-        (x, y, z)
-    | Some w ->
-        let theta = 2. *. Float.pi *. x /. float w in
-        (Float.cos theta, y, Float.sin theta)
+        Random.self_init ();
+        Random.int 4096
   in
-  let x, y = (x *. x_scale, y *. y_scale) in
-  let l = skew (x, y, z) in
-  let x = unskew (x, y, z) l in
-  let s = simplices.(permindex x) in
-  let f = ref 0. in
-  for i = 0 to 3 do
-    let v = s.(i) in
-    let y = unskew x v in
-    let t = 0.6 -. norm2 y in
-    if t > 0. then
-      let h = shuffle ~seed (addi3 l v) in
-      let t = t *. t in
-      f := !f +. (8. *. t *. t *. magnitude ~mag_scale h y)
-  done;
-  (!f +. 1.) /. 2.
+  ctx := create_osn_context (Int64.of_int seed)
 
-let contrast f power =
-  if f < 0.5 then
-    0.5 *. ((2. *. f) ** power)
-  else
-    1.0 -. (0.5 *. ((2. *. (1.0 -. f)) ** power))
+(** A single octave of 4-dimensional simplex noise, sampled on two circles.
+    Tiles on [w] and [h]
 
-(** Noise generator entrypoint -
-    {:https://en.wikipedia.org/wiki/Fractional_Brownian_motion}
-    @param seed Random seed
-    @param octaves Layers of noise to combine
-    @param persistence Not sure what this one does
-    @param lacunarity
-      Something to do with the granularity of the generated noise
-    @param mag_scale Magnitude of generated noise
-    @param contrast_power Kind of like magnitude but for contrast
-    @param tile_x_width Enables tiling if set to width one tile
-    @param x_scale Horizontal scale of noise
-    @param y_scale Vertical scale of noise
-    @param xyz Tuple of coordinates on noise surface
-    @return Noise value *)
-let fbm ?(seed = 0) ?(octaves = 5) ?(persistence = 0.5) ?(lacunarity = 2.0)
-    ?(mag_scale = 1.) ?(contrast_power = 1.) ?(tile_x_width = None)
-    ?(x_scale = 1.) ?(y_scale = 1.) ((x, y, z) : float * float * float) =
-  let f = ref 0.0 in
-  let amp = ref 1.0 in
-  let freq = ref 1.0 in
-  let max_amp = ref 0.0 in
-  for _ = 0 to octaves - 1 do
-    f :=
-      !f
-      +. !amp
-         *. noise ~seed ~mag_scale ~tile_x_width ~x_scale ~y_scale
-              (x *. !freq, y *. !freq, z *. !freq);
-    max_amp := !max_amp +. !amp;
-    amp := !amp *. persistence;
-    freq := !freq *. lacunarity
+    @param scale Zoom factor (radius of circles sampled from)
+    @param ctx Should be {!ctx}, initialize via {!init_noise_gen}
+    @param x
+    @param y
+    @param w Tile width
+    @param h Tile height *)
+let noise_2d ?(scale : float = 1.) ctx (x, y) (w, h) frequency amplitude : float
+    =
+  let two_pi = 2. *. Float.pi in
+  let s = two_pi *. float x /. float w in
+  let t = two_pi *. float y /. float h in
+  let nx = scale *. Float.cos s in
+  let ny = scale *. Float.cos t in
+  let nz = scale *. Float.sin s in
+  let nw = scale *. Float.sin t in
+
+  amplitude
+  *. open_simplex_noise_4d ctx (frequency *. nx) (frequency *. ny)
+       (frequency *. nz) (frequency *. nw)
+
+(** Fractal Brownian Motion using tiled 4D simplex noise on two circles.
+
+    @param ?scale Base scale (circle radius)
+    @param ?octaves Number of noise octaves
+    @param ?persistence Amplitude decay factor per octave
+    @param ?lacunarity Frequency growth factor per octave
+    @param x
+    @param y
+    @param w Tile width (wraps in X)
+    @param h Tile height (wraps in Y)
+    @return Noise value in {m [0, 1]} *)
+let fbm_2d ?(scale_xy : float * float = (1., 1.)) ?(octaves = 4)
+    ?(persistence = 0.5) ?(lacunarity = 2.0) ?(base_freq : float = 1.0)
+    ?(base_ampl : float = 1.0) ?(contrast : float = 1.) (x, y) (w, h) : float =
+  let scale_x, scale_y = scale_xy in
+  let two_pi = 2. *. Float.pi in
+  let s = two_pi *. float x /. float w in
+  let t = two_pi *. float y /. float h in
+  let nx = scale_y *. Float.cos s in
+  let ny = scale_x *. Float.cos t in
+  let nz = scale_y *. Float.sin s in
+  let nw = scale_x *. Float.sin t in
+
+  let n = ref 0. in
+  let amplitude = ref base_ampl in
+  let frequency = ref base_freq in
+  for i = 0 to octaves do
+    n :=
+      !n
+      +. !amplitude
+         *. open_simplex_noise_4d !ctx (!frequency *. nx) (!frequency *. ny)
+              (!frequency *. nz) (!frequency *. nw);
+    amplitude := !amplitude *. persistence;
+    frequency := !frequency *. lacunarity
   done;
-  let x = !f /. !max_amp in
-  let x =
-    if x < 0. then
-      0.
-    else if x > 1. then
-      1.
+
+  (* let rec loop i frequency amplitude sum =
+    if i >= octaves then
+      sum
     else
-      x
+      (* let n = noise_2d ~scale !ctx (x, y) (w, h) frequency amplitude in *)
+      let n = amplitude
+      *. open_simplex_noise_4d !ctx (frequency *. nx) (frequency *. ny)
+           (frequency *. nz) (frequency *. nw) in 
+      loop (i + 1) (frequency *. lacunarity) (amplitude *. persistence)
+        (sum +. n)
   in
-  contrast x contrast_power
+  let n = loop 0 base_freq 1. 0. in *)
+  let n = (clamp !n (-1.) 1. +. 1.) /. 2. in
+  Float.pow n contrast

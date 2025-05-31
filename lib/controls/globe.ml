@@ -30,7 +30,7 @@ let globe_handle_mousemotion (e : Sdl.event) =
       let dx = -2. *. float (x - lx) in
       let dy = -2. *. float (y - ly) in
       velocity_lon := clamp dx (-.max_globe_speed) max_globe_speed;
-      velocity_lat := dy;
+      velocity_lat := clamp dy (-.max_globe_speed) max_globe_speed;
       globe_last_mouse_pos := Some (x, y)
   | _ ->
       globe_last_mouse_pos := Some (x, y)

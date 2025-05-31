@@ -10,6 +10,7 @@ module type ScreenControls = sig
 end
 
 let swap_camera_key = "c"
+let hide_ui_key = "h"
 
 (** Toggle camera mode between the edit, atlas, and globe screens
     @param window Application's SDL window *)

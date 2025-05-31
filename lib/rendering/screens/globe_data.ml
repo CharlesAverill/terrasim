@@ -19,7 +19,7 @@ let min_abs_velocity_lon = 0.25
 let velocity_lon = ref min_abs_velocity_lon
 
 (** Maximum globe spin speed in degrees per frame *)
-let max_globe_speed = 16.
+let max_globe_speed = 8.
 
 (** Decay of rotational velocity in degrees per frame per frame *)
 let globe_spin_friction = 0.0125
