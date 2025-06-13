@@ -78,17 +78,5 @@ let fbm_2d ?(scale_xy : float * float = (1., 1.)) ?(octaves = 4)
     frequency := !frequency *. lacunarity
   done;
 
-  (* let rec loop i frequency amplitude sum =
-    if i >= octaves then
-      sum
-    else
-      (* let n = noise_2d ~scale !ctx (x, y) (w, h) frequency amplitude in *)
-      let n = amplitude
-      *. open_simplex_noise_4d !ctx (frequency *. nx) (frequency *. ny)
-           (frequency *. nz) (frequency *. nw) in 
-      loop (i + 1) (frequency *. lacunarity) (amplitude *. persistence)
-        (sum +. n)
-  in
-  let n = loop 0 base_freq 1. 0. in *)
   let n = (clamp !n (-1.) 1. +. 1.) /. 2. in
   Float.pow n contrast

@@ -11,6 +11,7 @@ open World.Biomes
 open World.Grid
 open World.Altitude
 open Rendering.Edit
+open Rendering.Edit_ui
 open Rendering.Button
 open Rendering.Popup
 open World.Life.Lifeform

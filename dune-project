@@ -26,7 +26,7 @@
   (odoc 
    (and (= 2.4.4) :with-doc))
   (md2mld :with-doc)
-  (tsdl (= 1.1.0))
+  tsdl
   tgls
   tsdl-image
   tsdl-ttf

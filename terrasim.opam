@@ -14,7 +14,7 @@ depends: [
   "ocamlformat" {with-test}
   "odoc" {= "2.4.4" & with-doc}
   "md2mld" {with-doc}
-  "tsdl" {= "1.1.0"}
+  "tsdl"
   "tgls"
   "tsdl-image"
   "tsdl-ttf"
@@ -37,6 +37,3 @@ build: [
   ]
 ]
 dev-repo: "git+https://github.com/CharlesAverill/TerraSim.git"
-pin-depends: [
-  [ "tgls.~dev" "git+https://github.com/dbuenzli/tgls#master" ]
-]

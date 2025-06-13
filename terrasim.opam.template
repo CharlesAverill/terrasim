@@ -1,3 +1,0 @@
-pin-depends: [
-  [ "tgls.~dev" "git+https://github.com/dbuenzli/tgls#master" ]
-]

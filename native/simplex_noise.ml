@@ -1,11 +1,11 @@
 open Ctypes
 open Foreign
 
-(* 
-struct osn_context {
-	int16_t *perm;
-	int16_t *permGradIndex3D;
-};
+(*
+   struct osn_context {
+   	int16_t *perm;
+   	int16_t *permGradIndex3D;
+   };
 *)
 
 type osn_context
