@@ -185,8 +185,12 @@ let draw_popups window renderer =
 
 let render_edit_ui (window : Sdl.window) (renderer : Sdl.renderer)
     (cursor_pos : int * int) =
+  let* _ = Sdl.set_render_target renderer !Ui_texture.ui_texture in
+  let* _ = Sdl.set_render_draw_color renderer 0 0 0 0 in
+  let* _ = Sdl.render_clear renderer in
   Draw_cursor.draw_cursor window cursor_pos;
   if !Edit_screen_data.edit_ui_popup_open then
     draw_edit_ui window renderer cursor_pos;
   draw_popups window renderer;
-  Sdl.render_present renderer
+  let* _ = Sdl.set_render_target renderer None in
+  ()

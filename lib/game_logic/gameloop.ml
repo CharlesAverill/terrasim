@@ -51,14 +51,16 @@ let gameloop_iter (window : Sdl.window) (event : Sdl.event) : bool =
 
 (** Game entrypoint, call {!World.World_setup.world_setup} and then loop over
     {!gameloop_iter}
-    @param window The application's SDL window *)
-let run_game_loop (window : Sdl.window) : unit =
+    @param window The application's SDL window
+    @param ui_window A hidden window used for rendering the UI *)
+let run_game_loop (window : Sdl.window) (ui_window : Sdl.window) : unit =
   let event = Sdl.Event.create () in
   let loop_continue = ref true in
   world_setup ();
   current_camera_mode := Some (Edit2D edit_camera);
   (* Initializes the global renderer state *)
-  swap_render_mode window;
+  swap_render_mode ~ui_window window;
+  Rendering.Ui_texture.create_ui_texture ui_window;
   (* ignore (Opengl_tutorial.main window) ; *)
   while !loop_continue do
     loop_continue := gameloop_iter window event

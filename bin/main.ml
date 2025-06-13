@@ -79,6 +79,10 @@ let () =
   else (
     init_sdl ();
     let window = create_window "TerraSim" in
+    let ui_window =
+      create_window ~w:0 ~h:0 ~min_w:0 ~min_h:0 ~fullscreen_win:false
+        ~hidden_win:true "TerraSim UI"
+    in
     set_window_icon window Assets.Sprites.daisy_00_sprite;
-    run_game_loop window
+    run_game_loop window ui_window
   )

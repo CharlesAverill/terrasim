@@ -5,6 +5,7 @@ open Cameras.Atlas_camera
 open Controls.Cursor
 open Rendering.Globe_data
 open Rendering.Graphics
+open Utils.Sdl_utils
 
 let handle_render_iter (window : Sdl.window) (frame_counter : int) =
   match !current_camera_mode with
@@ -41,7 +42,13 @@ let handle_render_iter (window : Sdl.window) (frame_counter : int) =
 let handle_ui_iter (window : Sdl.window) =
   match !current_camera_mode with
   | Some (Edit2D _) ->
-      Rendering.Edit_ui.render_edit_ui window (get_global_renderer ())
-        (Controls.Cursor.global_cursor.x, Controls.Cursor.global_cursor.y)
+      let renderer = get_global_renderer () in
+      Rendering.Edit_ui.render_edit_ui window renderer
+        (Controls.Cursor.global_cursor.x, Controls.Cursor.global_cursor.y);
+      let* _ = Sdl.set_render_draw_blend_mode renderer Sdl.Blend.mode_add in
+      let* _ =
+        Sdl.render_copy renderer (Rendering.Ui_texture.get_ui_texture ())
+      in
+      Sdl.render_present renderer
   | _ ->
       ()

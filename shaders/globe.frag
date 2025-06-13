@@ -46,6 +46,7 @@ float intersectSphere(vec3 camera, vec3 ray, vec3 sphereOrigin, float sphereRadi
 }
 
 /// Stars
+// https://www.shadertoy.com/view/3dSXWt
 // divisions of grid
 const float repeats = 30.;
 

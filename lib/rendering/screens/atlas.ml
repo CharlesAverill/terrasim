@@ -135,17 +135,9 @@ let create_render_texture ~(width : int) ~(height : int) : int * int =
   Gl.bind_framebuffer Gl.framebuffer 0;
   (fbo, tex)
 
-(** Iterate over the world grid to populate offset and color arrays for each
-    tile
-    @return [(offsets, colors)] *)
-let make_tile_data ?(use_atlas_camera : bool = true) () :
-    (float * float) array * (float * float * float) array =
-  let num_tiles = world_width * world_height in
-  let offsets = Array.make num_tiles (0.0, 0.0) in
-  let colors = Array.make num_tiles (0.0, 0.0, 0.0) in
-  (* NDC units *)
-  let scale_x = 2.0 /. float world_width in
-  let scale_y = 2.0 /. float world_height in
+let render_altitude (use_atlas_camera : bool)
+    ((scale_x, scale_y) : float * float) (offsets : (float * float) array)
+    (colors : (float * float * float) array) =
   let altitudes = grid.altitude in
   let biomes = grid.biome in
   let idx = ref 0 in
@@ -179,7 +171,25 @@ let make_tile_data ?(use_atlas_camera : bool = true) () :
       offsets.(!idx) <- (ndc_x, -.ndc_y -. scale_y);
       colors.(!idx) <- (float r /. 255., float g /. 255., float b /. 255.);
       idx := !idx + 1)
-    altitudes biomes;
+    altitudes biomes
+
+(** Iterate over the world grid to populate offset and color arrays for each
+    tile
+    @return [(offsets, colors)] *)
+let make_tile_data ?(use_atlas_camera : bool = true) () :
+    (float * float) array * (float * float * float) array =
+  let num_tiles = world_width * world_height in
+  let offsets = Array.make num_tiles (0.0, 0.0) in
+  let colors = Array.make num_tiles (0.0, 0.0, 0.0) in
+  (* NDC units *)
+  let scale_x = 2.0 /. float world_width in
+  let scale_y = 2.0 /. float world_height in
+  (* Render selected map mode *)
+  (match !Atlas_screen_data.map_view_mode with
+  | `Altitude ->
+      render_altitude use_atlas_camera (scale_x, scale_y) offsets colors
+  | _ ->
+      ());
   (offsets, colors)
 
 (** Shader program compiled for the current OpenGL context, or [None] *)

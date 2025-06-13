@@ -28,16 +28,22 @@ let init_sdl () =
     @param window_name Title of window
     @return SDL window object for application *)
 let create_window ?(w : int = 1920) ?(h : int = 1080) ?(min_w : int = 1280)
-    ?(min_h : int = 720) ?(fullscreen_win : bool = true) (window_name : string)
-    : Sdl.window =
+    ?(min_h : int = 720) ?(fullscreen_win : bool = true)
+    ?(hidden_win : bool = false) (window_name : string) : Sdl.window =
   let* w =
     Sdl.create_window ~w ~h window_name
       (let open Sdl.Window in
        List.fold_left ( + ) opengl
-         (if fullscreen_win then
-            [ fullscreen_desktop ]
-          else
-            []))
+         ([]
+         @ (if fullscreen_win then
+              [ fullscreen_desktop ]
+            else
+              [])
+         @
+         if hidden_win then
+           [ hidden ]
+         else
+           []))
   in
   Sdl.set_window_minimum_size w ~w:min_w ~h:min_h;
   w
@@ -102,8 +108,9 @@ let use_opengl (window : Sdl.window) (renderer : Sdl.renderer) : Sdl.gl_context
   get_opengl_context window
 
 (** Swap between SDL <-> OpenGL rendering
+    @param ui_window A hidden window for rendering the UI
     @param window Application's SDL window *)
-let swap_render_mode (window : Sdl.window) =
+let swap_render_mode ?(ui_window : Sdl.window option) (window : Sdl.window) =
   (* Edit screen reset *)
   clear_edit_cache ();
   (* Atlas screen reset *)
