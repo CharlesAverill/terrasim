@@ -1,4 +1,9 @@
 open World.Grid
+(** Data for the atlas screen *)
 
-let map_view_mode : world_tile_attr_getter ref = ref `Altitude
-let set_map_view_mode (mode : world_tile_attr_getter) = map_view_mode := mode
+(** Which atlas view is active *)
+let atlas_view_mode : world_tile_attr_getter ref = ref `Altitude
+
+(** Set the active atlas view *)
+let set_atlas_view_mode (mode : world_tile_attr_getter) =
+  atlas_view_mode := mode

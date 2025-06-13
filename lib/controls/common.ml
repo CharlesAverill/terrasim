@@ -5,10 +5,6 @@ open Cameras.Camera
 open Cameras.Edit_camera
 open Rendering.Graphics
 
-module type ScreenControls = sig
-  val handle_ui_event : Sdl.event -> Sdl.window -> unit
-end
-
 let swap_camera_key = "c"
 let hide_ui_key = "h"
 

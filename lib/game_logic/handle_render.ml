@@ -1,3 +1,5 @@
+(** Handling rendering for the game loop *)
+
 open Tsdl
 open Cameras.Camera
 open Cameras.Edit_camera
@@ -7,6 +9,9 @@ open Rendering.Globe_data
 open Rendering.Graphics
 open Utils.Sdl_utils
 
+(** Do one iteration of rendering
+    @param window The application's SDL window
+    @param frame_counter The current frame count *)
 let handle_render_iter (window : Sdl.window) (frame_counter : int) =
   match !current_camera_mode with
   | Some (Edit2D _) ->
@@ -39,6 +44,9 @@ let handle_render_iter (window : Sdl.window) (frame_counter : int) =
   | None ->
       ()
 
+(** Do one iteration of UI rendering
+    @param window The application's SDL window
+    @param frame_count The current frame count *)
 let handle_ui_iter (window : Sdl.window) (frame_count : int) =
   match !current_camera_mode with
   | Some (Edit2D _) ->

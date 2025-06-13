@@ -14,9 +14,7 @@ open Text
 open Button
 open Popup
 open Graphics
-
-(** How many frames it takes to draw the next frame of an animated tile *)
-let animated_tile_update_factor = 8
+open Edit_screen_data
 
 (** Cache for tile textures *)
 let tile_texture_cache : (biome_tile * int * int, Sdl.texture) Hashtbl.t =
@@ -84,7 +82,7 @@ let render_edit_screen (window : Sdl.window) (frame_counter : int) =
   let* _ = Sdl.render_clear renderer in
   (* Get window size in pixels *)
   let window_w, (window_h, _) =
-    get_edit_window_ui_w_h window !Edit_screen_data.edit_ui_popup_open
+    get_edit_window_ui_w_h window !edit_ui_popup_open
   in
   tile_w := window_w / view_width ();
   tile_h := window_h / view_height ();

@@ -3,6 +3,10 @@
 open Tsdl
 open Cameras.Camera
 
+(** Do one iteration of input handling
+    @param window The application's SDL window
+    @param event Event object to use for polling
+    @return Whether the game loop should continue *)
 let handle_input_iter (window : Sdl.window) (event : Sdl.event) : bool =
   let loop_continue = ref true in
   Sdl.pump_events ();

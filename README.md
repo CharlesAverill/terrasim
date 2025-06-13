@@ -36,6 +36,7 @@ There are three views right now:
 | Mouse move | Pan view |
 | Mouse click | Run command denoted by highlighted UI button |
 | `c` | Switch to Atlas view |
+| `h` | Hide the UI |
 
 ### Atlas view (Cartesian)
 

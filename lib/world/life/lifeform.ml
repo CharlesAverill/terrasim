@@ -1,5 +1,6 @@
 (** Logic for handling the available classes of life and their properties *)
 
+open Tsdl
 open Assets.Sprites
 open Assets.Assetloader
 open Utils.Sdl_utils
@@ -81,7 +82,7 @@ let string_of_lifeform (lf : lifeform) : string =
     @return
       The sprite blob associated with the lifeform's species, stage, and variant
 *)
-let blob_of_lifeform (frame_count : int) (lf : lifeform) =
+let blob_of_lifeform (frame_count : int) (lf : lifeform) : asset_blob =
   let expected_anim_frames = 2 in
   List.nth
     (let l =
@@ -94,7 +95,7 @@ let blob_of_lifeform (frame_count : int) (lf : lifeform) =
          (string_of_lifeform lf) expected_anim_frames
      else
        l)
-    frame_count
+    (frame_count mod expected_anim_frames)
 
 (** Determine the class of life that a lifeform can evolve into
     @param lf The lifeform

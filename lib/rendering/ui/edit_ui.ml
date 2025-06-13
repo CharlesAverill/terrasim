@@ -1,3 +1,5 @@
+(** Rendering logic for the Edit screen UI *)
+
 open Tsdl
 open Button
 open Popup
@@ -8,6 +10,7 @@ open Cameras.Edit_camera
 open Utils.Sdl_utils
 open Utils.Colors
 open Utils.Globals
+open Edit_screen_data
 
 (** Identifiers for {!edit_screen_buttons} *)
 type edit_button = Volcano | Asteroid | Examine
@@ -36,32 +39,6 @@ let edit_screen_buttons : edit_button ui_button list ref =
       };
     ]
 
-(** Edit screen's main UI popup *)
-let edit_ui_popup : popup ref =
-  ref
-    { bounding_box = Sdl.Rect.create ~x:0 ~y:0 ~w:0 ~h:0; initialized = false }
-
-(** Popup for examining a tile *)
-let examine_popup : popup ref =
-  ref
-    { bounding_box = Sdl.Rect.create ~x:0 ~y:0 ~w:0 ~h:0; initialized = false }
-
-let examine_popup_open = ref false
-
-let examine_popup_data : ((int * int) * int * biome_tile * lifeform option) ref
-    =
-  ref ((0, 0), 0, Land Nothing, None)
-
-let open_examine_popup ((tile_x, tile_y) : int * int) (alt : int)
-    (biome : biome_tile) (lf : lifeform option) =
-  examine_popup_open := true;
-  pause_everything_for_popup := true;
-  examine_popup_data := ((tile_x, tile_y), alt, biome, lf)
-
-let close_examine_popup () =
-  examine_popup_open := false;
-  pause_everything_for_popup := false
-
 (** Index into {!edit_screen_buttons} of selected edit screen button *)
 let selected_edit_screen_button = ref 0
 
@@ -82,6 +59,7 @@ let init_edit_screen_buttons (pos : int -> int -> int * int) (w : int -> int)
       b.initialized <- true)
     !edit_screen_buttons
 
+(** Width of the main UI window's bevel *)
 let ui_bevel_w = ref 0
 
 (** Draw the edit screen UI
@@ -91,7 +69,7 @@ let ui_bevel_w = ref 0
 let draw_edit_ui (window : Sdl.window) (renderer : Sdl.renderer)
     (cursor_pos : int * int) =
   let win_w, (win_h, ui_h) =
-    get_edit_window_ui_w_h window !Edit_screen_data.edit_ui_popup_open
+    get_edit_window_ui_w_h window !edit_ui_popup_open
   in
   (* Initialize and draw the main UI popup *)
   if not !edit_ui_popup.initialized then
@@ -140,7 +118,12 @@ let draw_edit_ui (window : Sdl.window) (renderer : Sdl.renderer)
   draw_rect_outer_thickness renderer
     (List.nth !edit_screen_buttons !selected_edit_screen_button).bounding_box 3
 
-let draw_popups window renderer frame_count =
+(** Draw any applicable popups
+    @param window The application's SDL window
+    @param renderer The applciation window's SDL renderer
+    @param frame_count The current frame count *)
+let draw_popups (window : Sdl.window) (renderer : Sdl.renderer)
+    (frame_count : int) =
   let win_w, (win_h, ui_h) =
     get_edit_window_ui_w_h window !Edit_screen_data.edit_ui_popup_open
   in
@@ -175,37 +158,63 @@ let draw_popups window renderer frame_count =
           Printf.sprintf "%.5f, %.5f" lat lon; Printf.sprintf "Altitude: %d" alt;
         ]
     in
-    (* Draw biome and biome tile *)
-    let (x, _), (w, h) =
-      render_text ~ptsize ~fit:(Some fit) ~font_family renderer
-        (x, y + h + ui_buffer + (ui_w / 3 / 2))
-        (if biome = Land Nothing then
-           "No Biome"
-         else
-           string_of_biome_tile biome)
+    (* Draw biome tile *)
+    let fit = (((5 * ui_w / 8) - (2 * ui_buffer), ui_h / 10), false) in
+    let biome_tex = Edit.texture_of_tile renderer (biome, alt, frame_count) in
+    let tx, ty =
+      ( x + ui_w - ui_buffer - (ui_w / 3),
+        y + ((h + ui_buffer + (ui_w / 3 / 2)) / 2) - (2 * ui_buffer) )
     in
-    let tex = Edit.texture_of_tile renderer (biome, alt, frame_count) in
+    let tw, th = (ui_w / 3, ui_w / 3) in
     let* _ =
       Sdl.render_copy
-        ~dst:
-          (Sdl.Rect.create
-             ~x:(x + ui_w - ui_buffer - (ui_w / 3))
-             ~y:(y + ((h + ui_buffer + (ui_w / 3 / 2)) / 2))
-             ~w:(ui_w / 3) ~h:(ui_w / 3))
-        renderer tex
+        ~dst:(Sdl.Rect.create ~x:tx ~y:ty ~w:tw ~h:th)
+        renderer biome_tex
     in
-    ()
+    (* Draw lifeform and lifeform texture *)
+    match lf with
+    | None ->
+        ()
+    | Some lf ->
+        let _ =
+          render_lines_vertical ~ptsize ~fit ~font_family renderer
+            (2 * ui_buffer)
+            (x, ty + ui_buffer)
+            [
+              (if biome = Land Nothing then
+                 "No Biome"
+               else
+                 string_of_biome_tile biome);
+              Printf.sprintf "%s %d/%d"
+                (string_of_class lf.life_class)
+                lf.species 16;
+            ]
+        in
+        let* _ =
+          Sdl.render_copy
+            ~dst:(Sdl.Rect.create ~x:tx ~y:ty ~w:tw ~h:th)
+            renderer
+            (Edit.texture_of_lifeform renderer (lf, frame_count))
+        in
+        ()
   )
 
+(** Render the edit UI onto a texture, then copy it onto the screen (mostly just
+    an exercise, perf is fine)
+    @param window The application's SDL window
+    @param renderer The application window's SDL renderer
+    @param cursor_pos Screen-space position of cursor
+    @param frame_count The current frame count *)
 let render_edit_ui (window : Sdl.window) (renderer : Sdl.renderer)
     (cursor_pos : int * int) (frame_count : int) =
   let* _ = Sdl.set_render_target renderer !Ui_texture.ui_texture in
   let* _ = Sdl.set_render_draw_color renderer 0 0 0 0 in
   let* _ = Sdl.render_clear renderer in
   Draw_cursor.draw_cursor window cursor_pos;
-  if !Edit_screen_data.edit_ui_popup_open then
+  if !Edit_screen_data.edit_ui_popup_open then (
     draw_edit_ui window renderer cursor_pos;
-  draw_popups window renderer frame_count;
+    draw_popups window renderer frame_count
+  );
   let* _ = Sdl.set_render_target renderer None in
   let* _ = Sdl.set_render_draw_blend_mode renderer Sdl.Blend.mode_blend in
   let* _ = Sdl.render_copy renderer (Ui_texture.get_ui_texture ()) in
