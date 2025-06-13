@@ -103,6 +103,7 @@ let edit_handle_mouseclick (e : Sdl.event) (window : Sdl.window) =
               `Biome biome;
               `Life lf;
               `Civilization civ;
+              `TectonicPlateId tid;
             ] ->
             open_examine_popup
               (mod_posneg tile_x world_width, mod_posneg tile_y world_height)

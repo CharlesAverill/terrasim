@@ -94,9 +94,12 @@ let current_render_mode = ref UninitRender
     @param gl_ctx Optional OpenGL context to delete
     @param window Application's SDL window
     @return SDL renderer *)
-let use_sdl ?(gl_ctx = None) (window : Sdl.window) : Sdl.renderer =
+let use_sdl ?(gl_ctx = None) (window : Sdl.window)
+    (ui_window : Sdl.window option) : Sdl.renderer =
   (match gl_ctx with None -> () | Some x -> Sdl.gl_delete_context x);
-  create_renderer window
+  let renderer = create_renderer window in
+  Ui_texture.create_ui_texture ~window:ui_window renderer;
+  renderer
 
 (** Start up OpenGL rendering
     @param window Application's SDL window
@@ -121,11 +124,11 @@ let swap_render_mode ?(ui_window : Sdl.window option) (window : Sdl.window) =
   current_render_mode :=
     match !current_render_mode with
     | UninitRender ->
-        SdlRender (use_sdl window)
+        SdlRender (use_sdl window ui_window)
     | SdlRender r ->
         GlRender (use_opengl window r)
     | GlRender g ->
-        SdlRender (use_sdl ~gl_ctx:(Some g) window)
+        SdlRender (use_sdl ~gl_ctx:(Some g) window ui_window)
 
 (** Get the current global SDL renderer, or error if not in SDL render mode
     @return Current SDL renderer *)

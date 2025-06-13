@@ -26,5 +26,5 @@ awk '
 
     prev_line = $0
   }
-' $(find . -name "*.ml" -not -path "./_build/*" -not -path "./lib/assets/*" -not -path "./lib/world/noise.ml" -not -path "./bin/*" )
+' $(find . -name "*.ml" -not -path "./_build/*" -not -path "./lib/assets/*" -not -path "./bin/*" )
 

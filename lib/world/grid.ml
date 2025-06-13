@@ -208,3 +208,8 @@ let set_grid_tile ?(wrap_x : bool = true) ((x, y) : int * int)
     ()
   else
     List.iter (set_grid_attr ((y * world_width) + x)) fields
+
+let latlon_of_xy ((x, y) : int * int) : float * float =
+  let lon = (float x /. float world_width *. 360.0) -. 180.0 in
+  let lat = 90.0 -. (float y /. float world_height *. 180.0) in
+  (lat, lon)

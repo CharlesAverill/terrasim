@@ -49,8 +49,10 @@ type biome_tile = Land of biome | Ocean of ocean_depth
 let string_of_biome_tile = function
   | Land l ->
       string_of_biome l
+  | Ocean Regular ->
+      "Ocean"
   | Ocean d ->
-      string_of_ocean_depth d ^ " ocean"
+      string_of_ocean_depth d ^ " Ocean"
 
 (** Get the corresponding blob to a tile given altitude and biome, accounting
     for animation

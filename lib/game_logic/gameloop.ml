@@ -41,7 +41,7 @@ let gameloop_iter (window : Sdl.window) (event : Sdl.event) : bool =
   (* Render game screen *)
   Handle_render.handle_render_iter window !frame_counter;
   (* Render UI *)
-  Handle_render.handle_ui_iter window;
+  Handle_render.handle_ui_iter window !frame_counter;
   (* Delay for ideal framerate *)
   let frame_time = Int32.sub (Sdl.get_ticks ()) frame_start in
   if frame_time < frame_delay then Sdl.delay (Int32.sub frame_delay frame_time);
@@ -60,8 +60,8 @@ let run_game_loop (window : Sdl.window) (ui_window : Sdl.window) : unit =
   current_camera_mode := Some (Edit2D edit_camera);
   (* Initializes the global renderer state *)
   swap_render_mode ~ui_window window;
-  Rendering.Ui_texture.create_ui_texture ui_window;
-  (* ignore (Opengl_tutorial.main window) ; *)
+  Rendering.Ui_texture.create_ui_texture ~window:(Some window)
+    (get_global_renderer ());
   while !loop_continue do
     loop_continue := gameloop_iter window event
   done;

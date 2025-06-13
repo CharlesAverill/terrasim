@@ -20,6 +20,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt update && sudo apt install
+          git submodule update --init --recursive
           opam pin tgls --dev-repo --no
           opam install . --deps-only --with-test --with-doc
           eval $(opam env)
@@ -45,6 +46,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt update && sudo apt install
+          git submodule update --init --recursive
           opam pin tgls --dev-repo --no
           opam install . --deps-only --with-doc
           eval $(opam env)

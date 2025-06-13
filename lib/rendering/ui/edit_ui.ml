@@ -117,11 +117,11 @@ let draw_edit_ui (window : Sdl.window) (renderer : Sdl.renderer)
       ui_area_y + ui_buffer + (row * (h + ui_buffer)) )
   in
   (* Planet name *)
-  let _ = render_text ~fit renderer (pos 0 0) "Test Planet" in
+  let _ = render_text ~fit:(Some fit) renderer (pos 0 0) "Test Planet" in
   (* Year *)
   let _ =
-    render_text ~fit renderer (pos 1 0) "Year: %2d"
-      (Simulation.Simulation_info.get_sim_year ())
+    render_text ~fit:(Some fit) renderer (pos 1 0)
+      (Printf.sprintf "Year: %2d" (Simulation.Simulation_info.get_sim_year ()))
   in
   (* Remaining columns - UI Buttons *)
   (if any_buttons_uninit !edit_screen_buttons then
@@ -140,7 +140,7 @@ let draw_edit_ui (window : Sdl.window) (renderer : Sdl.renderer)
   draw_rect_outer_thickness renderer
     (List.nth !edit_screen_buttons !selected_edit_screen_button).bounding_box 3
 
-let draw_popups window renderer =
+let draw_popups window renderer frame_count =
   let win_w, (win_h, ui_h) =
     get_edit_window_ui_w_h window !Edit_screen_data.edit_ui_popup_open
   in
@@ -155,7 +155,7 @@ let draw_popups window renderer =
              Sdl.Rect.create
                ~x:(win_w - examine_w - fst popup_buffer)
                ~y:(snd popup_buffer) ~w:examine_w
-               ~h:(win_h - (2 * snd popup_buffer));
+               ~h:((win_h - (2 * snd popup_buffer)) / 2);
            initialized = true;
          });
     (* Draw popup *)
@@ -164,33 +164,49 @@ let draw_popups window renderer =
     in
     (* Draw examine info *)
     let (tx, ty), alt, biome, lf = !examine_popup_data in
-    (* Draw position *)
-    let pos_w, pos_h =
-      render_text
-        ~fit:((ui_w, ui_h), false)
-        renderer
-        (x + ui_buffer, y + ui_buffer)
-        "(%d, %d)" tx ty
+    let lat, lon = World.Grid.latlon_of_xy (tx, ty) in
+    let ptsize = 60 in
+    let fit = ((ui_w, ui_h / 10), false) in
+    let font_family = CourierPrime in
+    let (x, y), (w, h) =
+      render_lines_vertical ~ptsize ~fit ~font_family renderer (2 * ui_buffer)
+        (x + ui_buffer, y + (2 * ui_buffer))
+        [
+          Printf.sprintf "%.5f, %.5f" lat lon; Printf.sprintf "Altitude: %d" alt;
+        ]
     in
-    (* Draw altitude *)
-    let alt_w, alt_h =
-      render_text
-        ~fit:((ui_w, ui_h), false)
-        renderer
-        (x + ui_buffer, y + ui_buffer + pos_h + ui_buffer)
-        "Altitude: %d" alt
+    (* Draw biome and biome tile *)
+    let (x, _), (w, h) =
+      render_text ~ptsize ~fit:(Some fit) ~font_family renderer
+        (x, y + h + ui_buffer + (ui_w / 3 / 2))
+        (if biome = Land Nothing then
+           "No Biome"
+         else
+           string_of_biome_tile biome)
+    in
+    let tex = Edit.texture_of_tile renderer (biome, alt, frame_count) in
+    let* _ =
+      Sdl.render_copy
+        ~dst:
+          (Sdl.Rect.create
+             ~x:(x + ui_w - ui_buffer - (ui_w / 3))
+             ~y:(y + ((h + ui_buffer + (ui_w / 3 / 2)) / 2))
+             ~w:(ui_w / 3) ~h:(ui_w / 3))
+        renderer tex
     in
     ()
   )
 
 let render_edit_ui (window : Sdl.window) (renderer : Sdl.renderer)
-    (cursor_pos : int * int) =
+    (cursor_pos : int * int) (frame_count : int) =
   let* _ = Sdl.set_render_target renderer !Ui_texture.ui_texture in
   let* _ = Sdl.set_render_draw_color renderer 0 0 0 0 in
   let* _ = Sdl.render_clear renderer in
   Draw_cursor.draw_cursor window cursor_pos;
   if !Edit_screen_data.edit_ui_popup_open then
     draw_edit_ui window renderer cursor_pos;
-  draw_popups window renderer;
+  draw_popups window renderer frame_count;
   let* _ = Sdl.set_render_target renderer None in
-  ()
+  let* _ = Sdl.set_render_draw_blend_mode renderer Sdl.Blend.mode_blend in
+  let* _ = Sdl.render_copy renderer (Ui_texture.get_ui_texture ()) in
+  Sdl.render_present renderer
