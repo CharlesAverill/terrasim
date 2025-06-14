@@ -102,8 +102,14 @@ let adjust_terrain_gaussian ?(raise = true) (x : int) (y : int) =
       in
       match get_grid_tile (tx, ty) [ `Altitude ] with
       | Some [ `Altitude alt ] ->
-          change_altitude tx ty delta
-      | None ->
+          let cmp =
+            if raise then
+              ( <= )
+            else
+              ( >= )
+          in
+          if cmp alt center_alt then change_altitude tx ty delta
+      | _ ->
           ()
       | _ ->
           [%unreachable]

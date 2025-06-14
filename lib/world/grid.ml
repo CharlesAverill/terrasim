@@ -17,6 +17,7 @@ type world_grid = {
   biome : biome_tile array;
   life : lifeform option array;
   civilization : unit array;
+  tectonic_plate_id : int array;
 }
 (** Collection of 1D array representations of the {!world_width}x{!world_height}
     world grid
@@ -38,6 +39,7 @@ let grid : world_grid =
     biome = Array.make size (Land Nothing);
     life = Array.make size None;
     civilization = Array.make size ();
+    tectonic_plate_id = Array.make size (-1);
   }
 
 type world_tile_attr_getter =
@@ -51,7 +53,8 @@ type world_tile_attr_getter =
   | `Rain
   | `Biome
   | `Life
-  | `Civilization ]
+  | `Civilization
+  | `TectonicPlateId ]
 (** Denoting getters for world tile attributes *)
 
 type world_tile_attr_setter =
@@ -65,7 +68,8 @@ type world_tile_attr_setter =
   | `Magma of unit
   | `Rain of unit
   | `WaterCurrent of unit
-  | `WaterTemp of unit ]
+  | `WaterTemp of unit
+  | `TectonicPlateId of int ]
 (** Denoting setters for world tile attributes *)
 
 (** Get a grid attribute
@@ -95,6 +99,8 @@ let get_grid_attr (i : int) : world_tile_attr_getter -> world_tile_attr_setter =
       `Life grid.life.(i)
   | `Civilization ->
       `Civilization grid.civilization.(i)
+  | `TectonicPlateId ->
+      `TectonicPlateId grid.tectonic_plate_id.(i)
 
 (** Set a grid attribute
     @param i Index into 1D array denoted by [attr]
@@ -122,6 +128,8 @@ let set_grid_attr (i : int) : world_tile_attr_setter -> unit = function
       grid.life.(i) <- x
   | `Civilization x ->
       grid.civilization.(i) <- x
+  | `TectonicPlateId x ->
+      grid.tectonic_plate_id.(i) <- x
 
 (** Get a list of tile attributes for a world tile
     @param wrap_x Whether to wrap if [x] is out of bounds
@@ -179,6 +187,7 @@ let get_grid_tile_all ?(wrap_x : bool = true) ((x, y) : int * int) :
            `Biome;
            `Life;
            `Civilization;
+           `TectonicPlateId;
          ])
 
 (** Set tile attributes for a world tile, or do nothing if there is no tile at
@@ -199,3 +208,8 @@ let set_grid_tile ?(wrap_x : bool = true) ((x, y) : int * int)
     ()
   else
     List.iter (set_grid_attr ((y * world_width) + x)) fields
+
+let latlon_of_xy ((x, y) : int * int) : float * float =
+  let lon = (float x /. float world_width *. 360.0) -. 180.0 in
+  let lat = 90.0 -. (float y /. float world_height *. 180.0) in
+  (lat, lon)

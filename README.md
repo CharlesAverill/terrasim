@@ -9,7 +9,13 @@ See [roadmap.md](https://github.com/CharlesAverill/terrasim/blob/main/roadmap.md
 ## Building
 
 ```bash
+git clone https://github.com/CharlesAverill/terrasim.git && cd terrasim
+
+# Dependencies
+sudo apt install libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libffi-dev libgmp-dev
+git submodule update --init --recursive
 opam install . --deps-only
+
 dune build
 ```
 
@@ -28,9 +34,9 @@ There are three views right now:
 | Input | Effect |
 |---|---|
 | Mouse move | Pan view |
-| LMB | Raise terrain (volcano) |
-| RMB | Lower terrain (meteor) |
+| Mouse click | Run command denoted by highlighted UI button |
 | `c` | Switch to Atlas view |
+| `h` | Hide the UI |
 
 ### Atlas view (Cartesian)
 

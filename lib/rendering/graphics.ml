@@ -28,16 +28,22 @@ let init_sdl () =
     @param window_name Title of window
     @return SDL window object for application *)
 let create_window ?(w : int = 1920) ?(h : int = 1080) ?(min_w : int = 1280)
-    ?(min_h : int = 720) ?(fullscreen_win : bool = true) (window_name : string)
-    : Sdl.window =
+    ?(min_h : int = 720) ?(fullscreen_win : bool = true)
+    ?(hidden_win : bool = false) (window_name : string) : Sdl.window =
   let* w =
     Sdl.create_window ~w ~h window_name
       (let open Sdl.Window in
        List.fold_left ( + ) opengl
-         (if fullscreen_win then
-            [ fullscreen_desktop ]
-          else
-            []))
+         ([]
+         @ (if fullscreen_win then
+              [ fullscreen_desktop ]
+            else
+              [])
+         @
+         if hidden_win then
+           [ hidden ]
+         else
+           []))
   in
   Sdl.set_window_minimum_size w ~w:min_w ~h:min_h;
   w
@@ -88,9 +94,12 @@ let current_render_mode = ref UninitRender
     @param gl_ctx Optional OpenGL context to delete
     @param window Application's SDL window
     @return SDL renderer *)
-let use_sdl ?(gl_ctx = None) (window : Sdl.window) : Sdl.renderer =
+let use_sdl ?(gl_ctx = None) (window : Sdl.window)
+    (ui_window : Sdl.window option) : Sdl.renderer =
   (match gl_ctx with None -> () | Some x -> Sdl.gl_delete_context x);
-  create_renderer window
+  let renderer = create_renderer window in
+  Ui_texture.create_ui_texture ~window:ui_window renderer;
+  renderer
 
 (** Start up OpenGL rendering
     @param window Application's SDL window
@@ -102,8 +111,9 @@ let use_opengl (window : Sdl.window) (renderer : Sdl.renderer) : Sdl.gl_context
   get_opengl_context window
 
 (** Swap between SDL <-> OpenGL rendering
+    @param ui_window A hidden window for rendering the UI
     @param window Application's SDL window *)
-let swap_render_mode (window : Sdl.window) =
+let swap_render_mode ?(ui_window : Sdl.window option) (window : Sdl.window) =
   (* Edit screen reset *)
   clear_edit_cache ();
   (* Atlas screen reset *)
@@ -114,11 +124,11 @@ let swap_render_mode (window : Sdl.window) =
   current_render_mode :=
     match !current_render_mode with
     | UninitRender ->
-        SdlRender (use_sdl window)
+        SdlRender (use_sdl window ui_window)
     | SdlRender r ->
         GlRender (use_opengl window r)
     | GlRender g ->
-        SdlRender (use_sdl ~gl_ctx:(Some g) window)
+        SdlRender (use_sdl ~gl_ctx:(Some g) window ui_window)
 
 (** Get the current global SDL renderer, or error if not in SDL render mode
     @return Current SDL renderer *)

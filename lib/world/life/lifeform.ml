@@ -1,5 +1,6 @@
 (** Logic for handling the available classes of life and their properties *)
 
+open Tsdl
 open Assets.Sprites
 open Assets.Assetloader
 open Utils.Sdl_utils
@@ -81,7 +82,7 @@ let string_of_lifeform (lf : lifeform) : string =
     @return
       The sprite blob associated with the lifeform's species, stage, and variant
 *)
-let blob_of_lifeform (frame_count : int) (lf : lifeform) =
+let blob_of_lifeform (frame_count : int) (lf : lifeform) : asset_blob =
   let expected_anim_frames = 2 in
   List.nth
     (let l =
@@ -94,7 +95,7 @@ let blob_of_lifeform (frame_count : int) (lf : lifeform) =
          (string_of_lifeform lf) expected_anim_frames
      else
        l)
-    frame_count
+    (frame_count mod expected_anim_frames)
 
 (** Determine the class of life that a lifeform can evolve into
     @param lf The lifeform
@@ -138,10 +139,46 @@ let evolution_step (lf : lifeform) : life_class option =
   | _ ->
       None
 
-(** Whether a life class can be found on land [true] or in the ocean [false] *)
+(** Whether a life class can be found on land *)
 let is_land_class = function
   | Mammal | Dinosaur | Reptile | Avian | Carnifern | Insect | Robot | Amphibian
     ->
       true
   | _ ->
       false
+
+let color_of_life_class (lc : life_class) =
+  rgb_of_hex
+    (match lc with
+    | Eukaryote ->
+        "#00FFAA"
+    | Amphibian ->
+        "#77FF77"
+    | Prokaryote ->
+        "#FF00FF"
+    | Avian ->
+        "#FFFF55"
+    | Carnifern ->
+        "#00AA00"
+    | Arthropod ->
+        "#FF5500"
+    | Dinosaur ->
+        "#AA00FF"
+    | Fish ->
+        "#00FFFF"
+    | Insect ->
+        "#FFAA00"
+    | Mammal ->
+        "#FFFFFF"
+    | Mollusk ->
+        "#AAAAFF"
+    | Reptile ->
+        "#00FF00"
+    | Robot ->
+        "#888888"
+    | Radiate ->
+        "#FF88FF"
+    | Trichordate ->
+        "#CC00FF"
+    | Cetacean ->
+        "#66CCFF")

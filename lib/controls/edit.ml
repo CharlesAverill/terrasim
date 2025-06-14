@@ -11,6 +11,8 @@ open World.Biomes
 open World.Grid
 open World.Altitude
 open Rendering.Edit
+open Rendering.Edit_ui
+open Rendering.Edit_screen_data
 open Rendering.Button
 open Rendering.Popup
 open World.Life.Lifeform
@@ -59,7 +61,8 @@ let edit_handle_textinput (e : Sdl.event) (window : Sdl.window) =
   | x when x = swap_camera_key ->
       toggle_camera_mode window
   | x when x = hide_ui_key ->
-      Rendering.Edit_screen_data.toggle_edit_ui_popup ()
+      Rendering.Edit_screen_data.toggle_edit_ui_popup ();
+      Rendering.Edit_screen_data.close_examine_popup ()
   | _ ->
       ()
 
@@ -102,6 +105,7 @@ let edit_handle_mouseclick (e : Sdl.event) (window : Sdl.window) =
               `Biome biome;
               `Life lf;
               `Civilization civ;
+              `TectonicPlateId tid;
             ] ->
             open_examine_popup
               (mod_posneg tile_x world_width, mod_posneg tile_y world_height)
