@@ -54,5 +54,15 @@ let handle_ui_iter (window : Sdl.window) (frame_count : int) =
       Rendering.Edit_ui.render_edit_ui window renderer
         (Controls.Cursor.global_cursor.x, Controls.Cursor.global_cursor.y)
         frame_count
+  | Some Atlas2D ->
+      let renderer = Rendering.Ui_texture.get_ui_renderer () in
+      let* _ = Sdl.set_render_draw_color renderer 0 0 0 0 in
+      let* _ = Sdl.render_clear renderer in
+      let* _ = Sdl.set_render_draw_color renderer 255 0 0 255 in
+      let* _ =
+        Sdl.render_fill_rect renderer
+          (Some (Sdl.Rect.create ~x:0 ~y:0 ~w:125 ~h:125))
+      in
+      ()
   | _ ->
       ()

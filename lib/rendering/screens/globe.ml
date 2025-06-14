@@ -6,36 +6,6 @@ open Utils.Logging
 open Utils.Opengl_utils
 open Globe_data
 
-(** Triangle vertices that assemble to a quad to render onto, packed with UVs *)
-let quad_vertices =
-  Bigarray.Array1.of_array Bigarray.float32 Bigarray.c_layout
-    [|
-      -1.0;
-      -1.0;
-      0.0;
-      0.0;
-      1.0;
-      -1.0;
-      1.0;
-      0.0;
-      1.0;
-      1.0;
-      1.0;
-      1.0;
-      -1.0;
-      -1.0;
-      0.0;
-      0.0;
-      1.0;
-      1.0;
-      1.0;
-      1.0;
-      -1.0;
-      1.0;
-      0.0;
-      1.0;
-    |]
-
 (** The
     {{:https://github.com/CharlesAverill/terrasim/blob/main/shaders/globe.vert}
      globe vertex shader} *)
@@ -45,25 +15,6 @@ let globe_vertex_shader_src = [%blob "shaders/globe.vert"]
     {{:https://github.com/CharlesAverill/terrasim/blob/main/shaders/globe.frag}
      globe fragment shader} *)
 let globe_fragment_shader_src = [%blob "shaders/globe.frag"]
-
-(** Set up fullscreen quad buffer and return the VAO
-    @return VAO bound to quad buffer *)
-let setup_fullscreen_quad () =
-  let vao = get_int (Gl.gen_vertex_arrays 1) in
-  Gl.bind_vertex_array vao;
-  let vbo = get_int (Gl.gen_buffers 1) in
-  Gl.bind_buffer Gl.array_buffer vbo;
-  Gl.buffer_data Gl.array_buffer
-    (Gl.bigarray_byte_size quad_vertices)
-    (Some quad_vertices) Gl.static_draw;
-  let stride = 4 * 4 in
-  (* 4 floats per vertex: 2 pos + 2 uv, each float = 4 bytes *)
-  Gl.vertex_attrib_pointer 0 2 Gl.float false stride (`Offset 0);
-  Gl.enable_vertex_attrib_array 0;
-  Gl.vertex_attrib_pointer 1 2 Gl.float false stride (`Offset (2 * 4));
-  Gl.enable_vertex_attrib_array 1;
-  Gl.bind_vertex_array 0;
-  vao
 
 (** Shader program compiled for the current OpenGL context, or [None] *)
 let sprogram = ref None

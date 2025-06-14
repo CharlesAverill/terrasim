@@ -48,8 +48,10 @@ let edit_handle_scancodes (e : Sdl.event) (window : Sdl.window) =
 
 (** Handle text input on the edit screen
     @param e Text input event to handle
-    @param window The application's SDL window *)
-let edit_handle_textinput (e : Sdl.event) (window : Sdl.window) =
+    @param window The application's SDL window
+    @param ui_window A hidden window for rendering the UI *)
+let edit_handle_textinput (e : Sdl.event) (window : Sdl.window)
+    (ui_window : Sdl.window) =
   let* _ = Sdl.show_cursor false in
   let text = Sdl.Event.get e Sdl.Event.text_input_text in
   (* Zoom and camera swap *)
@@ -59,7 +61,7 @@ let edit_handle_textinput (e : Sdl.event) (window : Sdl.window) =
   | "-" ->
       zoom_out ()
   | x when x = swap_camera_key ->
-      toggle_camera_mode window
+      toggle_camera_mode window ui_window
   | x when x = hide_ui_key ->
       Rendering.Edit_screen_data.toggle_edit_ui_popup ();
       Rendering.Edit_screen_data.close_examine_popup ()
@@ -124,8 +126,10 @@ let edit_handle_mouseclick (e : Sdl.event) (window : Sdl.window) =
 
 (** Handle input event on the edit screen
     @param e Event to handle
-    @param window The application's SDL window *)
-let handle_ui_event (e : Sdl.event) (window : Sdl.window) =
+    @param window The application's SDL window
+    @param ui_window A hidden window for rendering the UI *)
+let handle_ui_event (e : Sdl.event) (window : Sdl.window)
+    (ui_window : Sdl.window) =
   match Sdl.Event.get e Sdl.Event.typ with
   | t when t = Sdl.Event.mouse_motion ->
       let* _ = Sdl.show_cursor true in
@@ -153,7 +157,7 @@ let handle_ui_event (e : Sdl.event) (window : Sdl.window) =
       let dx, dy = (clamp dx (-1) 1, clamp dy (-1) 1) in
       move_edit_camera dx (-dy)
   | t when t = Sdl.Event.text_input ->
-      edit_handle_textinput e window
+      edit_handle_textinput e window ui_window
   | t when t = Sdl.Event.key_down ->
       edit_handle_scancodes e window
   | _ ->

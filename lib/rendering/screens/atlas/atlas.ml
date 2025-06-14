@@ -5,11 +5,13 @@ open Tgl4
 open Utils.Standard_utils
 open Utils.Logging
 open Utils.Opengl_utils
+open Utils.Sdl_utils
 open World.Grid
 open World.Altitude
 open World.Biomes
 open Cameras.Atlas_camera
 open Gradients
+open Ui_texture
 
 (** Triangle vertices that assemble to a quad to render onto *)
 let quad_verts =
@@ -25,6 +27,9 @@ let atlas_vertex_shader_src = [%blob "shaders/atlas.vert"]
     {{:https://github.com/CharlesAverill/terrasim/blob/main/shaders/atlas.frag}
      atlas fragment shader} *)
 let atlas_fragment_shader_src = [%blob "shaders/atlas.frag"]
+
+let ui_vertex_shader_src = [%blob "shaders/ui.vert"]
+let ui_fragment_shader_src = [%blob "shaders/ui.frag"]
 
 (** Set up tile buffers and return the VAO
     @param offsets Array of [(x, y)] offsets for each tile
@@ -76,16 +81,41 @@ let setup_tile_buffers ~(offsets : (float * float) array)
   Gl.bind_vertex_array 0;
   vao
 
+let draw_ui ui_sprogram =
+  Gl.use_program ui_sprogram;
+  Gl.enable Gl.blend;
+  Gl.blend_func Gl.src_alpha Gl.one_minus_src_alpha;
+  let quad_vao = setup_fullscreen_quad () in
+  Gl.bind_vertex_array quad_vao;
+  let gl_texture = get_int (Gl.gen_textures 1) in
+  let w, h = Sdl.get_window_size (get_ui_window ()) in
+  let texture_data = bigarray_create Bigarray.int8_unsigned (h * w * 4) in
+  let* _ =
+    Sdl.render_read_pixels (get_ui_renderer ()) None
+      (Some Sdl.Pixel.format_rgba8888) texture_data (w * 4)
+  in
+  let texture_data = flip_texture_vertically texture_data w h in
+  Gl.active_texture Gl.texture0;
+  Gl.bind_texture Gl.texture_2d gl_texture;
+  Gl.tex_image2d Gl.texture_2d 0 Gl.rgba w h 0 Gl.rgba Gl.unsigned_byte
+    (`Data texture_data);
+  Gl.tex_parameteri Gl.texture_2d Gl.texture_min_filter Gl.nearest;
+  Gl.tex_parameteri Gl.texture_2d Gl.texture_mag_filter Gl.nearest;
+  let tex_loc = Gl.get_uniform_location ui_sprogram "u_texture" in
+  Gl.uniform1i tex_loc 0;
+  Gl.draw_arrays Gl.triangles 0 6
+
 (** Render tiles to the screen or a framebuffer
     @param fbo
       If set, render to this framebuffer rather than the screen (used by
       {!Globe.render_globe_screen})
     @param window Application's SDL window
     @param sprogram Shader program to use
+    @param ui_sprogram Shader program to use for the UI
     @param vao Vertex array object to draw
     @param num_instances Number of tiles to draw *)
 let render_tiles ?(fbo : Sdl.uint8 option = None) (window : Sdl.window)
-    (sprogram : int) (vao : int) (num_instances : int) =
+    (sprogram : int) (ui_sprogram : int) (vao : int) (num_instances : int) =
   Gl.bind_framebuffer Gl.framebuffer
     (match fbo with Some fb -> fb | None -> 0);
   let w, h =
@@ -105,7 +135,10 @@ let render_tiles ?(fbo : Sdl.uint8 option = None) (window : Sdl.window)
   Gl.uniform1f u_scale_y (2. /. float world_height);
   Gl.draw_arrays_instanced Gl.triangles 0 6 num_instances;
   Gl.bind_framebuffer Gl.framebuffer 0;
-  if fbo = None then Sdl.gl_swap_window window
+  if fbo = None then (
+    draw_ui ui_sprogram;
+    Sdl.gl_swap_window window
+  )
 
 (** Create a framebuffer to render onto
     @param width Width of framebuffer
@@ -128,7 +161,7 @@ let create_render_texture ~(width : int) ~(height : int) : int * int =
   Gl.bind_framebuffer Gl.framebuffer fbo;
   Gl.framebuffer_texture2d Gl.framebuffer Gl.color_attachment0 Gl.texture_2d tex
     0;
-  (* Optionally check framebuffer completeness *)
+  (* Check framebuffer completeness *)
   let status = Gl.check_framebuffer_status Gl.framebuffer in
   if status <> Gl.framebuffer_complete then
     fatal rc_OpenGL "Framebuffer not complete: %d" status;
@@ -153,22 +186,26 @@ let make_tile_data ?(use_atlas_camera : bool = true) () :
 (** Shader program compiled for the current OpenGL context, or [None] *)
 let sprogram = ref None
 
+let ui_sprogram = ref None
+
 (** Render the atlas screen
     @param to_texture Render to [window] if [false], otherwise to a new texture
     @param window Application's SDL window
     @return if [to_texture] then a texture else [None] *)
 let render_atlas_screen ?(to_texture : bool = false) (window : Sdl.window) :
     int option =
-  let sprogram =
-    match !sprogram with
-    | None ->
+  let sprogram, ui_sprogram =
+    match (!sprogram, !ui_sprogram) with
+    | Some x, Some y ->
+        (x, y)
+    | _, _ ->
         let x =
           compile_shaders atlas_vertex_shader_src atlas_fragment_shader_src
         in
+        let y = compile_shaders ui_vertex_shader_src ui_fragment_shader_src in
         sprogram := Some x;
-        x
-    | Some x ->
-        x
+        ui_sprogram := Some y;
+        (x, y)
   in
   let offsets, colors = make_tile_data ~use_atlas_camera:(not to_texture) () in
   let vao = setup_tile_buffers ~offsets ~colors in
@@ -179,7 +216,7 @@ let render_atlas_screen ?(to_texture : bool = false) (window : Sdl.window) :
     else
       (None, 0)
   in
-  render_tiles ~fbo window sprogram vao (Array.length offsets);
+  render_tiles ~fbo window sprogram ui_sprogram vao (Array.length offsets);
   if fbo = None then
     None
   else

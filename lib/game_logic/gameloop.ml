@@ -25,13 +25,15 @@ let frame_delay = Int32.of_int (1000 / target_fps) (* in milliseconds *)
     - Delay to maintain {!target_fps}
 
     @param window The application's SDL window
+    @param ui_window A hidden window for rendering the UI
     @param event An SDl event object *)
-let gameloop_iter (window : Sdl.window) (event : Sdl.event) : bool =
+let gameloop_iter (window : Sdl.window) (ui_window : Sdl.window)
+    (event : Sdl.event) : bool =
   (* Compute target framerate *)
   let frame_start = Sdl.get_ticks () in
   frame_counter := !frame_counter + 1;
   (* Handle input events *)
-  let loop_continue = Handle_input.handle_input_iter window event in
+  let loop_continue = Handle_input.handle_input_iter window ui_window event in
   (* Run simulation approx. once every other second *)
   if
     (not !Rendering.Popup.pause_everything_for_popup)
@@ -59,10 +61,8 @@ let run_game_loop (window : Sdl.window) (ui_window : Sdl.window) : unit =
   world_setup ();
   current_camera_mode := Some (Edit2D edit_camera);
   (* Initializes the global renderer state *)
-  swap_render_mode ~ui_window window;
-  Rendering.Ui_texture.create_ui_texture ~window:(Some window)
-    (get_global_renderer ());
+  swap_render_mode window ui_window;
   while !loop_continue do
-    loop_continue := gameloop_iter window event
+    loop_continue := gameloop_iter window ui_window event
   done;
   Sdl.quit ()

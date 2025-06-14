@@ -48,27 +48,40 @@ let create_window ?(w : int = 1920) ?(h : int = 1080) ?(min_w : int = 1280)
   Sdl.set_window_minimum_size w ~w:min_w ~h:min_h;
   w
 
-(** @param window The application's SDL window
+(** @param force_software
+      Force the use of a software renderer instead of hardware-accelerated
+    @param window The application's SDL window
     @return New SDL renderer object for [window] *)
-let create_renderer (window : Sdl.window) : Sdl.renderer =
-  match
-    Sdl.create_renderer
-      ~flags:
-        (let open Sdl.Renderer in
-         accelerated + presentvsync)
-      window
-  with
-  | Error _ ->
-      let* r =
-        Sdl.create_renderer
-          ~flags:
-            (let open Sdl.Renderer in
-             software + presentvsync)
-          window
-      in
-      r
-  | Ok r ->
-      r
+let create_renderer ?(force_software : bool = false) (window : Sdl.window) :
+    Sdl.renderer =
+  if force_software then
+    let* r =
+      Sdl.create_renderer
+        ~flags:
+          (let open Sdl.Renderer in
+           software + presentvsync)
+        window
+    in
+    r
+  else
+    match
+      Sdl.create_renderer
+        ~flags:
+          (let open Sdl.Renderer in
+           accelerated + presentvsync)
+        window
+    with
+    | Error _ ->
+        let* r =
+          Sdl.create_renderer
+            ~flags:
+              (let open Sdl.Renderer in
+               software + presentvsync)
+            window
+        in
+        r
+    | Ok r ->
+        r
 
 (** @param window Application's SDL window
     @return OpenGL context for [window] *)
@@ -94,26 +107,32 @@ let current_render_mode = ref UninitRender
     @param gl_ctx Optional OpenGL context to delete
     @param window Application's SDL window
     @return SDL renderer *)
-let use_sdl ?(gl_ctx = None) (window : Sdl.window)
-    (ui_window : Sdl.window option) : Sdl.renderer =
+let use_sdl ?(gl_ctx = None) (window : Sdl.window) (ui_window : Sdl.window) :
+    Sdl.renderer =
   (match gl_ctx with None -> () | Some x -> Sdl.gl_delete_context x);
   let renderer = create_renderer window in
-  Ui_texture.create_ui_texture ~window:ui_window renderer;
+  Ui_texture.create_ui_texture window renderer;
   renderer
 
 (** Start up OpenGL rendering
     @param window Application's SDL window
     @param renderer SDL renderer to destroy
     @return OpenGL context *)
-let use_opengl (window : Sdl.window) (renderer : Sdl.renderer) : Sdl.gl_context
-    =
+let use_opengl (window : Sdl.window) (ui_window : Sdl.window)
+    (renderer : Sdl.renderer) : Sdl.gl_context =
   Sdl.destroy_renderer renderer;
+  let renderer = create_renderer ~force_software:true ui_window in
+  let* _ = Sdl.set_render_draw_blend_mode renderer Sdl.Blend.mode_blend in
+  Ui_texture.create_ui_texture ui_window renderer;
+  let* _ =
+    Sdl.set_render_target renderer (Some (Ui_texture.get_ui_texture ()))
+  in
   get_opengl_context window
 
 (** Swap between SDL <-> OpenGL rendering
-    @param ui_window A hidden window for rendering the UI
-    @param window Application's SDL window *)
-let swap_render_mode ?(ui_window : Sdl.window option) (window : Sdl.window) =
+    @param window Application's SDL window
+    @param ui_window A hidden window for rendering the UI *)
+let swap_render_mode (window : Sdl.window) (ui_window : Sdl.window) =
   (* Edit screen reset *)
   clear_edit_cache ();
   (* Atlas screen reset *)
@@ -126,7 +145,7 @@ let swap_render_mode ?(ui_window : Sdl.window option) (window : Sdl.window) =
     | UninitRender ->
         SdlRender (use_sdl window ui_window)
     | SdlRender r ->
-        GlRender (use_opengl window r)
+        GlRender (use_opengl window ui_window r)
     | GlRender g ->
         SdlRender (use_sdl ~gl_ctx:(Some g) window ui_window)
 
