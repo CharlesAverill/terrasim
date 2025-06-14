@@ -6,6 +6,8 @@ open Utils.Standard_utils
 open Common
 open Rendering.Globe_data
 
+let change_view_key = "v"
+
 (** Handle text input on the globe screen
     @param e Text input event to handle
     @param window The application's SDL window *)
@@ -16,6 +18,8 @@ let globe_handle_textinput (e : Sdl.event) (window : Sdl.window) =
   match text with
   | x when x = swap_camera_key ->
       toggle_camera_mode window
+  | x when x = change_view_key ->
+      Rendering.Atlas_screen_data.shift_atlas_view_mode ()
   | _ ->
       ()
 

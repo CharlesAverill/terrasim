@@ -34,7 +34,7 @@ let font_blob_of_font_style (f : font_family) (s : text_style) : asset_blob =
 (** A cache for rendered string textures *)
 let text_cache :
     ( font_family * text_style * int * (int * int * int) * string,
-      Sdl.texture * Ttf.font )
+      Sdl.texture * Ttf.font * int )
     Hashtbl.t =
   Hashtbl.create 100
 
@@ -42,7 +42,7 @@ let text_cache :
 let clear_text_cache () =
   Seq.iter
     (fun k ->
-      let t, f = Hashtbl.find text_cache k in
+      let t, f, _ = Hashtbl.find text_cache k in
       Sdl.destroy_texture t)
     (Hashtbl.to_seq_keys text_cache);
   Hashtbl.clear text_cache
@@ -95,15 +95,15 @@ let rec search_for_biggest open_font_with_size text_to_render (max_w, max_h) lo
     @param fmt Format string
     @param ... Format string arguments
     @return
-      The x, y, height, and width of the rendered texture, clipping invisiblie
-      padding caused by a font's ascent and descent *)
+      The x, y, width, height, and point size of the rendered texture, clipping
+      invisiblie padding caused by a font's ascent and descent *)
 let render_text ?(font_family : font_family = NewPortLand)
     ?(style : text_style = Regular) ?(ptsize : int = 48)
     ?(color : int * int * int = color_black)
     ?(fit : ((int * int) * bool) option = None)
     ?(draw_bounding_box : bool = false) (renderer : Sdl.renderer)
     ((x, y) : int * int) (text_to_render : string) =
-  let text_texture, font =
+  let text_texture, font, final_size =
     match
       Hashtbl.find_opt text_cache
         (font_family, style, ptsize, color, text_to_render)
@@ -151,7 +151,6 @@ let render_text ?(font_family : font_family = NewPortLand)
                 done;
                 (!font, !ptsize)
         in
-
         let* text_surf =
           Ttf.render_text_blended font text_to_render (sdlcolor_of_tuple color)
         in
@@ -161,10 +160,10 @@ let render_text ?(font_family : font_family = NewPortLand)
         in
         Hashtbl.add text_cache
           (font_family, style, ptsize, color, text_to_render)
-          (text_texture, font);
-        (text_texture, font)
-    | Some tf ->
-        tf
+          (text_texture, font, final_size);
+        (text_texture, font, final_size)
+    | Some tfs ->
+        tfs
   in
   let* text_w, text_h = Ttf.size_utf8 font text_to_render in
 
@@ -185,17 +184,19 @@ let render_text ?(font_family : font_family = NewPortLand)
     in
     ()
   );
-  ((x, y), (rendered_text_w, rendered_text_h))
+  ((x, y), (rendered_text_w, rendered_text_h), final_size)
 
 let render_lines_vertical ?(font_family : font_family = NewPortLand)
     ?(style : text_style = Regular) ?(ptsize : int = 48)
     ?(color : int * int * int = color_black)
     ?(fit : ((int * int) * bool) option) ?(draw_bounding_box : bool = false)
-    (renderer : Sdl.renderer) (spacing : int) ((x, y) : int * int) strings =
+    ?(pass_along_ptsize : bool = true) (renderer : Sdl.renderer) (spacing : int)
+    ((x, y) : int * int) strings =
   fst
     (List.fold_left
-       (fun (((x, y), (w, h)), top) s ->
-         ( render_text ~font_family ~style ~ptsize ~color ~fit
+       (fun (((x, y), (w, h), ptsize), top) s ->
+         let (x, y), (w, h), new_ptsize =
+           render_text ~font_family ~style ~ptsize ~color ~fit
              ~draw_bounding_box renderer
              ( x,
                y + h
@@ -204,7 +205,14 @@ let render_lines_vertical ?(font_family : font_family = NewPortLand)
                  0
                else
                  spacing )
-             s,
+             s
+         in
+         ( ( (x, y),
+             (w, h),
+             if pass_along_ptsize then
+               new_ptsize
+             else
+               ptsize ),
            false ))
-       (((x, y), (0, 0)), true)
+       (((x, y), (0, 0), ptsize), true)
        strings)

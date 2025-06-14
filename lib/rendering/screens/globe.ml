@@ -89,6 +89,7 @@ let render_globe_screen (window : Sdl.window) (frame_counter : int) =
   let quad_vao = setup_fullscreen_quad () in
   (* Render atlas to texture *)
   let atlas_texture =
+    if !Atlas_screen_data.atlas_view_shifted then atlastex := None;
     match !atlastex with
     | Some a ->
         a

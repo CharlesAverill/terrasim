@@ -151,7 +151,7 @@ let draw_popups (window : Sdl.window) (renderer : Sdl.renderer)
     let ptsize = 60 in
     let fit = ((ui_w, ui_h / 10), false) in
     let font_family = CourierPrime in
-    let (x, y), (w, h) =
+    let (x, y), (w, h), ptsize =
       render_lines_vertical ~ptsize ~fit ~font_family renderer (2 * ui_buffer)
         (x + ui_buffer, y + (2 * ui_buffer))
         [
@@ -159,7 +159,7 @@ let draw_popups (window : Sdl.window) (renderer : Sdl.renderer)
         ]
     in
     (* Draw biome tile *)
-    let fit = (((5 * ui_w / 8) - (2 * ui_buffer), ui_h / 10), false) in
+    let biome_fit = (((5 * ui_w / 8) - (2 * ui_buffer), ui_h / 10), false) in
     let biome_tex = Edit.texture_of_tile renderer (biome, alt, frame_count) in
     let tx, ty =
       ( x + ui_w - ui_buffer - (ui_w / 3),
@@ -171,20 +171,25 @@ let draw_popups (window : Sdl.window) (renderer : Sdl.renderer)
         ~dst:(Sdl.Rect.create ~x:tx ~y:ty ~w:tw ~h:th)
         renderer biome_tex
     in
+    (* Draw biome text *)
+    let (x, y), (w, h), _ =
+      render_text ~ptsize ~fit:(Some biome_fit) ~font_family renderer
+        (x, ty + ui_buffer)
+        (if biome = Land Nothing then
+           "No Biome"
+         else
+           string_of_biome_tile biome)
+    in
     (* Draw lifeform and lifeform texture *)
-    match lf with
+    (match lf with
     | None ->
         ()
     | Some lf ->
         let _ =
-          render_lines_vertical ~ptsize ~fit ~font_family renderer
+          render_lines_vertical ~ptsize ~fit:biome_fit ~font_family renderer
             (2 * ui_buffer)
-            (x, ty + ui_buffer)
+            (x, y + h + (2 * ui_buffer))
             [
-              (if biome = Land Nothing then
-                 "No Biome"
-               else
-                 string_of_biome_tile biome);
               Printf.sprintf "%s %d/%d"
                 (string_of_class lf.life_class)
                 lf.species 16;
@@ -196,7 +201,21 @@ let draw_popups (window : Sdl.window) (renderer : Sdl.renderer)
             renderer
             (Edit.texture_of_lifeform renderer (lf, frame_count))
         in
-        ()
+        ());
+    (* Draw civilization *)
+    let (x, y), (w, h), ptsize =
+      render_text ~ptsize ~fit:(Some biome_fit) ~font_family renderer
+        (x, ty + th + (2 * ui_buffer))
+        "Civilization: None"
+    in
+    let* _ =
+      Sdl.render_copy
+        ~dst:(Sdl.Rect.create ~x:tx ~y:(ty + th + ui_buffer) ~w:tw ~h:th)
+        renderer
+        (Assets.Assetloader.texture_of_blob renderer
+           Assets.Sprites.biomes_nothing_sprite)
+    in
+    ()
   )
 
 (** Render the edit UI onto a texture, then copy it onto the screen (mostly just

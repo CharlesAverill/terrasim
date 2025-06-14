@@ -11,3 +11,5 @@ let select_highlight_color = rgb_of_hex "FFDE64"
 
 (** Lifeform sprite transparency color *)
 let lifeform_colorkey_rgb = rgb_of_hex "20C8F8"
+
+let atlas_life_view_bg_color = rgb_of_hex "3939b5"

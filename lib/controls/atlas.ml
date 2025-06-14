@@ -4,6 +4,8 @@ open Tsdl
 open Utils.Sdl_utils
 open Common
 
+let change_view_key = "v"
+
 (** Handle text input on the atlas screen
     @param e Text input event to handle
     @param window The application's SDL window *)
@@ -14,6 +16,8 @@ let atlas_handle_textinput (e : Sdl.event) (window : Sdl.window) =
   (* Swap camera *)
   | x when x = swap_camera_key ->
       toggle_camera_mode window
+  | x when x = change_view_key ->
+      Rendering.Atlas_screen_data.shift_atlas_view_mode ()
   | _ ->
       ()
 

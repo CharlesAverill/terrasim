@@ -147,12 +147,7 @@ let make_tile_data ?(use_atlas_camera : bool = true) () :
   let scale_x = 2.0 /. float world_width in
   let scale_y = 2.0 /. float world_height in
   (* Render selected map mode *)
-  (match !Atlas_screen_data.atlas_view_mode with
-  | `Altitude ->
-      Atlas_views.render_altitude use_atlas_camera (scale_x, scale_y) offsets
-        colors
-  | _ ->
-      ());
+  Atlas_views.render_func () use_atlas_camera (scale_x, scale_y) offsets colors;
   (offsets, colors)
 
 (** Shader program compiled for the current OpenGL context, or [None] *)

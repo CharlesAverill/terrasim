@@ -138,3 +138,39 @@ let evolution_step (lf : lifeform) : life_class option =
       Some Cetacean
   | _ ->
       None
+
+let color_of_life_class (lc : life_class) =
+  rgb_of_hex
+    (match lc with
+    | Eukaryote ->
+        "#00FFAA"
+    | Amphibian ->
+        "#77FF77"
+    | Prokaryote ->
+        "#FF00FF"
+    | Avian ->
+        "#FFFF55"
+    | Carnifern ->
+        "#00AA00"
+    | Arthropod ->
+        "#FF5500"
+    | Dinosaur ->
+        "#AA00FF"
+    | Fish ->
+        "#00FFFF"
+    | Insect ->
+        "#FFAA00"
+    | Mammal ->
+        "#FFFFFF"
+    | Mollusk ->
+        "#AAAAFF"
+    | Reptile ->
+        "#00FF00"
+    | Robot ->
+        "#888888"
+    | Radiate ->
+        "#FF88FF"
+    | Trichordate ->
+        "#CC00FF"
+    | Cetacean ->
+        "#66CCFF")
