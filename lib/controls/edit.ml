@@ -63,7 +63,7 @@ let edit_handle_textinput (e : Sdl.event) (window : Sdl.window)
   | x when x = swap_camera_key ->
       toggle_camera_mode window ui_window
   | x when x = hide_ui_key ->
-      Rendering.Edit_screen_data.toggle_edit_ui_popup ();
+      toggle_ui_window_open ();
       Rendering.Edit_screen_data.close_examine_popup ()
   | _ ->
       ()

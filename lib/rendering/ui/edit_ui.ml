@@ -10,6 +10,7 @@ open Cameras.Edit_camera
 open Utils.Sdl_utils
 open Utils.Colors
 open Utils.Globals
+open Utils.Standard_utils
 open Edit_screen_data
 
 (** Identifiers for {!edit_screen_buttons} *)
@@ -68,9 +69,7 @@ let ui_bevel_w = ref 0
     @param cursor_pos Screen-space position of cursor *)
 let draw_edit_ui (window : Sdl.window) (renderer : Sdl.renderer)
     (cursor_pos : int * int) =
-  let win_w, (win_h, ui_h) =
-    get_edit_window_ui_w_h window !edit_ui_popup_open
-  in
+  let win_w, (win_h, ui_h) = get_window_ui_w_h window in
   (* Initialize and draw the main UI popup *)
   if not !edit_ui_popup.initialized then
     edit_ui_popup :=
@@ -124,9 +123,7 @@ let draw_edit_ui (window : Sdl.window) (renderer : Sdl.renderer)
     @param frame_count The current frame count *)
 let draw_popups (window : Sdl.window) (renderer : Sdl.renderer)
     (frame_count : int) =
-  let win_w, (win_h, ui_h) =
-    get_edit_window_ui_w_h window !Edit_screen_data.edit_ui_popup_open
-  in
+  let win_w, (win_h, ui_h) = get_window_ui_w_h window in
   (* Draw examine popup *)
   if !examine_popup_open then (
     (if not !examine_popup.initialized then
@@ -230,7 +227,7 @@ let render_edit_ui (window : Sdl.window) (renderer : Sdl.renderer)
   let* _ = Sdl.set_render_draw_color renderer 0 0 0 0 in
   let* _ = Sdl.render_clear renderer in
   Draw_cursor.draw_cursor window cursor_pos;
-  if !Edit_screen_data.edit_ui_popup_open then (
+  if !ui_window_open then (
     draw_edit_ui window renderer cursor_pos;
     draw_popups window renderer frame_count
   );

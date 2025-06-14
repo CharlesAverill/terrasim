@@ -17,3 +17,9 @@ let need_to_flush_edit_caches = ref false
 
 (** Signals to flush the tile texture cache *)
 let clear_edit_cache () = need_to_flush_edit_caches := true
+
+(** Whether the UI is visible *)
+let ui_window_open = ref true
+
+(** Toggle [ui_window_open] *)
+let toggle_ui_window_open () = ui_window_open := not !ui_window_open

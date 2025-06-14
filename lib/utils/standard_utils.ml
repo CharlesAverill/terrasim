@@ -1,5 +1,6 @@
 (** Standard utilities *)
 
+open Tsdl
 open Logging
 
 (** Clamp a numeric value to \[[min, max]\]
@@ -48,3 +49,19 @@ let find (s : string) (sub : string) : int option =
     @param sub The substring to search for.
     @return [true] if [sub] is found in [s], [false] otherwise. *)
 let contains (s : string) (sub : string) : bool = find s sub != None
+
+(** Get the width and height of the edit window for tiles and the height of the
+    edit UI window for the UI
+    @param window Application's SDL window
+    @return Tuple of window width and window height and UI window height *)
+let get_window_ui_w_h (window : Sdl.window) : int * (int * int) =
+  let win_w, win_h = Sdl.get_window_size window in
+  let wh =
+    if !Globals.ui_window_open then
+      0.85
+    else
+      1.
+  in
+  ( win_w,
+    (int_of_float (float win_h *. wh), int_of_float (float win_h *. (1. -. wh)))
+  )

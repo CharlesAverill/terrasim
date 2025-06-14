@@ -17,8 +17,7 @@ let handle_render_iter (window : Sdl.window) (frame_counter : int) =
   | Some (Edit2D _) ->
       (* These need to run every frame, regardless of whether there is an input event *)
       pan_edit_camera_if_needed window
-        !Rendering.Popup.pause_everything_for_popup
-        !Rendering.Edit_screen_data.edit_ui_popup_open;
+        !Rendering.Popup.pause_everything_for_popup;
       cursor_go_to_mouse ();
       Rendering.Edit.render_edit_screen window frame_counter
   | Some Atlas2D ->

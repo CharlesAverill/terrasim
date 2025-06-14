@@ -81,9 +81,7 @@ let render_edit_screen (window : Sdl.window) (frame_counter : int) =
   set_render_color black_color renderer;
   let* _ = Sdl.render_clear renderer in
   (* Get window size in pixels *)
-  let window_w, (window_h, _) =
-    get_edit_window_ui_w_h window !edit_ui_popup_open
-  in
+  let window_w, (window_h, _) = get_window_ui_w_h window in
   tile_w := window_w / view_width ();
   tile_h := window_h / view_height ();
   (* Determine number of tiles to draw (view width/height) *)

@@ -9,12 +9,6 @@ open Popup
 (** How many frames it takes to draw the next frame of an animated tile *)
 let animated_tile_update_factor = 8
 
-(** Whether the edit UI is visible *)
-let edit_ui_popup_open = ref true
-
-(** Toggle [edit_ui_popup_open] *)
-let toggle_edit_ui_popup () = edit_ui_popup_open := not !edit_ui_popup_open
-
 (** Whether the examine popup is visible *)
 let examine_popup_open = ref false
 
