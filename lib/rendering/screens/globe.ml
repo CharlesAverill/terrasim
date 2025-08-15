@@ -4,6 +4,7 @@ open Tsdl
 open Tgl4
 open Utils.Logging
 open Utils.Opengl_utils
+open Utils.Standard_utils
 open Globe_data
 
 (** The
@@ -56,8 +57,8 @@ let render_globe_screen (window : Sdl.window) (frame_counter : int) =
   in
   (* Bind default framebuffer to render globe to screen *)
   Gl.bind_framebuffer Gl.framebuffer 0;
-  let win_w, win_h = Sdl.get_window_size window in
-  Gl.viewport 0 0 win_w win_h;
+  let win_w, (win_h, ui_h) = get_window_ui_w_h window in
+  Gl.viewport 0 ui_h win_w win_h;
   Gl.clear_color 0.0 0.0 0.0 1.0;
   Gl.clear Gl.color_buffer_bit;
   (* Use globe shader *)
@@ -80,6 +81,4 @@ let render_globe_screen (window : Sdl.window) (frame_counter : int) =
   let u_ichannel0 = Gl.get_uniform_location sprogram "iChannel0" in
   Gl.uniform1i u_ichannel0 0;
   (* Draw *)
-  Gl.draw_arrays Gl.triangles 0 6;
-  (* Swap *)
-  Sdl.gl_swap_window window
+  Gl.draw_arrays Gl.triangles 0 6

@@ -9,7 +9,7 @@ type log_type =
   | Log_Error
   | Log_Critical
 
-let _GLOBAL_LOG_LEVEL = Log_Info
+let _GLOBAL_LOG_LEVEL = ref Log_Info
 
 (** Follows the order in the type definition, \[0:5\]*)
 let int_of_log = function
@@ -25,6 +25,20 @@ let int_of_log = function
       5
   | Log_None ->
       0
+
+let log_of_int = function
+  | 0 ->
+      Log_None
+  | 1 ->
+      Log_Debug
+  | 2 ->
+      Log_Info
+  | 3 ->
+      Log_Warning
+  | 4 ->
+      Log_Error
+  | _ ->
+      Log_Critical
 
 type return_code = int * string
 (** For exits, their appropriate return code and the message type *)
@@ -86,7 +100,8 @@ let fatal rc fmt =
 
 (** Prints log statements to stdout/stderr *)
 let _log log_level fmt =
-  if log_level = Log_None || int_of_log _GLOBAL_LOG_LEVEL > int_of_log log_level
+  if
+    log_level = Log_None || int_of_log !_GLOBAL_LOG_LEVEL > int_of_log log_level
   then
     Printf.ksprintf (fun _ -> ()) fmt
   else

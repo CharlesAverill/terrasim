@@ -1,5 +1,6 @@
 (** Handling rendering for the game loop *)
 
+open Tgl4
 open Tsdl
 open Cameras.Camera
 open Cameras.Edit_camera
@@ -8,6 +9,7 @@ open Controls.Cursor
 open Rendering.Globe_data
 open Rendering.Graphics
 open Utils.Sdl_utils
+open Utils.Globals
 
 (** Do one iteration of rendering
     @param window The application's SDL window
@@ -49,19 +51,28 @@ let handle_render_iter (window : Sdl.window) (frame_counter : int) =
 let handle_ui_iter (window : Sdl.window) (frame_count : int) =
   match !current_camera_mode with
   | Some (Edit2D _) ->
-      let renderer = get_global_renderer () in
-      Rendering.Edit_ui.render_edit_ui window renderer
+      Rendering.Edit_ui.render_edit_ui window (get_global_renderer ())
         (Controls.Cursor.global_cursor.x, Controls.Cursor.global_cursor.y)
         frame_count
   | Some Atlas2D ->
-      let renderer = Rendering.Ui_texture.get_ui_renderer () in
-      let* _ = Sdl.set_render_draw_color renderer 0 0 0 0 in
-      let* _ = Sdl.render_clear renderer in
-      let* _ = Sdl.set_render_draw_color renderer 255 0 0 255 in
-      let* _ =
-        Sdl.render_fill_rect renderer
-          (Some (Sdl.Rect.create ~x:0 ~y:0 ~w:125 ~h:125))
-      in
-      ()
+      print_endline "test1";
+      Rendering.Atlas_ui.render_atlas_ui window
+        (Rendering.Ui_texture.get_ui_renderer ());
+      print_endline "test2";
+      Rendering.Atlas.render_atlas_ui
+        (Rendering.Ui_texture.get_ui_window ())
+        (Rendering.Ui_texture.get_ui_renderer ())
+        !ui_needs_redraw;
+      print_endline "test3";
+      ui_needs_redraw := false
   | _ ->
       ()
+
+let show_render (window : Sdl.window) =
+  match !current_render_mode with
+  | UninitRender ->
+      ()
+  | SdlRender r ->
+      Sdl.render_present r
+  | GlRender glc ->
+      Sdl.gl_swap_window window

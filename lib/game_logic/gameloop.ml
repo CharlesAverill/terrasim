@@ -32,18 +32,27 @@ let gameloop_iter (window : Sdl.window) (ui_window : Sdl.window)
   (* Compute target framerate *)
   let frame_start = Sdl.get_ticks () in
   frame_counter := !frame_counter + 1;
+  _log Log_Debug "Gameloop @ frame %d" !frame_counter;
+  _log Log_Debug "Handle input";
   (* Handle input events *)
   let loop_continue = Handle_input.handle_input_iter window ui_window event in
   (* Run simulation approx. once every other second *)
   if
     (not !Rendering.Popup.pause_everything_for_popup)
     && !frame_counter mod (target_fps * 2) = 0
-  then
-    Simulation.Simulator.simulate ();
+  then (
+    _log Log_Debug "Step simulation";
+    Simulation.Simulator.simulate ()
+  );
   (* Render game screen *)
+  _log Log_Debug "Render screen";
   Handle_render.handle_render_iter window !frame_counter;
   (* Render UI *)
-  Handle_render.handle_ui_iter window !frame_counter;
+  _log Log_Debug "Render UI";
+  Handle_render.handle_ui_iter ui_window !frame_counter;
+  (* Show result on screen *)
+  _log Log_Debug "Show render result";
+  Handle_render.show_render window;
   (* Delay for ideal framerate *)
   let frame_time = Int32.sub (Sdl.get_ticks ()) frame_start in
   if frame_time < frame_delay then Sdl.delay (Int32.sub frame_delay frame_time);

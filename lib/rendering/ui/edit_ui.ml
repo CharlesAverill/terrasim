@@ -71,14 +71,14 @@ let draw_edit_ui (window : Sdl.window) (renderer : Sdl.renderer)
     (cursor_pos : int * int) =
   let win_w, (win_h, ui_h) = get_window_ui_w_h window in
   (* Initialize and draw the main UI popup *)
-  if not !edit_ui_popup.initialized then
-    edit_ui_popup :=
+  if not !edit_ui_window.initialized then
+    edit_ui_window :=
       {
         bounding_box = Sdl.Rect.create ~x:0 ~y:win_h ~w:win_w ~h:ui_h;
         initialized = true;
       };
   let bevel_w, ui_buffer, ((ui_area_x, ui_area_y), (ui_area_w, ui_area_h)) =
-    draw_popup renderer !edit_ui_popup
+    draw_popup renderer !edit_ui_window
   in
   ui_bevel_w := bevel_w;
   let ui_area_h =
@@ -234,4 +234,4 @@ let render_edit_ui (window : Sdl.window) (renderer : Sdl.renderer)
   let* _ = Sdl.set_render_target renderer None in
   let* _ = Sdl.set_render_draw_blend_mode renderer Sdl.Blend.mode_blend in
   let* _ = Sdl.render_copy renderer (Ui_texture.get_ui_texture ()) in
-  Sdl.render_present renderer
+  ()

@@ -137,6 +137,8 @@ let swap_render_mode (window : Sdl.window) (ui_window : Sdl.window) =
   clear_edit_cache ();
   (* Atlas screen reset *)
   Atlas.sprogram := None;
+  Atlas.ui_sprogram := None;
+  Atlas.gl_ui_texture := 0;
   (* Globe screen reset *)
   Globe.sprogram := None;
   Globe.atlastex := None;

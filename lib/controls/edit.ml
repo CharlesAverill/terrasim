@@ -80,7 +80,8 @@ let edit_handle_mouseclick (e : Sdl.event) (window : Sdl.window) =
   if !examine_popup_open then (
     if not (point_inside_popup (x, y) !examine_popup) then
       close_examine_popup ()
-  ) else if not (point_inside_popup (x, y) !edit_ui_popup) then (
+  ) else if not (point_inside_popup (x, y) !edit_ui_window) then (
+    ui_needs_redraw := true;
     let tile_x = (x / scaled_tile_w ()) + edit_camera.x in
     let tile_y = (y / scaled_tile_h ()) + edit_camera.y in
     global_cursor.x <- tile_x;

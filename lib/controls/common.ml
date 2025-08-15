@@ -4,6 +4,7 @@ open Tsdl
 open Cameras.Camera
 open Cameras.Edit_camera
 open Rendering.Graphics
+open Utils.Globals
 
 let swap_camera_key = "c"
 let hide_ui_key = "h"
@@ -12,6 +13,7 @@ let hide_ui_key = "h"
     @param window Application's SDL window
     @param ui_window A hidden window for rendering the UI *)
 let toggle_camera_mode (window : Sdl.window) (ui_window : Sdl.window) =
+  ui_needs_redraw := true;
   match !current_camera_mode with
   | Some (Edit2D _) ->
       swap_render_mode window ui_window;

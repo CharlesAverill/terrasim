@@ -23,3 +23,6 @@ let ui_window_open = ref true
 
 (** Toggle [ui_window_open] *)
 let toggle_ui_window_open () = ui_window_open := not !ui_window_open
+
+(** Whether UI needs to redraw *)
+let ui_needs_redraw = ref true

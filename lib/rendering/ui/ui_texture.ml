@@ -34,7 +34,7 @@ let create_ui_texture (window : Sdl.window) (renderer : Sdl.renderer) =
   (match !ui_texture with None -> () | Some t -> Sdl.destroy_texture t);
   let width, height = Sdl.get_window_size window in
   let* tex =
-    Sdl.create_texture renderer Sdl.Pixel.format_argb8888
+    Sdl.create_texture renderer Sdl.Pixel.format_rgba8888
       Sdl.Texture.access_target ~w:width ~h:height
   in
   let* _ = Sdl.set_texture_blend_mode tex Sdl.Blend.mode_blend in

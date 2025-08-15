@@ -92,6 +92,7 @@ let () =
   if args.test_noise then
     test_noise ()
   else (
+    _GLOBAL_LOG_LEVEL := log_of_int args.verbosity;
     init_sdl ();
     let window = create_window "TerraSim" in
     let ui_window =

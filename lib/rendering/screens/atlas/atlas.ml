@@ -81,29 +81,56 @@ let setup_tile_buffers ~(offsets : (float * float) array)
   Gl.bind_vertex_array 0;
   vao
 
-let draw_ui ui_sprogram =
+let gl_ui_texture = ref 0
+let texture_data = ref (bigarray_create Bigarray.int8_unsigned 0)
+
+let draw_ui ui_sprogram ui_window renderer ui_needs_redraw =
+  print_endline "1";
   Gl.use_program ui_sprogram;
+  print_endline "2";
   Gl.enable Gl.blend;
+  print_endline "3";
   Gl.blend_func Gl.src_alpha Gl.one_minus_src_alpha;
+  print_endline "4";
   let quad_vao = setup_fullscreen_quad () in
+  print_endline "5";
   Gl.bind_vertex_array quad_vao;
-  let gl_texture = get_int (Gl.gen_textures 1) in
-  let w, h = Sdl.get_window_size (get_ui_window ()) in
-  let texture_data = bigarray_create Bigarray.int8_unsigned (h * w * 4) in
-  let* _ =
-    Sdl.render_read_pixels (get_ui_renderer ()) None
-      (Some Sdl.Pixel.format_rgba8888) texture_data (w * 4)
-  in
-  let texture_data = flip_texture_vertically texture_data w h in
-  Gl.active_texture Gl.texture0;
-  Gl.bind_texture Gl.texture_2d gl_texture;
-  Gl.tex_image2d Gl.texture_2d 0 Gl.rgba w h 0 Gl.rgba Gl.unsigned_byte
-    (`Data texture_data);
+  print_endline "6";
+  let w, (h, ui_h) = get_window_ui_w_h ui_window in
+  print_endline "7";
+  Gl.viewport 0 0 w (h + ui_h);
+  print_endline "8";
+  if ui_needs_redraw then (
+    print_endline "9";
+    gl_ui_texture := get_int (Gl.gen_textures 1);
+    print_endline "10";
+    texture_data := bigarray_create Bigarray.int8_unsigned (h * w * 4);
+    print_endline "11";
+    let* _ =
+      Sdl.render_read_pixels renderer None (Some Sdl.Pixel.format_argb8888)
+        !texture_data (w * 4)
+    in
+    print_endline "12";
+    texture_data := flip_texture_vertically !texture_data w h;
+    print_endline "13";
+    Gl.active_texture Gl.texture0;
+    print_endline "14";
+    Gl.bind_texture Gl.texture_2d !gl_ui_texture;
+    print_endline "15";
+    Gl.tex_image2d Gl.texture_2d 0 Gl.rgba w h 0 Gl.rgba Gl.unsigned_byte
+      (`Data !texture_data)
+  );
+  print_endline "16";
   Gl.tex_parameteri Gl.texture_2d Gl.texture_min_filter Gl.nearest;
+  print_endline "17";
   Gl.tex_parameteri Gl.texture_2d Gl.texture_mag_filter Gl.nearest;
+  print_endline "18";
   let tex_loc = Gl.get_uniform_location ui_sprogram "u_texture" in
+  print_endline "19";
   Gl.uniform1i tex_loc 0;
-  Gl.draw_arrays Gl.triangles 0 6
+  print_endline "20";
+  Gl.draw_arrays Gl.triangles 0 6;
+  print_endline "21"
 
 (** Render tiles to the screen or a framebuffer
     @param fbo
@@ -118,13 +145,13 @@ let render_tiles ?(fbo : Sdl.uint8 option = None) (window : Sdl.window)
     (sprogram : int) (ui_sprogram : int) (vao : int) (num_instances : int) =
   Gl.bind_framebuffer Gl.framebuffer
     (match fbo with Some fb -> fb | None -> 0);
-  let w, h =
+  let w, (h, ui_h) =
     if fbo = None then
-      Sdl.get_window_size window
+      get_window_ui_w_h window
     else
-      (512, 512)
+      (512, (512, 0))
   in
-  Gl.viewport 0 0 w h;
+  Gl.viewport 0 ui_h w h;
   Gl.clear_color 0. 0. 0. 1.;
   Gl.clear Gl.color_buffer_bit;
   Gl.use_program sprogram;
@@ -134,11 +161,7 @@ let render_tiles ?(fbo : Sdl.uint8 option = None) (window : Sdl.window)
   let u_scale_y = Gl.get_uniform_location sprogram "uScaleY" in
   Gl.uniform1f u_scale_y (2. /. float world_height);
   Gl.draw_arrays_instanced Gl.triangles 0 6 num_instances;
-  Gl.bind_framebuffer Gl.framebuffer 0;
-  if fbo = None then (
-    draw_ui ui_sprogram;
-    Sdl.gl_swap_window window
-  )
+  Gl.bind_framebuffer Gl.framebuffer 0
 
 (** Create a framebuffer to render onto
     @param width Width of framebuffer
@@ -221,3 +244,16 @@ let render_atlas_screen ?(to_texture : bool = false) (window : Sdl.window) :
     None
   else
     Some tex
+
+let render_atlas_ui (ui_window : Sdl.window) (ui_renderer : Sdl.renderer)
+    (ui_needs_redraw : bool) =
+  let ui_sprogram =
+    match !ui_sprogram with
+    | Some x ->
+        x
+    | None ->
+        let x = compile_shaders ui_vertex_shader_src ui_fragment_shader_src in
+        ui_sprogram := Some x;
+        x
+  in
+  draw_ui ui_sprogram ui_window ui_renderer ui_needs_redraw

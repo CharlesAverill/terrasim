@@ -18,7 +18,7 @@ let examine_popup_data : ((int * int) * int * biome_tile * lifeform option) ref
   ref ((0, 0), 0, Land Nothing, None)
 
 (** Edit screen's main UI popup *)
-let edit_ui_popup : popup ref =
+let edit_ui_window : popup ref =
   ref
     { bounding_box = Sdl.Rect.create ~x:0 ~y:0 ~w:0 ~h:0; initialized = false }
 
